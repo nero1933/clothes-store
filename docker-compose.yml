@@ -1,0 +1,63 @@
+version: '3.9'
+
+services:
+  app:
+    container_name: app
+    build:
+      context: .
+    command: >
+      sh -c "python manage.py migrate &&
+             python manage.py runserver 0.0.0.0:8000"
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./app:/app
+      - ./data/web:/vol/web
+    environment:
+      - DEBUG=${DEBUG}
+      - DB_HOST=db
+      - DB_NAME=${DB_NAME}
+      - DB_USER=${DB_USER}
+      - DB_PASS=${DB_PASS}
+      - SECRET_KEY=${SECRET_KEY}
+      - ALLOWED_HOSTS=${ALLOWED_HOSTS}
+      - SENDGRID_API_KEY=${SENDGRID_API_KEY}
+      - FROM_EMAIL=${FROM_EMAIL}
+      - USER_CONFIRMATION_KEY=${USER_CONFIRMATION_KEY}
+      - PASSWORD_CONFIRMATION_KEY=${PASSWORD_CONFIRMATION_KEY}
+    depends_on:
+      db:
+        condition: service_healthy
+
+  db:
+    container_name: db
+    image: postgres:16.2-alpine
+    volumes:
+      - ./data/postgres:/var/lib/postgresql/data
+    environment:
+      - POSTGRES_DB=${DB_NAME}
+      - POSTGRES_USER=${DB_USER}
+      - POSTGRES_PASSWORD=${DB_PASS}
+    healthcheck:
+      test: [ "CMD-SHELL", "sh -c 'pg_isready -U ${DB_USER} -d ${DB_NAME}'" ]
+      interval: 3s
+      timeout: 3s
+      retries: 3
+
+  redis:
+    container_name: redis
+    image: redis:7.2.4-alpine
+    hostname: redis
+    healthcheck:
+      test: [ "CMD", "redis-cli", "ping" ]
+      interval: 5s
+      timeout: 10s
+      retries: 5
+
+  stripe-cli:
+    image: stripe/stripe-cli
+    network_mode: host
+    environment:
+        - STRIPE_API_KEY=${STRIPE_SECRET_KEY}
+        - STRIPE_DEVICE_NAME=${STRIPE_DEVICE_NAME}
+    command: listen --forward-to 0.0.0.0:8000/api/v1/stripe_webhook/
