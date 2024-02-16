@@ -1,4 +1,7 @@
-from django.db import models
+import uuid
+from datetime import datetime
+
+from django.db import models, IntegrityError
 from django.contrib.auth.models import AbstractBaseUser
 from django.contrib.auth.models import PermissionsMixin
 from django.contrib.auth.models import BaseUserManager
@@ -44,40 +47,40 @@ class UserProfileManager(BaseUserManager):
 
         return user
 
-    # def create_guest(self):
-    #     """ Creates and saves user as a guest. """
-    #
-    #     def try_create_guest():
-    #         guest_user = None
-    #         guest_email = None
-    #
-    #         email = str(uuid.uuid4()) + '@guest.user'
-    #         password = str(uuid.uuid4())
-    #
-    #         try:
-    #             guest_user = UserProfile.objects.create_user(
-    #                 email=email,
-    #                 first_name='guest',
-    #                 last_name='guest',
-    #                 password=password,
-    #                 phone=None,
-    #             )
-    #         except:
-    #             return None
-    #
-    #         return guest_user
-    #
-    #     user = None
-    #
-    #     while user is None:
-    #         user = try_create_guest()
-    #
-    #     user.last_login = datetime
-    #     user.is_guest = True
-    #
-    #     user.save(using=self.db)
-    #
-    #     return user
+    def create_guest(self):
+        """ Creates and saves user as a guest. """
+
+        def try_create_guest():
+            """ Tries to create and save user as a guest. """
+
+            email = str(uuid.uuid4()) + '@guest.user'
+            password = str(uuid.uuid4())
+
+            try:
+                guest_user = UserProfile.objects.create_user(
+                    email=email,
+                    first_name='guest',
+                    last_name='guest',
+                    password=password,
+                    phone=None,
+                )
+            except IntegrityError:
+                return None
+
+            return guest_user
+
+
+        user = None
+
+        while user is None:
+            user = try_create_guest()
+
+        user.last_login = datetime
+        user.is_guest = True
+
+        user.save(using=self.db)
+
+        return user
 
 class UserProfile(AbstractBaseUser, PermissionsMixin):
     """ Represents a 'user profile' inside our system. """
@@ -85,7 +88,6 @@ class UserProfile(AbstractBaseUser, PermissionsMixin):
     email = models.EmailField(max_length=255, unique=True)
     first_name = models.CharField(max_length=255)
     last_name = models.CharField(max_length=255)
-    # name = models.CharField(max_length=255)
     phone = PhoneNumberField(null=True, blank=True)
     # address = models.ManyToManyField(Address, through='UserAddress', related_name='address_to_user')
     is_active = models.BooleanField(default=False)
@@ -112,7 +114,3 @@ class UserProfile(AbstractBaseUser, PermissionsMixin):
         """ Convert an object to string. """
 
         return self.email
-
-
-
-
