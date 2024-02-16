@@ -9,14 +9,14 @@ from phonenumber_field.modelfields import PhoneNumberField
 class UserProfileManager(BaseUserManager):
     """ Helps Django work with our custom user model. """
 
-    def create_user(self, email, name, phone, password=None):
+    def create_user(self, email, first_name, last_name, phone, password=None):
         """ Creates a new user profile object. """
 
         if not email:
             raise ValueError('Users must have an email address.')
 
         email = self.normalize_email(email)
-        user = self.model(email=email, name=name, phone=phone)
+        user = self.model(email=email, first_name=first_name, last_name=last_name, phone=phone)
 
         user.set_password(password)
         user.save(using=self.db)
@@ -26,10 +26,10 @@ class UserProfileManager(BaseUserManager):
 
         return user
 
-    def create_superuser(self, email, name, phone, password=None):
+    def create_superuser(self, email, first_name, last_name, phone=None, password=None):
         """ Creates and saves a new superuser with given details. """
 
-        user = self.create_user(email, name, phone, password)
+        user = self.create_user(email, first_name, last_name, phone, password)
 
         user.is_superuser = True
         user.is_staff = True
@@ -44,11 +44,48 @@ class UserProfileManager(BaseUserManager):
 
         return user
 
+    # def create_guest(self):
+    #     """ Creates and saves user as a guest. """
+    #
+    #     def try_create_guest():
+    #         guest_user = None
+    #         guest_email = None
+    #
+    #         email = str(uuid.uuid4()) + '@guest.user'
+    #         password = str(uuid.uuid4())
+    #
+    #         try:
+    #             guest_user = UserProfile.objects.create_user(
+    #                 email=email,
+    #                 first_name='guest',
+    #                 last_name='guest',
+    #                 password=password,
+    #                 phone=None,
+    #             )
+    #         except:
+    #             return None
+    #
+    #         return guest_user
+    #
+    #     user = None
+    #
+    #     while user is None:
+    #         user = try_create_guest()
+    #
+    #     user.last_login = datetime
+    #     user.is_guest = True
+    #
+    #     user.save(using=self.db)
+    #
+    #     return user
+
 class UserProfile(AbstractBaseUser, PermissionsMixin):
     """ Represents a 'user profile' inside our system. """
 
     email = models.EmailField(max_length=255, unique=True)
-    name = models.CharField(max_length=255)
+    first_name = models.CharField(max_length=255)
+    last_name = models.CharField(max_length=255)
+    # name = models.CharField(max_length=255)
     phone = PhoneNumberField(null=True, blank=True)
     # address = models.ManyToManyField(Address, through='UserAddress', related_name='address_to_user')
     is_active = models.BooleanField(default=False)
@@ -59,17 +96,17 @@ class UserProfile(AbstractBaseUser, PermissionsMixin):
     objects = UserProfileManager()
 
     USERNAME_FIELD = 'email'
-    REQUIRED_FIELDS = ['name', 'phone']
+    REQUIRED_FIELDS = ['first_name', 'last_name', 'phone']
 
     def get_full_name(self):
         """ Used to get a users full name. """
 
-        return self.name
+        return self.first_name
 
     def get_short_name(self):
         """ Used to get a users short name. """
 
-        return self.name
+        return self.first_name
 
     def __str__(self):
         """ Convert an object to string. """
