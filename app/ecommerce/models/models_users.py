@@ -83,7 +83,7 @@ class UserProfileManager(BaseUserManager):
         return user
 
 class UserProfile(AbstractBaseUser, PermissionsMixin):
-    """ Represents a 'user profile' inside our system. """
+    """ Represents a 'user profile'. """
 
     email = models.EmailField(max_length=255, unique=True)
     first_name = models.CharField(max_length=255)
@@ -103,7 +103,7 @@ class UserProfile(AbstractBaseUser, PermissionsMixin):
     def get_full_name(self):
         """ Used to get a users full name. """
 
-        return self.first_name
+        return f'{self.first_name} {self.last_name}'
 
     def get_short_name(self):
         """ Used to get a users short name. """
