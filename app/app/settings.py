@@ -132,9 +132,9 @@ REST_FRAMEWORK = {
         'rest_framework.authentication.SessionAuthentication',
     ),
 
-    'DEFAULT_FILTER_BACKENDS': ['django_filters.rest_framework.DjangoFilterBackend'],
-    'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema',
-    'COERCE_DECIMAL_TO_STRING': False,
+    # 'DEFAULT_FILTER_BACKENDS': ['django_filters.rest_framework.DjangoFilterBackend'],
+    # 'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema',
+    # 'COERCE_DECIMAL_TO_STRING': False,
     # 'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.LimitOffsetPagination',
     # 'PAGE_SIZE': 100
 
@@ -203,7 +203,7 @@ USE_I18N = True
 USE_TZ = True
 
 # Static files (CSS, JavaScript, Images)
-# https://docs.djangoproject.com/en/4.1/howto/static-files/
+# https://docs.djangoproject.com/en/4.2/howto/static-files/
 
 STATIC_URL = 'static/static/'
 MEDIA_URL = 'static/media/'
@@ -212,13 +212,32 @@ STATIC_ROOT = 'vol/web/static/'
 MEDIA_ROOT = 'vol/web/media/'
 
 # Default primary key field type
-# https://docs.djangoproject.com/en/4.1/ref/settings/#default-auto-field
+# https://docs.djangoproject.com/en/4.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 AUTH_USER_MODEL = 'ecommerce.UserProfile'
 
-# Default primary key field type
-# https://docs.djangoproject.com/en/4.2/ref/settings/#default-auto-field
+# Sendgrid api (SMTP API)
+# https://docs.sendgrid.com/for-developers/sending-email/django
 
-DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+EMAIL_HOST = 'smtp.sendgrid.net'
+EMAIL_HOST_USER = 'apikey' # this is exactly the value 'apikey'
+EMAIL_HOST_PASSWORD = os.environ.get('SENDGRID_API_KEY')
+EMAIL_PORT = 587
+EMAIL_USE_TLS = True
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+
+#
+#
+#
+
+# Custom variables
+
+DEFAULT_FROM_EMAIL = os.environ.get('FROM_EMAIL')
+
+USER_CONFIRMATION_KEY = os.environ.get('USER_CONFIRMATION_KEY')
+USER_CONFIRMATION_TIMEOUT = 300
+
+PASSWORD_CONFIRMATION_KEY = os.environ.get('PASSWORD_CONFIRMATION_KEY')
+PASSWORD_CONFIRMATION_TIMEOUT = 300
