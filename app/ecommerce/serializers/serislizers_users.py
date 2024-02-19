@@ -51,12 +51,12 @@ class PasswordResetNewPasswordSerializer(serializers.ModelSerializer):
         return attrs
 
     def save(self, **kwargs):
-        if self.instance is not None:
-            self.instance.set_password(self.validated_data['password'])
-            self.instance.save()
-            return self.instance
+        if self.instance is None:
+            raise TimeoutError('Link has been expired')
 
-        raise TimeoutError('Link has been expired')
+        self.instance.set_password(self.validated_data['password'])
+        self.instance.save()
+        return self.instance
 
 
 
