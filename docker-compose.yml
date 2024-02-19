@@ -24,7 +24,7 @@ services:
       - SENDGRID_API_KEY=${SENDGRID_API_KEY}
       - FROM_EMAIL=${FROM_EMAIL}
       - USER_CONFIRMATION_KEY=${USER_CONFIRMATION_KEY}
-      - PASSWORD_CONFIRMATION_KEY=${PASSWORD_CONFIRMATION_KEY}
+      - PASSWORD_RESET_KEY=${PASSWORD_RESET_KEY}
     depends_on:
       db:
         condition: service_healthy

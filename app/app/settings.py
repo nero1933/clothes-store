@@ -164,7 +164,7 @@ SIMPLE_JWT = {
     'USER_ID_CLAIM': 'user_id',
     'USER_AUTHENTICATION_RULE': 'rest_framework_simplejwt.authentication.default_user_authentication_rule',
 
-    'AUTH_TOKEN_CLASSES': ('rest_framework_simplejwt.tokens.AccessToken',),
+    'AUTH_TOKEN_CLASSES': ('rest_framework_simplejwt.keys_managers.AccessToken',),
     'TOKEN_TYPE_CLAIM': 'token_type',
     'TOKEN_USER_CLASS': 'rest_framework_simplejwt.models.TokenUser',
 
@@ -239,5 +239,5 @@ DEFAULT_FROM_EMAIL = os.environ.get('FROM_EMAIL')
 USER_CONFIRMATION_KEY = os.environ.get('USER_CONFIRMATION_KEY')
 USER_CONFIRMATION_TIMEOUT = 300
 
-PASSWORD_CONFIRMATION_KEY = os.environ.get('PASSWORD_CONFIRMATION_KEY')
-PASSWORD_CONFIRMATION_TIMEOUT = 300
+PASSWORD_RESET_KEY = os.environ.get('PASSWORD_RESET_KEY')
+PASSWORD_RESET_TIMEOUT = 300
