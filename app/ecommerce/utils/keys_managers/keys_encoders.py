@@ -3,7 +3,7 @@ import uuid
 
 class KeyEncoder:
     """
-    test.
+    tests.
     """
     confirmation_key = None
     timeout = None

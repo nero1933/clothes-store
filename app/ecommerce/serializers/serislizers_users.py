@@ -29,7 +29,7 @@ class PasswordResetSerializer(serializers.Serializer):
 
 class PasswordResetNewPasswordSerializer(serializers.ModelSerializer):
     """
-    test.
+    tests.
     """
     password = serializers.CharField(style={"input_type": "password"}, write_only=True)
     password_confirmation = serializers.CharField(style={"input_type": "password"},write_only=True)

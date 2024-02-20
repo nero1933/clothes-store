@@ -1,4 +1,8 @@
+from django.core.mail import EmailMultiAlternatives
+from django.template.loader import render_to_string
 from rest_framework.reverse import reverse
+
+from app import settings
 
 
 class ConfirmationEmail:
@@ -8,7 +12,6 @@ class ConfirmationEmail:
     def _send_confirmation_link(
             self,
             request,
-            user_id,
             user_email,
             token,
             reverse_name,
@@ -16,44 +19,43 @@ class ConfirmationEmail:
             subject
     ):
         """
-        test.
+        tests.
         """
         confirmation_link = request.build_absolute_uri(
             reverse(reverse_name, kwargs={'token': token})
         )
 
-        print('confirmation_link')
-        print(confirmation_link)
-        print('confirmation_link')
+        # print('confirmation_link')
+        # print(confirmation_link)
+        # print('confirmation_link')
 
-        # context = {
-        #     'confirmation_link': confirmation_link,
-        # }
-        #
-        # html_body = render_to_string(template, context)
-        #
-        # message = EmailMultiAlternatives(
-        #     subject=subject,
-        #     body=f'{subject}\n{confirmation_link}',
-        #     from_email=settings.DEFAULT_FROM_EMAIL,
-        #     to=[user_email]
-        # )
-        # message.attach_alternative(html_body, "text/html")
-        # message.send(fail_silently=False)
+        context = {
+            'confirmation_link': confirmation_link,
+        }
+
+        html_body = render_to_string(template, context)
+
+        message = EmailMultiAlternatives(
+            subject=subject,
+            body=f'{subject}\n{confirmation_link}',
+            from_email=settings.DEFAULT_FROM_EMAIL,
+            to=[user_email]
+        )
+        message.attach_alternative(html_body, "text/html")
+        message.send(fail_silently=False)
         return 1
 
 
 class RegistrationEmail(ConfirmationEmail):
     """
-    test.
+    tests.
     """
-    def send_registration_link(self, request, user_id, token, user_email):
+    def send_registration_link(self, request, user_email, token):
         """
-        test.
+        tests.
         """
         self._send_confirmation_link(
             request,
-            user_id,
             user_email,
             token,
             'register_user_confirmation',
@@ -64,12 +66,11 @@ class RegistrationEmail(ConfirmationEmail):
 
 class PasswordResetEmail(ConfirmationEmail):
     """
-    test.
+    tests.
     """
-    def send_password_reset_link(self, request, user_id, user_email, token):
+    def send_password_reset_link(self, request, user_email, token):
         self._send_confirmation_link(
             request,
-            user_id,
             user_email,
             token,
             'password_reset_new_password',

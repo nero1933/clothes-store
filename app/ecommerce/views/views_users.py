@@ -17,7 +17,7 @@ from ecommerce.utils.keys_managers.keys_encoders import KeyEncoder
 @api_view(['PATCH'])
 def register_user_confirmation(request, *args, **kwargs):
     """
-    test.
+    tests.
     """
     confirmation_key = settings.USER_CONFIRMATION_KEY.format(token=kwargs['token'])
     user = cache.get(confirmation_key) or {}
@@ -55,7 +55,7 @@ class RegisterUserAPIView(CreateAPIView, RegistrationEmail, KeyEncoder):
 
         confirmation_key, token = self.create_confirmation_key_and_token() # method from PasswordResetKeyEncoder
         cache.set(confirmation_key, {'user_id': user_id}, timeout=self.timeout) # set key to cache
-        self.send_registration_link(request, user_id, user_email, token) # method from RegistrationEmail
+        self.send_registration_link(request, user_email, token) # method from RegistrationEmail
 
         return response
 
@@ -73,11 +73,11 @@ class PasswordResetAPIView(APIView, PasswordResetEmail, KeyEncoder):
         serializer = PasswordResetSerializer(context={'request': request}, data=request.data)
         serializer.is_valid(raise_exception=True)
         user_email = serializer.validated_data['email']
-        user_id = get_object_or_404(UserProfile, email=user_email).pk
+        user_id = get_object_or_404(UserProfile, email=user_email).pk # !!! test SQL queries
 
         confirmation_key, token = self.create_confirmation_key_and_token() # method from PasswordResetKeyEncoder
         cache.set(confirmation_key, {'user_id': user_id}, timeout=self.timeout) # set key to cache
-        self.send_password_reset_link(request, user_id, user_email, token) # method from RegistrationEmail
+        self.send_password_reset_link(request, user_email, token) # method from RegistrationEmail
 
         return Response({'message': 'Email send. Check your mailbox!'}, status=status.HTTP_204_NO_CONTENT)
 
