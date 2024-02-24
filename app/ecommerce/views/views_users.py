@@ -1,9 +1,9 @@
 from django.core.cache import cache
 from django.db import IntegrityError
 
-from rest_framework import status
+from rest_framework import status, mixins
 from rest_framework.decorators import api_view
-from rest_framework.generics import CreateAPIView, get_object_or_404, UpdateAPIView
+from rest_framework.generics import CreateAPIView, get_object_or_404, UpdateAPIView, GenericAPIView
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
@@ -53,7 +53,7 @@ class RegisterUserAPIView(CreateAPIView, RegistrationEmail, KeyEncoder):
         user_id = response.data.get('id', None)
         user_email = response.data.get('user_email', None)
 
-        confirmation_key, token = self.create_confirmation_key_and_token() # method from PasswordResetKeyEncoder
+        confirmation_key, token = self.create_confirmation_key_and_token() # method from KeyEncoder
         cache.set(confirmation_key, {'user_id': user_id}, timeout=self.timeout) # set key to cache
         self.send_registration_link(request, user_email, token) # method from RegistrationEmail
 
@@ -75,14 +75,14 @@ class PasswordResetAPIView(APIView, PasswordResetEmail, KeyEncoder):
         user_email = serializer.validated_data['email']
         user_id = get_object_or_404(UserProfile, email=user_email).pk # !!! test SQL queries
 
-        confirmation_key, token = self.create_confirmation_key_and_token() # method from PasswordResetKeyEncoder
+        confirmation_key, token = self.create_confirmation_key_and_token() # method from KeyEncoder
         cache.set(confirmation_key, {'user_id': user_id}, timeout=self.timeout) # set key to cache
         self.send_password_reset_link(request, user_email, token) # method from RegistrationEmail
 
-        return Response({'message': 'Email send. Check your mailbox!'}, status=status.HTTP_204_NO_CONTENT)
+        return Response({'message': 'Email sent. Check your mailbox!'}, status=status.HTTP_204_NO_CONTENT)
 
 
-class PasswordResetNewPasswordAPIView(UpdateAPIView):
+class PasswordResetNewPasswordAPIView(mixins.UpdateModelMixin, GenericAPIView):
     serializer_class = PasswordResetNewPasswordSerializer
 
     def get_object(self):

@@ -51,6 +51,7 @@ INSTALLED_APPS = [
     'rest_framework',
     'rest_framework_simplejwt',
     'debug_toolbar',
+    'drf_spectacular',
     'django_filters',
     'phonenumber_field',
 
@@ -133,8 +134,8 @@ REST_FRAMEWORK = {
     ),
 
     # 'DEFAULT_FILTER_BACKENDS': ['django_filters.rest_framework.DjangoFilterBackend'],
-    # 'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema',
-    # 'COERCE_DECIMAL_TO_STRING': False,
+    'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema',
+    'COERCE_DECIMAL_TO_STRING': False,
     # 'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.LimitOffsetPagination',
     # 'PAGE_SIZE': 100
 
@@ -190,6 +191,16 @@ CACHES = {
 
 SESSION_ENGINE = "django.contrib.sessions.backends.cache"
 SESSION_CACHE_ALIAS = "default"
+
+# drf-spectacular
+# https://drf-spectacular.readthedocs.io/en/latest/
+
+SPECTACULAR_SETTINGS = {
+    'TITLE': 'E-Commence clothes-store',
+    'DESCRIPTION': 'My pet project',
+    'VERSION': '1.0.0',
+    'SERVE_INCLUDE_SCHEMA': False,
+}
 
 # Internationalization
 # https://docs.djangoproject.com/en/4.2/topics/i18n/
