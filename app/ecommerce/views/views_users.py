@@ -27,7 +27,7 @@ def register_user_confirmation(request, *args, **kwargs):
         user.is_active = True
         user.save(update_fields=['is_active'])
         cache.delete(confirmation_key)
-        return Response({'message': 'User is registered successfully!', "data": request.data}, status=status.HTTP_204_NO_CONTENT)
+        return Response({'message': 'User is registered successfully!'}, status=status.HTTP_204_NO_CONTENT)
     else:
         return Response(status=status.HTTP_400_BAD_REQUEST)
 
@@ -51,7 +51,7 @@ class RegisterUserAPIView(CreateAPIView, RegistrationEmail, KeyEncoder):
             )
 
         user_id = response.data.get('id', None)
-        user_email = response.data.get('user_email', None)
+        user_email = response.data.get('email', None)
 
         confirmation_key, token = self.create_confirmation_key_and_token() # method from KeyEncoder
         cache.set(confirmation_key, {'user_id': user_id}, timeout=self.timeout) # set key to cache

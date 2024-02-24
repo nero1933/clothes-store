@@ -34,7 +34,7 @@ class ConfirmationEmail:
         }
 
         html_body = render_to_string(template, context)
-
+        print(user_email)
         message = EmailMultiAlternatives(
             subject=subject,
             body=f'{subject}\n{confirmation_link}',
@@ -43,6 +43,8 @@ class ConfirmationEmail:
         )
         message.attach_alternative(html_body, "text/html")
         message.send(fail_silently=False)
+        print('sent')
+        print(message.message())
         return 1
 
 
