@@ -27,7 +27,7 @@ class PasswordResetSerializer(serializers.Serializer):
     email = serializers.EmailField(write_only=True)
 
 
-class PasswordResetNewPasswordSerializer(serializers.ModelSerializer):
+class PasswordSerializer(serializers.ModelSerializer):
     """
     tests.
     """
@@ -36,7 +36,7 @@ class PasswordResetNewPasswordSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = UserProfile
-        fields = ('email', 'password', 'password_confirmation')
+        fields = ('password', 'password_confirmation')
         extra_kwargs = {'password': {'write_only': True}}
 
     def validate(self, attrs):
@@ -59,17 +59,11 @@ class PasswordResetNewPasswordSerializer(serializers.ModelSerializer):
         return self.instance
 
 
-
-    # new_password = serializers.CharField(style={"input_type": "password"}, write_only=True)
-    # new_password_confirmation = serializers.CharField(style={"input_type": "password"},write_only=True)
-    #
-    # def validate(self, attrs):
-    #     new_password = attrs.get('new_password')
-    #     new_password_confirmation = attrs.pop('new_password_confirmation', None)
-    #     if len(new_password) < 8:
-    #         raise serializers.ValidationError("Passwords must be at lest 8 characters.")
-    #
-    #     if new_password != new_password_confirmation:
-    #         raise serializers.ValidationError("Passwords do not match.")
-    #
-    #     return attrs
+class UserProfileSerializer(serializers.ModelSerializer):
+    """
+    test.
+    """
+    class Meta:
+        model = UserProfile
+        fields = ('id', 'email', 'first_name', 'last_name', 'phone')
+        extra_kwargs = {'email': {'read_only': True}}

@@ -25,16 +25,12 @@ class ConfirmationEmail:
             reverse(reverse_name, kwargs={'token': token})
         )
 
-        # print('confirmation_link')
-        # print(confirmation_link)
-        # print('confirmation_link')
-
         context = {
             'confirmation_link': confirmation_link,
         }
 
         html_body = render_to_string(template, context)
-        print(user_email)
+
         message = EmailMultiAlternatives(
             subject=subject,
             body=f'{subject}\n{confirmation_link}',
@@ -43,9 +39,6 @@ class ConfirmationEmail:
         )
         message.attach_alternative(html_body, "text/html")
         message.send(fail_silently=False)
-        print('sent')
-        print(message.message())
-        return 1
 
 
 class RegistrationEmail(ConfirmationEmail):

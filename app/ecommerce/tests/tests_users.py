@@ -16,7 +16,7 @@ def get_link_from_message(message):
     return link
 
 
-class RegisterEmailTestCase(APITestCase):
+class RegisterUserTestCase(APITestCase):
 
     def test_register_user(self):
         """
@@ -52,7 +52,7 @@ class RegisterEmailTestCase(APITestCase):
         link = get_link_from_message(message)
 
         # Follow the confirmation link
-        response = self.client.get(link, format='json')
+        response = self.client.patch(link, format='json')
         user = get_object_or_404(UserProfile, pk=user_id)
 
         # Check that the response has a success status code
@@ -60,3 +60,21 @@ class RegisterEmailTestCase(APITestCase):
 
         # Check 'is_active' status of created user after opening link from email
         self.assertEqual(user.is_active, True, 'After opening link from email "is_active" status of the user must be True')
+
+
+class PasswordResetTestCase(APITestCase):
+
+    def setUp(self):
+        user = UserProfile.objects.create_user(
+            email='test@test.com',
+            first_name='test',
+            last_name='test',
+            phone='+380951112233',
+            password='12345678'
+        )
+
+        user.is_active = True
+        user.save()
+
+        self.user = user
+

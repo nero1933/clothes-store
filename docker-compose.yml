@@ -6,7 +6,7 @@ services:
     build:
       context: .
     command: >
-      sh -c "coverage run --source='.' manage.py test app &&
+      sh -c "coverage run --source='.' manage.py test ecommerce &&
              coverage html &&
              python manage.py migrate &&
              python manage.py runserver 0.0.0.0:8000"
