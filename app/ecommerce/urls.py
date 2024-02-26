@@ -1,12 +1,16 @@
 from django.urls import path, include
-from rest_framework.routers import SimpleRouter
 
-from .views import *
+from rest_framework.routers import SimpleRouter
 
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 
+from .views import *
+
+
+
 router = SimpleRouter()
 router.register(r'users', UserProfileViewSet, basename='users')
+router.register(r'addresses', UserAddressViewSet, basename='addresses')
 
 urlpatterns = [
     path('api/token/', TokenObtainPairView.as_view(), name='token_obtain_pair'),

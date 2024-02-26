@@ -1,7 +1,6 @@
 from django.core.cache import cache
 from django.db import IntegrityError
 from django.http import Http404
-from drf_spectacular.utils import extend_schema
 
 from rest_framework import status, mixins, viewsets
 from rest_framework.decorators import api_view, action
