@@ -80,7 +80,7 @@ class PasswordResetAPIView(APIView,
         serializer = PasswordResetSerializer(context={'request': request}, data=request.data)
         serializer.is_valid(raise_exception=True)
         user_email = serializer.validated_data['email']
-        user_id = get_object_or_404(UserProfile, email=user_email).pk # !!! test SQL queries
+        user_id = get_object_or_404(UserProfile, email=user_email).pk
 
         confirmation_key, token = self.create_confirmation_key_and_token() # method from KeyEncoder
         cache.set(confirmation_key, {'user_id': user_id}, timeout=self.timeout) # set key to cache
