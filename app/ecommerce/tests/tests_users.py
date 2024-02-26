@@ -16,7 +16,27 @@ def get_link_from_message(message):
     return link
 
 
-class RegisterUserTestCase(APITestCase):
+class UserTestCase(APITestCase):
+
+    def setUp(self):
+        user = UserProfile.objects.create_user(
+            email='test@test.com',
+            first_name='test',
+            last_name='test',
+            phone='+380951112233',
+            password='12345678'
+        )
+
+        user.is_active = True
+        user.save()
+
+        self.user = user
+
+        data = {'email': 'test@test.com', 'password': '12345678'}
+
+        response = self.client.post(reverse('token_obtain_pair'), data)
+        self.jwt_access_token = response.data.get('access')
+
 
     def test_register_user(self):
         """
@@ -62,19 +82,76 @@ class RegisterUserTestCase(APITestCase):
         self.assertEqual(user.is_active, True, 'After opening link from email "is_active" status of the user must be True')
 
 
-class PasswordResetTestCase(APITestCase):
+    def test_password_reset(self):
+        """
+        Try to reset password, follow the confirmation link and enter nwe password.
+        """
 
-    def setUp(self):
-        user = UserProfile.objects.create_user(
-            email='test@test.com',
-            first_name='test',
-            last_name='test',
-            phone='+380951112233',
-            password='12345678'
+        data = {'email': 'test@test.com', 'password': '12345678'}
+
+        # Try to log in
+        response = self.client.post(reverse('token_obtain_pair'), data)
+
+        # Check that the response has a success status code
+        self.assertEqual(response.status_code, status.HTTP_200_OK, 'Code must be 200')
+
+        # Try to reset password
+        response = self.client.post(reverse('password_reset'), data, format='json')
+
+        # Check that the response has a success status code
+        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT, 'Code must be 204')
+
+        # Get confirmation link from message
+        message = mail.outbox[0].body
+        link = get_link_from_message(message)
+
+        data = {'password': '87654321', 'password_confirmation': '87654321'}
+
+        # Follow the confirmation link
+        response = self.client.patch(link, data, format='json')
+
+        # Check that the response has a success status code
+        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT, 'Code must be 204')
+
+        data = {'email': 'test@test.com', 'password': '87654321'}
+
+        # Try to log in with new credentials
+        response = self.client.post(reverse('token_obtain_pair'), data)
+
+        # Check that the response has a success status code
+        self.assertEqual(response.status_code, status.HTTP_200_OK, 'Code must be 200')
+
+
+    def test_user_view_set(self):
+
+        data = {'id': 4, 'email': 'test@test.com', 'first_name': 'test', 'last_name': 'test', 'phone': '+380951112233'}
+        kwargs = {'pk': self.user.pk}
+
+        response = self.client.get(
+            reverse('users-detail', kwargs=kwargs),
+            data,
+            HTTP_AUTHORIZATION=f'Bearer {self.jwt_access_token}',
+            format='json'
         )
 
-        user.is_active = True
-        user.save()
+        # Check that the response has a success status code
+        self.assertEqual(response.status_code, status.HTTP_200_OK, 'Code must be 200')
 
-        self.user = user
+        # Check that the response has right data
+        self.assertEqual(response.data, data, f'data must be {data}')
 
+        new_particular_data = {'first_name': 'John', 'last_name': 'Doe'}
+        new_data = {'id': 4, 'email': 'test@test.com', 'first_name': 'John', 'last_name': 'Doe', 'phone': '+380951112233'}
+
+        response = self.client.patch(
+            reverse('users-detail', kwargs=kwargs),
+            new_particular_data,
+            HTTP_AUTHORIZATION=f'Bearer {self.jwt_access_token}',
+            format='json'
+        )
+
+        # Check that the response has a success status code
+        self.assertEqual(response.status_code, status.HTTP_200_OK, 'Code must be 200')
+
+        # Check that the response has right data
+        self.assertEqual(response.data, new_data, f'data must be {new_data}')
