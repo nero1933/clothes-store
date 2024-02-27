@@ -16,27 +16,38 @@ def get_link_from_message(message):
     return link
 
 
-class UserTestCase(APITestCase):
+class TestUser:
+    email = 'test@test.com'
+    password = '12345678'
+    user = None
+    jwt_access_token = None
 
-    def setUp(self):
+    def init_user(self):
         user = UserProfile.objects.create_user(
-            email='test@test.com',
+            email=self.email,
             first_name='test',
             last_name='test',
             phone='+380951112233',
-            password='12345678'
+            password=self.password
         )
 
         user.is_active = True
         user.save()
 
-        self.user = user
+        return user
 
-        data = {'email': 'test@test.com', 'password': '12345678'}
+    def login_user(self):
+        data = {'email': self.email, 'password': self.password}
 
         response = self.client.post(reverse('token_obtain_pair'), data)
-        self.jwt_access_token = response.data.get('access')
+        return response.data.get('access')
 
+
+class UserTestCase(APITestCase, TestUser):
+
+    def setUp(self):
+        self.user = self.init_user()
+        self.jwt_access_token = self.login_user()
 
     def test_register_user(self):
         """

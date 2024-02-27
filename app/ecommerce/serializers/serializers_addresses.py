@@ -1,6 +1,6 @@
 from rest_framework import serializers
 
-from ..models import Address, UserAddress
+from ..models import Address, UserAddress, UserProfile
 
 
 class AddressSerializer(serializers.ModelSerializer):
@@ -8,16 +8,6 @@ class AddressSerializer(serializers.ModelSerializer):
     class Meta:
         model = Address
         fields = '__all__'
-        # fields = ['id',
-        #           'first_name',
-        #           'last_name',
-        #           'street',
-        #           'unit_number',
-        #           'country',
-        #           'region',
-        #           'city',
-        #           'post_code',
-        #           ]
 
 class UserAddressSerializer(serializers.ModelSerializer):
     # https://www.django-rest-framework.org/api-guide/validators/#currentuserdefault
@@ -46,11 +36,12 @@ class UserAddressSerializer(serializers.ModelSerializer):
         instance.is_default = validated_data.get('is_default', instance.is_default)
         instance.save()
 
-        address.first_name = address_data.get('name', address.first_name)
-        address.last_name = address_data.get('surname', address.last_name)
+        address.first_name = address_data.get('first_name', address.first_name)
+        address.last_name = address_data.get('last_name', address.last_name)
         address.street = address_data.get('street', address.street)
         address.unit_number = address_data.get('unit_number', address.unit_number)
         address.region = address_data.get('region', address.region)
+        address.city = address_data.get('city', address.city)
         address.post_code = address_data.get('post_code', address.post_code)
         address.country = address_data.get('country', address.country)
         address.save()

@@ -70,7 +70,7 @@ class PasswordResetAPIView(APIView,
     """
     View for password reset.
 
-    Takes 'email' from serializer and sends to it a mail with a link to proceed password reset.
+    Takes 'email' from serializer and sends a mail with a link to proceed password reset.
     """
     confirmation_key = settings.PASSWORD_RESET_KEY # const from KeyEncoder
     timeout = settings.PASSWORD_RESET_TIMEOUT # const from KeyEncoder
@@ -132,7 +132,7 @@ class UserProfileViewSet(mixins.RetrieveModelMixin,
 
         return user
 
-    @action(detail=True, methods=['patch'])
+    @action(detail=True, methods=['patch'], url_path='set-password')
     def set_password(self, request, pk=None):
         user = self.get_object()
         serializer = PasswordSerializer(data=request.data)
