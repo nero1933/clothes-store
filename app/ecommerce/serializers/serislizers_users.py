@@ -42,6 +42,9 @@ class PasswordSerializer(serializers.ModelSerializer):
     def validate(self, attrs):
         password = attrs.get('password')
         password_confirmation = attrs.pop('password_confirmation', None)
+        if not password:
+            raise serializers.ValidationError("Enter new password.")
+
         if len(password) < 8:
             raise serializers.ValidationError("Passwords must be at lest 8 characters.")
 

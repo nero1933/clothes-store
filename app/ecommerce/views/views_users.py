@@ -2,7 +2,7 @@ from django.core.cache import cache
 from django.db import IntegrityError
 from django.http import Http404
 
-from rest_framework import status, mixins, viewsets
+from rest_framework import status, mixins
 from rest_framework.decorators import api_view, action
 from rest_framework.generics import CreateAPIView, get_object_or_404, GenericAPIView
 from rest_framework.permissions import IsAuthenticated
@@ -110,7 +110,7 @@ class PasswordResetNewPasswordAPIView(mixins.UpdateModelMixin,
             return Response({'message': 'Password was changed successfully!'},
                             status=status.HTTP_204_NO_CONTENT)
         except TimeoutError:
-            return Response("Link has been expired.",
+            return Response("Link is expired.",
                             status=status.HTTP_400_BAD_REQUEST)
 
 
