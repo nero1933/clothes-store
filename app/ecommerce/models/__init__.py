@@ -1,3 +1,3 @@
-from .models_users import *
-from .models_addresses import *
-from .models_products import *
+from .users import *
+from .addresses import *
+from .products import *

@@ -1,2 +1,2 @@
-from .views_users import *
-from .views_addresses import *
+from .users import *
+from .addresses import *

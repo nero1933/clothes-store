@@ -1,1 +1,1 @@
-from .tests_users import *
+from .users import *

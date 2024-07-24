@@ -66,19 +66,32 @@ class ProductItem(models.Model):
     color = models.ForeignKey('Color', on_delete=models.CASCADE)
     price = models.PositiveIntegerField()
     product_code = models.CharField(max_length=16)
-    discount = models.ManyToManyField('Discount')
+    discount = models.ManyToManyField('Discount', blank=True)
 
     def __str__(self):
         return self.product_code
 
 
 class Color(models.Model):
-    color_name = models.PositiveIntegerField()
+    color_name = models.CharField(max_length=255)
+
+    def __str__(self):
+        return self.color_name
 
 
 class ProductItemImage(models.Model):
     product_item = models.ForeignKey('ProductItem', on_delete=models.CASCADE)
+    product_item_image_name = models.CharField(max_length=255)
     image_filename = models.CharField(max_length=255)
+
+
+class ProductVariation(models.Model):
+    product_item = models.ForeignKey('ProductItem', on_delete=models.CASCADE)
+    size = models.ForeignKey('ProductSize', on_delete=models.CASCADE)
+    qty_in_stock = models.PositiveIntegerField()
+
+    def __str__(self):
+        return self.product_item
 
 
 class Discount(models.Model):
@@ -87,3 +100,6 @@ class Discount(models.Model):
     discount_rate = models.PositiveIntegerField(validators=[MinValueValidator(1), MaxValueValidator(100)])
     start_date = models.DateField()
     end_date = models.DateField()
+
+    def __str__(self):
+        return self.discount_name
