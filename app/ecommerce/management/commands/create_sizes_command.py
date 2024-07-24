@@ -5,7 +5,7 @@ from ecommerce.utils.products import sizes
 
 
 class Command(BaseCommand):
-    help = 'Creates products. Used in developing and testing.'
+    help = 'Creates sizes for developing and testing purposes.'
 
     def handle(self, *args, **options):
 
@@ -26,5 +26,9 @@ class Command(BaseCommand):
 
             ProductSize.objects.bulk_create(bulk_list)
 
-        _create_size_categories()
-        _create_product_sizes()
+        try:
+            _create_size_categories()
+            _create_product_sizes()
+            self.stdout.write(self.style.SUCCESS(f'All sizes are successfully created'))
+        except Exception as e:
+            self.stdout.write(self.style.ERROR(str(e)))

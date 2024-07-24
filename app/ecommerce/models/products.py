@@ -12,8 +12,8 @@ class Product(models.Model):
         ordering = ('-date_created',)
 
     GENDER_CHOICES = [
-        ('M', 'Men'),
-        ('W', 'Women'),
+        ('M', 'Man'),
+        ('W', 'Woman'),
     ]
 
     name = models.CharField(max_length=255)
@@ -40,23 +40,9 @@ class AttributeOption(models.Model):
         return self.attribute_option_name
 
 
-class AttributeType(models.Model):
-    attribute_name = models.CharField(max_length=255)
-
-    def __str__(self):
-        return self.attribute_name
-
-
-class Brand(models.Model):
-    name = models.CharField(max_length=255)
-    description = models.CharField(max_length=255)
-
-    def __str__(self):
-        return self.name
-
-
 class ProductCategory(models.Model):
     name = models.CharField(max_length=255)
+    slug = models.SlugField(max_length=255, unique=True)
     description = models.CharField(max_length=255)
     image = models.URLField(blank=True, null=True)
     size_category = models.ForeignKey('SizeCategory', on_delete=models.CASCADE)
@@ -100,17 +86,13 @@ class ProductItem(models.Model):
         return self.product_code
 
 
-class Color(models.Model):
+class Image(models.Model):
+    product_item = models.ForeignKey('ProductItem', on_delete=models.CASCADE)
     name = models.CharField(max_length=255)
+    url = models.URLField(max_length=255)
 
     def __str__(self):
-        return self.name
-
-
-class ProductItemImage(models.Model):
-    product_item = models.ForeignKey('ProductItem', on_delete=models.CASCADE)
-    product_item_image_name = models.CharField(max_length=255)
-    image_filename = models.CharField(max_length=255)
+        return f'Image for: {self.product_item}'
 
 
 class ProductVariation(models.Model):
@@ -131,3 +113,32 @@ class Discount(models.Model):
 
     def __str__(self):
         return self.name
+
+
+class SimpleModel(models.Model):
+    """ Abstract class for all models that have only names and slugs. """
+
+    name = models.CharField(max_length=255)
+    slug = models.SlugField(max_length=255, unique=True)
+
+    class Meta:
+        abstract = True
+
+    def __str__(self):
+        return self.name
+
+    def get_absolute_url(self):
+        return reverse('products', kwargs={'slug': self.slug})
+
+
+class Color(SimpleModel):
+    """ Model contains colors. """
+    pass
+
+class AttributeType(SimpleModel):
+    """ Model contains attribute types. """
+    pass
+
+class Brand(SimpleModel):
+    """ Model contains brands. """
+    pass

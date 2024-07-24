@@ -14,9 +14,18 @@ clothes_sizes = [
     ('L', 'Large'),
     ('XL', 'Extra Large'),
 ]
+bag_size = [
+    ('2 L', '2 l'),
+    ('6 L', '6 l'),
+    ('12 L', '12 l'),
+    ('16 L', '16 l'),
+    ('20 L', '20 l'),
+    ('26 L', '26 l'),
+    ('31 L', '31 l'),
+]
 
 # PRODUCT_SIZE_CHOICES.
-PRODUCT_SIZE_CHOICES = shoes_sizes + clothes_sizes
+PRODUCT_SIZE_CHOICES = shoes_sizes + clothes_sizes + bag_size
 
 # Product size ends!
 
@@ -28,6 +37,7 @@ PRODUCT_SIZE_CHOICES = shoes_sizes + clothes_sizes
 sizes = {
     'SHOES': shoes_sizes,
     'CLOTHES': clothes_sizes,
+    'BAGS': bag_size,
 }
 
 # Sizes ends!
