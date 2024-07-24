@@ -1,7 +1,9 @@
 from django.db import models
 from django.core.validators import MinValueValidator, MaxValueValidator
+
 from rest_framework.reverse import reverse
 
+from ecommerce.utils.products import sizes
 
 class Product(models.Model):
     """ Model describes products. """
@@ -66,17 +68,10 @@ class ProductCategory(models.Model):
 
 class ProductSize(models.Model):
 
-    shoes_sizes = [(str(i), str(i)) for i in range(35, 49)]
-    clothes_sizes = [
-        ('XS', 'Extra Small'),
-        ('S', 'Small'),
-        ('M', 'Medium'),
-        ('L', 'Large'),
-        ('XL', 'Extra Large'),
-    ]
-    SIZE_CATEGORY_CHOICES = shoes_sizes + clothes_sizes
+    # Sizes are defined in utils.
+    PRODUCT_SIZE_CHOICES = sizes.PRODUCT_SIZE_CHOICES
 
-    name = models.CharField(max_length=255, choices=SIZE_CATEGORY_CHOICES)
+    name = models.CharField(max_length=20, choices=PRODUCT_SIZE_CHOICES, unique=True)
     size_category = models.ForeignKey('SizeCategory', on_delete=models.CASCADE)
 
     def __str__(self):
@@ -85,12 +80,10 @@ class ProductSize(models.Model):
 
 class SizeCategory(models.Model):
 
-    SIZE_CATEGORY_CHOICES = [
-        ('SHOES', 'Shoes'),
-        ('CLOTHES', 'Clothes'),
-    ]
+    # Size categories are defined in utils.
+    SIZE_CATEGORY_CHOICES = sizes.SIZE_CATEGORY_CHOICES
 
-    name = models.CharField(max_length=8, choices=SIZE_CATEGORY_CHOICES)
+    name = models.CharField(max_length=10, choices=SIZE_CATEGORY_CHOICES, unique=True)
 
     def __str__(self):
         return self.name
