@@ -1,12 +1,13 @@
 # Product size starts!
 
 # Range of shoes sizes.
-shoes_sizes_start = 35
-shoes_sizes_stop = 50
+shoes_sizes_start = 35 # min size
+shoes_sizes_stop = 50 # min size
 shoes_sizes_step = 1 # can be 0.5.
 
 # Size names for each of categories.
 shoes_sizes = [(str(i), str(i)) for i in range(shoes_sizes_start, shoes_sizes_stop, shoes_sizes_step)]
+
 clothes_sizes = [
     ('XS', 'Extra Small'),
     ('S', 'Small'),
@@ -14,15 +15,12 @@ clothes_sizes = [
     ('L', 'Large'),
     ('XL', 'Extra Large'),
 ]
-bag_size = [
-    ('2 L', '2 l'),
-    ('6 L', '6 l'),
-    ('12 L', '12 l'),
-    ('16 L', '16 l'),
-    ('20 L', '20 l'),
-    ('26 L', '26 l'),
-    ('31 L', '31 l'),
-]
+
+bag_sizes_start = 1 # min size
+bag_sizes_stop = 32 # min size
+bag_sizes_step = 1
+
+bag_size = [(str(i) + ' L', str(i) + ' l') for i in range(bag_sizes_start, bag_sizes_stop, bag_sizes_step)]
 
 # PRODUCT_SIZE_CHOICES.
 PRODUCT_SIZE_CHOICES = shoes_sizes + clothes_sizes + bag_size

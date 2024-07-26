@@ -1,21 +1,206 @@
-from django.core.management.base import BaseCommand
+import uuid
+import random
 
-from ecommerce.models import SizeCategory, ProductSize
+from django.core.management.base import BaseCommand
+from sendgrid import Category
+
+from ecommerce.models import Brand, Color, AttributeType, SizeCategory, ProductCategory, Product, ProductItem, \
+    ProductVariation, ProductSize
+
+from slugify import slugify
+
+from ecommerce.utils.products.sizes import sizes
 
 
 class Command(BaseCommand):
-    help = 'Creates products. Used in developing and testing.'
+    help = 'Creates products for developing ang testing purposes.'
 
     def handle(self, *args, **options):
 
-        def _create_size_categories():
-            self.size_cat_clothes = SizeCategory.objects.create(name='clothes')
-            self.size_cat_shoes = SizeCategory.objects.create(name='shoes')
+        def get_sizes():
+            size_dict = {}
+            size_cat_qs = SizeCategory.objects.all()
+            for size_cat in size_cat_qs:
+                if size_cat.name == 'SHOES':
+                    size_dict['size_shoes'] = size_cat
+                elif size_cat.name == 'CLOTHES':
+                    size_dict['size_clothes'] = size_cat
+                elif size_cat.name == 'BAGS':
+                    size_dict['size_bags'] = size_cat
 
-        def _create_product_sizes():
-            ProductSize.objects.create(name='S', size_categories=self.size_cat_clothes)
-            ProductSize.objects.create(name='M', size_categories=self.size_cat_clothes)
-            ProductSize.objects.create(name='L', size_categories=self.size_cat_clothes)
+            return size_dict
 
-        _create_size_categories()
-        _create_product_sizes()
+        def get_cats():
+            cat_dict = {}
+            cat_qs = ProductCategory.objects.all()
+            for cat in cat_qs:
+                if cat.name == 't-shirt':
+                    cat_dict['cat_t_shirt'] = cat
+                elif cat.name == 'hoodie':
+                    cat_dict['cat_hoodie'] = cat
+                elif cat.name == 'trousers':
+                    cat_dict['cat_trousers'] = cat
+                elif cat.name == 'hat':
+                    cat_dict['cat_hat'] = cat
+                elif cat.name == 'backpack':
+                    cat_dict['cat_backpack'] = cat
+                elif cat.name == 'shoes':
+                    cat_dict['cat_shoes'] = cat
+                elif cat.name == 'sneakers':
+                    cat_dict['cat_sneakers'] = cat
+                elif cat.name == 'flip_flops':
+                    cat_dict['cat_flip_flops'] = cat
+
+            return cat_dict
+
+
+        def _create_simplemodel(model, lst):
+            objs = (model(name=name, slug=slugify(name)) for name in lst)
+            model.objects.bulk_create(objs)
+
+        def _create_brands():
+            brands = ['nike', 'puma', 'adidas', 'new_balance', 'reebok', 'asics', 'north_sails']
+            _create_simplemodel(Brand, brands)
+
+        def _create_colors():
+            colors = ['red', 'orange', 'yellow', 'green', 'blue', 'violet']
+            _create_simplemodel(Color, colors)
+
+        def _create_attribute_types():
+            attribute_types = ['fit', 'season', 'style']
+            _create_simplemodel(AttributeType, attribute_types)
+            pass
+
+        def _create_categories():
+            size_dict = get_sizes()
+
+            name = ['t-shirt', 'hoodie', 'trousers', 'hat', 'backpack', 'shoes', 'sneakers', 'flip_flops']
+            desc = 'desc'
+
+            bulk_list = [
+                ProductCategory(name=name[0], slug=slugify(name[0]), description=desc, size_category=size_dict['size_clothes']),
+                ProductCategory(name=name[1], slug=slugify(name[1]), description=desc, size_category=size_dict['size_clothes']),
+                ProductCategory(name=name[2], slug=slugify(name[2]), description=desc, size_category=size_dict['size_clothes']),
+                ProductCategory(name=name[3], slug=slugify(name[3]), description=desc, size_category=size_dict['size_clothes']),
+                ProductCategory(name=name[4], slug=slugify(name[4]), description=desc, size_category=size_dict['size_bags']),
+            ]
+
+            parent_category_shoes = ProductCategory(name=name[5], slug=slugify(name[5]),
+                                                    description=desc, size_category=size_dict['size_shoes'])
+
+            bulk_list.append(parent_category_shoes)
+
+            ProductCategory.objects.bulk_create(bulk_list)
+
+            bulk_list = [
+                ProductCategory(name=name[6], slug=slugify(name[6]),
+                                description=desc, size_category=size_dict['size_shoes'],
+                                parent_category=parent_category_shoes),
+                ProductCategory(name=name[7], slug=slugify(name[7]),
+                                description=desc, size_category=size_dict['size_shoes'],
+                                parent_category=parent_category_shoes),
+            ]
+
+            ProductCategory.objects.bulk_create(bulk_list)
+
+
+        def _create_products():
+            names = ['simple t-shirt', 'oversize hoodie', 'new trousers', 'summer hat',
+                     'small backpack', 'running sneakers', 'beach flip flops']
+            decs = 'decs'
+            genders = ['M', 'W']
+            cat_dict = get_cats()
+
+            bulk_list = [
+                Product(name=names[0], slug=slugify(names[0]), description=decs,
+                        gender=genders[0], category=cat_dict['cat_t_shirt']),
+                Product(name=names[1], slug=slugify(names[1]), description=decs,
+                        gender=genders[0], category=cat_dict['cat_hoodie']),
+                Product(name=names[2], slug=slugify(names[2]), description=decs,
+                        gender=genders[0], category=cat_dict['cat_trousers']),
+                Product(name=names[3], slug=slugify(names[3]), description=decs,
+                        gender=genders[1], category=cat_dict['cat_hat']),
+                Product(name=names[4], slug=slugify(names[4]), description=decs,
+                        gender=genders[1], category=cat_dict['cat_backpack']),
+                Product(name=names[5], slug=slugify(names[5]), description=decs,
+                        gender=genders[1], category=cat_dict['cat_sneakers']),
+                Product(name=names[6], slug=slugify(names[6]), description=decs,
+                        gender=genders[1], category=cat_dict['cat_flip_flops']),
+            ]
+
+            brand_qs = Brand.objects.all()
+
+            for i in range(len(bulk_list)):
+                bulk_list[i].brand = brand_qs[random.randint(0, len(brand_qs) - 1)]
+
+            Product.objects.bulk_create(bulk_list)
+
+        def _create_product_items():
+            bulk_list = []
+            price_range = (3900, 11900)
+
+            product_qs = Product.objects.all()
+            color_qs = Color.objects.all()
+
+            for i in range(len(product_qs)):
+                obj = ProductItem(
+                    product=product_qs[i],
+                    color=random.choice(color_qs),
+                    price=random.randint(price_range[0], price_range[1]),
+                    product_code=uuid.uuid4().hex,
+                )
+
+                bulk_list.append(obj)
+
+                obj_2 = ProductItem(
+                    product=obj.product,
+                    color=random.choice([color for color in color_qs if color != obj.color]),
+                    price=obj.price,
+                    product_code=uuid.uuid4().hex,
+                )
+
+                bulk_list.append(obj_2)
+
+            ProductItem.objects.bulk_create(bulk_list)
+
+        def _create_product_variations():
+            bulk_list = []
+            qty_range = (0, 100)
+
+            product_items_qs = ProductItem.objects.all().select_related(
+                'product',
+                'product__category',
+                'product__category__size_category'
+            )
+            size_qs = ProductSize.objects.all()
+
+            for p in product_items_qs:
+                random_size = random.choice(sizes[p.product.category.size_category.name])
+                prod_size = [x for x in size_qs if x.name == random_size[0]][0]
+
+                obj = ProductVariation(
+                    product_item=p,
+                    size=prod_size,
+                    qty_in_stock=random.randint(*qty_range),
+                )
+                bulk_list.append(obj)
+
+            ProductVariation.objects.bulk_create(bulk_list)
+
+
+        try:
+            _create_brands()
+            _create_colors()
+            _create_attribute_types()
+
+            _create_categories()
+
+            _create_products()
+
+            _create_product_items()
+
+            _create_product_variations()
+
+            self.stdout.write(self.style.SUCCESS(f'All products are successfully created'))
+        except Exception as e:
+            self.stdout.write(self.style.ERROR(str(e)))

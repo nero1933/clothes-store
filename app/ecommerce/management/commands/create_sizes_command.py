@@ -14,10 +14,10 @@ class Command(BaseCommand):
             SizeCategory.objects.bulk_create(objs)
 
         def _create_product_sizes():
-            size_cat_queryset = SizeCategory.objects.all()
+            size_cat_qs = SizeCategory.objects.all()
             bulk_list = []
             for size_cat, size_names in sizes.sizes.items():
-                size_cat_obj = size_cat_queryset.get(name=size_cat)
+                size_cat_obj = size_cat_qs.get(name=size_cat)
                 for size_name in size_names:
                     bulk_list.append(ProductSize(
                         name=size_name[0],
