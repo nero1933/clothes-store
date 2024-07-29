@@ -22,7 +22,7 @@ class Product(models.Model):
     gender = models.CharField(max_length=15, choices=GENDER_CHOICES)
     category = models.ForeignKey('ProductCategory', on_delete=models.CASCADE)
     brand = models.ForeignKey('Brand', on_delete=models.CASCADE)
-    attribute = models.ManyToManyField('AttributeOption')
+    attribute_option = models.ManyToManyField('AttributeOption')
     date_created = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
@@ -34,10 +34,10 @@ class Product(models.Model):
 
 class AttributeOption(models.Model):
     attribute_type = models.ForeignKey('AttributeType', on_delete=models.CASCADE)
-    attribute_option_name = models.CharField(max_length=255)
+    name = models.CharField(max_length=255)
 
     def __str__(self):
-        return self.attribute_option_name
+        return self.name
 
 
 class ProductCategory(models.Model):

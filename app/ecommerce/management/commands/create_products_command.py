@@ -2,10 +2,9 @@ import uuid
 import random
 
 from django.core.management.base import BaseCommand
-from sendgrid import Category
 
 from ecommerce.models import Brand, Color, AttributeType, SizeCategory, ProductCategory, Product, ProductItem, \
-    ProductVariation, ProductSize
+    ProductVariation, ProductSize, AttributeOption
 
 from slugify import slugify
 
@@ -17,7 +16,7 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
 
-        def get_sizes():
+        def get_sizes() -> dict:
             size_dict = {}
             size_cat_qs = SizeCategory.objects.all()
             for size_cat in size_cat_qs:
@@ -30,7 +29,7 @@ class Command(BaseCommand):
 
             return size_dict
 
-        def get_cats():
+        def get_cats() -> dict:
             cat_dict = {}
             cat_qs = ProductCategory.objects.all()
             for cat in cat_qs:
@@ -53,6 +52,15 @@ class Command(BaseCommand):
 
             return cat_dict
 
+        def get_attr_options() -> dict:
+            attr_options_dict = {
+                'fit': ['normal', 'oversize', 'slim'],
+                'season': ['spring/autumn', 'summer', 'winter'],
+                'style': ['casual', 'sport', 'classic']
+            }
+
+            return attr_options_dict
+
 
         def _create_simplemodel(model, lst):
             objs = (model(name=name, slug=slugify(name)) for name in lst)
@@ -69,7 +77,17 @@ class Command(BaseCommand):
         def _create_attribute_types():
             attribute_types = ['fit', 'season', 'style']
             _create_simplemodel(AttributeType, attribute_types)
-            pass
+
+        def _create_attribute_options():
+            bulk_list = []
+            attr_options_dict = get_attr_options()
+            attr_types_qs =  AttributeType.objects.all()
+
+            for obj in attr_types_qs:
+                for option in attr_options_dict[obj.name]:
+                    bulk_list.append(AttributeOption(attribute_type=obj, name=option))
+
+            AttributeOption.objects.bulk_create(bulk_list)
 
         def _create_categories():
             size_dict = get_sizes()
@@ -110,6 +128,17 @@ class Command(BaseCommand):
             decs = 'decs'
             genders = ['M', 'W']
             cat_dict = get_cats()
+            attr_options_dict = get_attr_options()
+
+            brand_qs = Brand.objects.all()
+            attr_options_qs = AttributeOption.objects.all()
+
+            for attr_option in attr_options_qs:
+                for k, v in attr_options_dict.items():
+                    if attr_option.name in v:
+                        attr_options_dict[k].append(attr_option)
+                        attr_options_dict[k].remove(attr_option.name)
+
 
             bulk_list = [
                 Product(name=names[0], slug=slugify(names[0]), description=decs,
@@ -128,12 +157,19 @@ class Command(BaseCommand):
                         gender=genders[1], category=cat_dict['cat_flip_flops']),
             ]
 
-            brand_qs = Brand.objects.all()
-
-            for i in range(len(bulk_list)):
-                bulk_list[i].brand = brand_qs[random.randint(0, len(brand_qs) - 1)]
+            for product in bulk_list:
+                product.brand = brand_qs[random.randint(0, len(brand_qs) - 1)]
 
             Product.objects.bulk_create(bulk_list)
+            obj_list = Product.objects.all()
+
+            for product in obj_list:
+                selected_options = []
+                for k, v in attr_options_dict.items():
+                    selected_options.append(random.choice(v))
+
+                product.attribute_option.set(selected_options)
+                product.save()
 
         def _create_product_items():
             bulk_list = []
@@ -192,6 +228,8 @@ class Command(BaseCommand):
             _create_brands()
             _create_colors()
             _create_attribute_types()
+
+            _create_attribute_options()
 
             _create_categories()
 
