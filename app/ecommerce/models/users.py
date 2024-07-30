@@ -8,6 +8,9 @@ from django.contrib.auth.models import BaseUserManager
 
 from phonenumber_field.modelfields import PhoneNumberField
 
+from ecommerce.models.addresses import Address
+from ecommerce.models.shopping_carts import ShoppingCart
+
 
 class UserProfileManager(BaseUserManager):
     """ Helps Django work with our custom user model. """
@@ -25,7 +28,7 @@ class UserProfileManager(BaseUserManager):
         user.save(using=self.db)
 
         # Creates a shopping cart for the user
-        # ShoppingCart.objects.create(user=user)
+        ShoppingCart.objects.create(user=user)
 
         return user
 
@@ -41,16 +44,16 @@ class UserProfileManager(BaseUserManager):
 
         user.save(using=self.db)
 
-        # cart_exists = len(ShoppingCart.objects.filter(user=user))
-        # if not cart_exists:
-        #     ShoppingCart.objects.create(user=user)
+        cart_exists = len(ShoppingCart.objects.filter(user=user))
+        if not cart_exists:
+            ShoppingCart.objects.create(user=user)
 
         return user
 
     def create_guest(self):
         """ Creates and saves user as a guest. """
 
-        def try_create_guest():
+        def try_to_create_guest():
             """ Tries to create and save user as a guest. """
 
             email = str(uuid.uuid4()) + '@guest.user'
@@ -73,10 +76,11 @@ class UserProfileManager(BaseUserManager):
         user = None
 
         while user is None:
-            user = try_create_guest()
+            user = try_to_create_guest()
 
-        user.last_login = datetime
+        # user.last_login = datetime
         user.is_guest = True
+        user.is_active = True
 
         user.save(using=self.db)
 
@@ -89,7 +93,7 @@ class UserProfile(AbstractBaseUser, PermissionsMixin):
     first_name = models.CharField(max_length=255)
     last_name = models.CharField(max_length=255)
     phone = PhoneNumberField(null=True, blank=True)
-    # address = models.ManyToManyField(Address, through='UserAddress', related_name='address_to_user')
+    address = models.ManyToManyField(Address, through='UserAddress', related_name='address_to_user')
     is_active = models.BooleanField(default=False)
     is_staff = models.BooleanField(default=False)
     is_guest = models.BooleanField(default=False)

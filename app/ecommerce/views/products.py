@@ -5,7 +5,7 @@ from rest_framework import mixins
 from rest_framework import viewsets
 
 from ecommerce.models import Product, ProductVariation
-from ecommerce.serializers.products import ProductSerializer
+from ecommerce.serializers.products import ProductSerializer, ProductDetailSerializer
 
 
 class ProductViewSet(viewsets.ReadOnlyModelViewSet):
@@ -18,6 +18,7 @@ class ProductViewSet(viewsets.ReadOnlyModelViewSet):
             .prefetch_related('product_item',
                               'product_item__color',
                               'product_item__image',
+                              'product_item__discount',
                               Prefetch(
                                   'product_item__product_variation',
                                   queryset=ProductVariation.objects.filter(qty_in_stock__gt=0)),
@@ -31,8 +32,7 @@ class ProductViewSet(viewsets.ReadOnlyModelViewSet):
     def get_serializer_class(self):
         serializer_class = self.serializer_class
         if self.action == 'retrieve':
-            pass
-            # serializer_class = ProductDetailSerializer
+            serializer_class = ProductDetailSerializer
 
         return serializer_class
 

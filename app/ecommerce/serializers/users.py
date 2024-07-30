@@ -23,6 +23,16 @@ class RegisterUserSerializer(serializers.ModelSerializer):
         return data
 
 
+class RegisterGuestSerializer(serializers.ModelSerializer):
+    email = serializers.EmailField(read_only=True)
+    access = serializers.CharField(read_only=True)
+    refresh = serializers.CharField(read_only=True)
+
+    class Meta:
+        model = UserProfile
+        fields = ('email', 'access', 'refresh')
+
+
 class PasswordResetSerializer(serializers.Serializer):
     email = serializers.EmailField(write_only=True)
 
@@ -31,6 +41,7 @@ class PasswordSerializer(serializers.ModelSerializer):
     """
     tests.
     """
+
     password = serializers.CharField(style={"input_type": "password"}, write_only=True)
     password_confirmation = serializers.CharField(style={"input_type": "password"},write_only=True)
 
@@ -66,6 +77,7 @@ class UserProfileSerializer(serializers.ModelSerializer):
     """
     test.
     """
+
     class Meta:
         model = UserProfile
         fields = ('id', 'email', 'first_name', 'last_name', 'phone')

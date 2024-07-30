@@ -1,7 +1,17 @@
 from rest_framework import serializers
 from rest_framework.relations import SlugRelatedField
 
-from ..models import Product, ProductVariation, ProductItem, Image, AttributeType, AttributeOption
+from ..models import Product, ProductVariation, ProductItem, Image, AttributeOption, Discount
+
+
+class DiscountSerializer(serializers.ModelSerializer):
+    """
+    This serializer serializes the Discount object.
+    """
+
+    class Meta:
+        model = Discount
+        fields = '__all__'
 
 
 class AttributeOptionSerializer(serializers.ModelSerializer):
@@ -47,16 +57,19 @@ class ProductItemSerializer(serializers.ModelSerializer):
     for displaying them in 'ProductSerializer' serializer.
     """
 
-    # discount_price = serializers.SerializerMethodField()
     color = serializers.SlugRelatedField(slug_field='name', read_only=True)
     image = ImageSerializer(many=True, read_only=True)
     product_variation = ProductVariationSerializer(many=True, read_only=True)
     price = serializers.IntegerField()
     discount_price = serializers.SerializerMethodField()
+    discount = DiscountSerializer(many=True, read_only=True)
 
     class Meta:
         model = ProductItem
-        fields = ['id', 'product_code', 'price', 'color', 'image', 'product_variation']
+        fields = ['id', 'product_code', 'price', 'discount_price', 'color', 'image', 'discount', 'product_variation']
+
+    def get_discount_price(self, obj):
+        return obj.get_discount_price()
 
 
 class ProductSerializer(serializers.ModelSerializer):
@@ -68,6 +81,19 @@ class ProductSerializer(serializers.ModelSerializer):
     category = serializers.SlugRelatedField(slug_field='name', read_only=True)
     attribute_option = AttributeOptionSerializer(many=True, read_only=True)
     product_item = ProductItemSerializer(many=True, read_only=True)
+
+    class Meta:
+        model = Product
+        fields = ['id', 'name', 'slug', 'description', 'brand', 'category', 'gender', 'attribute_option', 'product_item']
+
+
+class ProductDetailSerializer(ProductSerializer):
+    """
+    Displays values from 'Product' model and particular form 'ProductItem' model.
+    Values are show in 'ProductAPIList' view.
+    """
+
+    # reviews = ReviewSerializer(many=True, read_only=True)
 
     class Meta:
         model = Product

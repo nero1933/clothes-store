@@ -1,3 +1,4 @@
-from .admin_users import *
-from .admin_addresses import *
-from .admin_products import *
+from .users import *
+from .addresses import *
+from .products import *
+from .shopping_carts import *

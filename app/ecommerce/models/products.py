@@ -1,5 +1,6 @@
 from django.db import models
 from django.core.validators import MinValueValidator, MaxValueValidator
+from django.db.models import Sum
 
 from rest_framework.reverse import reverse
 
@@ -79,11 +80,29 @@ class ProductItem(models.Model):
     color = models.ForeignKey('Color', on_delete=models.CASCADE)
     price = models.PositiveIntegerField()
     product_code = models.CharField(max_length=32)
-    discount = models.ForeignKey('Discount', on_delete=models.PROTECT, blank=True, null=True)
+    discount = models.ManyToManyField('Discount', related_name='discount')
     created = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
         return self.product.name + ' ' + self.color.name
+
+    def get_discount_price(self):
+        print('get_discount_price')
+        # !
+        # Create a test for this method
+        # !
+
+        discounts = self.discount.all()
+        if not discounts:
+            return self.price
+
+        # Calculate the discount price
+        rate = 0
+        for discount in discounts:
+            rate += discount.discount_rate
+
+        discount_price = self.price * (1 - (rate / 100))
+        return int(discount_price)
 
 
 class Image(models.Model):

@@ -9,11 +9,12 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework.viewsets import GenericViewSet
+from rest_framework_simplejwt.tokens import RefreshToken
 
 from app import settings
-from ecommerce.models import UserProfile
+from ecommerce.models import UserProfile, UserProfileManager
 from ecommerce.serializers import RegisterUserSerializer, PasswordResetSerializer, PasswordSerializer, \
-    UserProfileSerializer
+    UserProfileSerializer, RegisterGuestSerializer
 from ecommerce.utils.email.senders import RegistrationEmail, PasswordResetEmail
 from ecommerce.utils.keys_managers.keys_encoders import KeyEncoder
 
@@ -62,6 +63,31 @@ class RegisterUserAPIView(CreateAPIView,
         self.send_registration_link(request, user_email, token) # method from RegistrationEmail
 
         return response
+
+
+class RegisterGuestAPIView(CreateAPIView):
+    serializer_class = RegisterGuestSerializer
+
+    def post(self, request, *args, **kwargs):
+        user_profile_manager = UserProfileManager()
+
+        user = user_profile_manager.create_guest()
+
+        if user:
+            # Generate JWT tokens
+            refresh = RefreshToken.for_user(user)
+            access_token = str(refresh.access_token)
+            refresh_token = str(refresh)
+
+            response_data = {
+                'email': user.email,
+                'access': access_token,
+                'refresh': refresh_token
+            }
+
+            return Response(response_data, status=status.HTTP_201_CREATED)
+        else:
+            return Response({'detail': 'Could not create guest user'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
 class PasswordResetAPIView(APIView,
@@ -143,3 +169,5 @@ class UserProfileViewSet(mixins.RetrieveModelMixin,
         else:
             return Response(serializer.errors,
                             status=status.HTTP_400_BAD_REQUEST)
+
+
