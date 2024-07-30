@@ -1,14 +1,38 @@
+from django.db.models import Prefetch
 from rest_framework.generics import GenericAPIView
 from rest_framework.response import Response
 from rest_framework import mixins
 from rest_framework import viewsets
 
-from ecommerce.models import Product
+from ecommerce.models import Product, ProductVariation
+from ecommerce.serializers.products import ProductSerializer
 
 
 class ProductViewSet(viewsets.ReadOnlyModelViewSet):
-#    serializer_class = ProductSerializer
+    serializer_class = ProductSerializer
     lookup_field = 'slug'
 
     def get_queryset(self):
-        return Product.objects.all()
+        queryset = Product.objects \
+            .select_related('category', 'brand') \
+            .prefetch_related('product_item',
+                              'product_item__color',
+                              'product_item__image',
+                              Prefetch(
+                                  'product_item__product_variation',
+                                  queryset=ProductVariation.objects.filter(qty_in_stock__gt=0)),
+                              'product_item__product_variation__size',
+                              'attribute_option',
+                              'attribute_option__attribute_type',
+                              )
+
+        return queryset
+
+    def get_serializer_class(self):
+        serializer_class = self.serializer_class
+        if self.action == 'retrieve':
+            pass
+            # serializer_class = ProductDetailSerializer
+
+        return serializer_class
+

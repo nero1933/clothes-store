@@ -75,11 +75,11 @@ class SizeCategory(models.Model):
         return self.name
 
 class ProductItem(models.Model):
-    product = models.ForeignKey('Product', on_delete=models.CASCADE)
+    product = models.ForeignKey('Product', related_name='product_item', on_delete=models.CASCADE)
     color = models.ForeignKey('Color', on_delete=models.CASCADE)
     price = models.PositiveIntegerField()
     product_code = models.CharField(max_length=32)
-    discount = models.ManyToManyField('Discount', blank=True)
+    discount = models.ForeignKey('Discount', on_delete=models.PROTECT, blank=True, null=True)
     created = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
@@ -87,7 +87,7 @@ class ProductItem(models.Model):
 
 
 class Image(models.Model):
-    product_item = models.ForeignKey('ProductItem', on_delete=models.CASCADE)
+    product_item = models.ForeignKey('ProductItem', related_name='image', on_delete=models.CASCADE)
     name = models.CharField(max_length=255)
     url = models.URLField(max_length=255)
 
@@ -96,7 +96,7 @@ class Image(models.Model):
 
 
 class ProductVariation(models.Model):
-    product_item = models.ForeignKey('ProductItem', on_delete=models.CASCADE)
+    product_item = models.ForeignKey('ProductItem', related_name='product_variation', on_delete=models.CASCADE)
     size = models.ForeignKey('ProductSize', on_delete=models.CASCADE)
     qty_in_stock = models.PositiveIntegerField()
 
