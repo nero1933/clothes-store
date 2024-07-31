@@ -19,7 +19,7 @@ from ecommerce.serializers.shopping_carts import ShoppingCartItemSerializer
 class ShoppingCartItemViewSet(viewsets.ModelViewSet):
     serializer_class = ShoppingCartItemSerializer
     permission_classes = (IsAuthenticated,)
-    queryset = []
+    http_method_names = ['get', 'post', 'patch', 'delete', 'options']
 
     def get_queryset(self):
         queryset = ShoppingCartItem.objects \
@@ -30,6 +30,9 @@ class ShoppingCartItemViewSet(viewsets.ModelViewSet):
             .prefetch_related('product_variation__product_item__discount')
 
         return queryset
+
+    # def update(self, request, *args, **kwargs):
+    #     return super().update(self, request, *args, **kwargs)
 
     # def get_serializer_class(self):
     #     serializer_class = self.serializer_class

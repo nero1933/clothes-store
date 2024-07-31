@@ -16,7 +16,7 @@ class ShoppingCartItemSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = ShoppingCartItem
-        fields = ['id', 'cart_id', 'product_variation', 'name', 'gender', 'size', 'quantity', 'items_price', 'items_discount_price']
+        fields = ['id', 'cart_id', 'product_variation_id', 'name', 'gender', 'size', 'quantity', 'items_price', 'items_discount_price']
 
     def get_name(self, obj):
         return obj.product_variation.product_item.product.name
@@ -74,13 +74,16 @@ class ShoppingCartItemSerializer(serializers.ModelSerializer):
 
     def update(self, instance, validated_data):
         quantity = validated_data.pop('quantity', instance.quantity)
-        product_variation = validated_data.pop('product_variation', instance.product_item_size_quantity)
+        product_variation = validated_data.pop('product_variation', instance.product_variation)
 
         instance.product_variation = product_variation
         instance.quantity = quantity if quantity <= product_variation.qty_in_stock else product_variation.qty_in_stock
 
         instance.save()
         return instance
+    #
+    # def delete(self, instance):
+    #     pass
 
 
 # class ShoppingCartItemUpdateSerializer(ShoppingCartItemSerializer):

@@ -87,7 +87,6 @@ class ProductItem(models.Model):
         return self.product.name + ' ' + self.color.name
 
     def get_discount_price(self):
-        print('get_discount_price')
         # !
         # Create a test for this method
         # !
