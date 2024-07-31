@@ -7,6 +7,7 @@ from rest_framework.reverse import reverse
 from rest_framework.test import APITestCase
 
 from ecommerce.models import UserProfile
+from ecommerce.utils.tests.tests_mixins import TestMixin
 
 
 def get_link_from_message(message):
@@ -16,38 +17,11 @@ def get_link_from_message(message):
     return link
 
 
-class TestUser:
-    email = 'test@test.com'
-    password = '12345678'
-    user = None
-    jwt_access_token = None
-
-    def init_user(self):
-        user = UserProfile.objects.create_user(
-            email=self.email,
-            first_name='test',
-            last_name='test',
-            phone='+380951112233',
-            password=self.password
-        )
-
-        user.is_active = True
-        user.save()
-
-        return user
-
-    def login_user(self):
-        data = {'email': self.email, 'password': self.password}
-
-        response = self.client.post(reverse('token_obtain_pair'), data)
-        return response.data.get('access')
-
-
-class UserTestCase(APITestCase, TestUser):
+class UserTestCase(TestMixin):
 
     def setUp(self):
-        self.user = self.init_user()
-        self.jwt_access_token = self.login_user()
+        self.user = self.create_user()
+        self.jwt_access_token = self.get_jwt_access_token()
 
     def test_register_user(self):
         """

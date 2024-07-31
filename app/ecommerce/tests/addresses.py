@@ -1,40 +1,19 @@
 from collections import OrderedDict
 
-from django.core import mail
 from rest_framework import status
-from rest_framework.generics import get_object_or_404
 from rest_framework.reverse import reverse
-from rest_framework.test import APITestCase
 
-from ecommerce.models import Address, UserAddress
-from ecommerce.tests import TestUser
+from ecommerce.utils.tests.tests_mixins import TestMixin
 
 
-class AddressTest:
-    def init_address(self, user, is_default):
-        data = {
-            'first_name': 'Name',
-            'last_name': 'Surname',
-            'street': 'st',
-            'unit_number': '1',
-            'country': 'Ukraine',
-            'region': 'K',
-            'city': 'Kiev',
-            'post_code': 55000,
-        }
-
-        address = Address.objects.create(**data)
-        UserAddress.objects.create(address=address, user=user, is_default=is_default)
-
-        return address
-
-class AddressTestCase(APITestCase, TestUser, AddressTest):
+class AddressTestCase(TestMixin):
     def setUp(self):
-        self.user = self.init_user()
-        self.jwt_access_token = self.login_user()
-        self.address = self.init_address(self.user, is_default=False)
+        self.user = self.create_user()
+        self.jwt_access_token = self.get_jwt_access_token()
+        self.address = self.create_address(self.user, is_default=False)
 
-        self.data = {
+    def test_create_address(self):
+        data = {
             'address': {
                 'first_name': 'John',
                 'last_name': 'Doe',
@@ -47,12 +26,10 @@ class AddressTestCase(APITestCase, TestUser, AddressTest):
             }
         }
 
-    def test_create_address(self):
-
         # Try to create users address
         response = self.client.post(
             reverse('addresses-list'),
-            self.data,
+            data,
             HTTP_AUTHORIZATION=f'Bearer {self.jwt_access_token}',
             format='json'
         )
@@ -75,7 +52,7 @@ class AddressTestCase(APITestCase, TestUser, AddressTest):
         response_data.pop('id')
 
         # Check that the 'address' dict from response is equal to address from self.data
-        self.assertEqual(response_data, OrderedDict(self.data.get('address')), 'Users address data is not correct')
+        self.assertEqual(response_data, OrderedDict(data.get('address')), 'Users address data is not correct')
 
     def test_update_address(self):
         data = {
