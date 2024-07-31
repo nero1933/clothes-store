@@ -1,13 +1,18 @@
 from rest_framework import serializers
+from rest_framework.fields import IntegerField
 
 from ..models.products import ProductVariation, ProductItem
 from ..models.shopping_carts import ShoppingCart, ShoppingCartItem
 
 
 class ShoppingCartItemSerializer(serializers.ModelSerializer):
-    # product_variation = serializers.PrimaryKeyRelatedField(
-    #     queryset=ProductVariation.objects \
-    #         .select_related('size', 'product_item__product', 'product_item__color'))
+    product_variation = serializers.PrimaryKeyRelatedField(
+        queryset=ProductVariation.objects \
+            .select_related('size',
+                            'product_item__product',
+                            'product_item__color'
+                            )
+    )
     name = serializers.SerializerMethodField()
     gender = serializers.SerializerMethodField()
     size = serializers.SerializerMethodField()
@@ -16,7 +21,7 @@ class ShoppingCartItemSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = ShoppingCartItem
-        fields = ['id', 'cart_id', 'product_variation_id', 'name', 'gender', 'size', 'quantity', 'items_price', 'items_discount_price']
+        fields = ['id', 'cart_id', 'product_variation', 'name', 'gender', 'size', 'quantity', 'items_price', 'items_discount_price']
 
     def get_name(self, obj):
         return obj.product_variation.product_item.product.name
@@ -38,14 +43,19 @@ class ShoppingCartItemSerializer(serializers.ModelSerializer):
         quantity = validated_data.pop('quantity')
 
         request = self.context.get('request', None)
-        user = request.user if request else None
-        cart = ShoppingCart.objects.get(user=user)
-        cart_items = ShoppingCartItem.objects.filter(cart=cart)\
-            .select_related('product_variation')
+        # user = request.user if request else None
+        # cart = ShoppingCart.objects.get(user=user)
+        # cart_items = ShoppingCartItem.objects.filter(cart=cart)\
+        #     .select_related('product_variation')
+        # cart_items = ShoppingCartItem.objects.filter(cart__user=user)\
+        #     .select_related('product_variation')
+
+        cart_items = self.context['cart_items']
 
         existing_item = None
         # Step 1. Check If added to shopping cart item is already in cart.
         for item in cart_items:
+            print(3)
             if product_variation == item.product_variation:
                 # Step 1.1. Sum quantity. (If item already exists in shopping cart).
                 quantity += item.quantity
@@ -58,11 +68,10 @@ class ShoppingCartItemSerializer(serializers.ModelSerializer):
         if not quantity:
             raise serializers.ValidationError("Unable to add an item to shopping cart due to out of stock")
 
-        # Step 4. If item existed in cart set checked quantity (after step 2) to existing item save and return it.
+        # Step 4. If item existed in cart update quantity.
         if existing_item:
-            existing_item.quantity = quantity
-            existing_item.save()
-            return existing_item
+            validated_data = {'product_variation': product_variation, 'quantity': quantity}
+            return self.update(existing_item, validated_data)
 
         # Step 5. Create cart item and return it
         return ShoppingCartItem.objects.create(

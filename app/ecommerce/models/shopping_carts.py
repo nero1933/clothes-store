@@ -14,5 +14,5 @@ class ShoppingCart(models.Model):
 
 class ShoppingCartItem(models.Model):
     cart = models.ForeignKey('ShoppingCart', related_name='shopping_cart_item', on_delete=models.CASCADE)
-    product_variation = models.ForeignKey('ProductVariation', on_delete=models.CASCADE)
+    product_variation = models.ForeignKey('ProductVariation', related_name='shopping_cart_item', on_delete=models.CASCADE)
     quantity = models.PositiveIntegerField(validators=[MinValueValidator(1)])
