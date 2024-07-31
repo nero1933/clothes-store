@@ -42,14 +42,6 @@ class ShoppingCartItemSerializer(serializers.ModelSerializer):
         product_variation = validated_data.pop('product_variation')
         quantity = validated_data.pop('quantity')
 
-        request = self.context.get('request', None)
-        # user = request.user if request else None
-        # cart = ShoppingCart.objects.get(user=user)
-        # cart_items = ShoppingCartItem.objects.filter(cart=cart)\
-        #     .select_related('product_variation')
-        # cart_items = ShoppingCartItem.objects.filter(cart__user=user)\
-        #     .select_related('product_variation')
-
         cart_items = self.context['cart_items']
 
         existing_item = None
@@ -75,7 +67,8 @@ class ShoppingCartItemSerializer(serializers.ModelSerializer):
 
         # Step 5. Create cart item and return it
         return ShoppingCartItem.objects.create(
-            cart=cart,
+            # cart=cart,
+            cart=self.context['cart'],
             product_variation=product_variation,
             quantity=quantity,
             **validated_data
@@ -90,21 +83,3 @@ class ShoppingCartItemSerializer(serializers.ModelSerializer):
 
         instance.save()
         return instance
-    #
-    # def delete(self, instance):
-    #     pass
-
-
-# class ShoppingCartItemUpdateSerializer(ShoppingCartItemSerializer):
-#     product_variation = serializers.PrimaryKeyRelatedField(many=False, read_only=True)
-
-
-# class ShoppingCartSerializer(serializers.ModelSerializer):
-# #    shopping_cart_item = ShoppingCartItemSerializer(many=True, read_only=True)
-# 
-#     class Meta:
-#         model = ShoppingCartItem
-#         # fields = ['id', 'user',
-#         #           #'shopping_cart_item'
-#         #           ]
-#         fields = '__all__'

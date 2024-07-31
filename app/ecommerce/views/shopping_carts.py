@@ -1,19 +1,9 @@
-import uuid
-
-from django.db.models import Prefetch, F, Sum
-from django.shortcuts import redirect
 from rest_framework import viewsets
-from rest_framework import generics
 from rest_framework.permissions import IsAuthenticated
-from rest_framework.response import Response
 
-from ecommerce.models import Discount
 from ecommerce.models.shopping_carts import ShoppingCartItem, ShoppingCart
 from ecommerce.serializers.shopping_carts import ShoppingCartItemSerializer
 
-
-# from ..serializers.serializers_shopping_cart import ShoppingCartItemSerializer, ShoppingCartSerializer, \
-#     ShoppingCartItemUpdateSerializer
 
 
 class ShoppingCartItemViewSet(viewsets.ModelViewSet):
@@ -39,5 +29,7 @@ class ShoppingCartItemViewSet(viewsets.ModelViewSet):
             context['cart_items'] = ShoppingCartItem.objects \
                 .select_related('product_variation') \
                 .filter(cart__user=self.request.user)
+            context['cart'] = ShoppingCart.objects \
+                .get(user=self.request.user)
 
         return context
