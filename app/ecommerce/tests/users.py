@@ -109,7 +109,7 @@ class UserTestCase(TestMixin):
 
     def test_user_view_set(self):
 
-        data = {'id': 4, 'email': 'test@test.com', 'first_name': 'test', 'last_name': 'test', 'phone': '+380951112233'}
+        data = {'email': 'test@test.com', 'first_name': 'test', 'last_name': 'test', 'phone': '+380951112233'}
         kwargs = {'pk': self.user.pk}
 
         response = self.client.get(
@@ -119,6 +119,8 @@ class UserTestCase(TestMixin):
             format='json'
         )
 
+        response.data.pop('id')
+
         # Check that the response has a success status code
         self.assertEqual(response.status_code, status.HTTP_200_OK, 'Code must be 200')
 
@@ -126,7 +128,7 @@ class UserTestCase(TestMixin):
         self.assertEqual(response.data, data, f'data must be {data}')
 
         new_particular_data = {'first_name': 'John', 'last_name': 'Doe'}
-        new_data = {'id': 4, 'email': 'test@test.com', 'first_name': 'John', 'last_name': 'Doe', 'phone': '+380951112233'}
+        new_data = {'email': 'test@test.com', 'first_name': 'John', 'last_name': 'Doe', 'phone': '+380951112233'}
 
         response = self.client.patch(
             reverse('users-detail', kwargs=kwargs),
@@ -134,6 +136,8 @@ class UserTestCase(TestMixin):
             HTTP_AUTHORIZATION=f'Bearer {self.jwt_access_token}',
             format='json'
         )
+
+        response.data.pop('id')
 
         # Check that the response has a success status code
         self.assertEqual(response.status_code, status.HTTP_200_OK, 'Code must be 200')
