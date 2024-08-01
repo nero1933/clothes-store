@@ -56,7 +56,7 @@ class TestShoppingCartItem(TestMixin):
         response = self.client.get(reverse(self.url_name), data, format='json')
         self.assertEqual(response.status_code, 200, 'User must see his shopping cart')
         self.assertEqual(response.data[0]['quantity'], 2, "Item's quantity must be equal to 2")
-        self.assertEqual(response.data[0]['items_price'], (2 * price), f"'item_price' must be equal to {(2 * price)}")
+        self.assertEqual(response.data[0]['item_price'], (2 * price), f"'item_price' must be equal to {(2 * price)}")
         self.assertEqual(len(response.data), 1, 'It must be only one item in the shopping cart')
 
         # Create new user
