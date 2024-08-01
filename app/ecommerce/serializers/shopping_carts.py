@@ -1,8 +1,7 @@
 from rest_framework import serializers
-from rest_framework.fields import IntegerField
 
-from ..models.products import ProductVariation, ProductItem
-from ..models.shopping_carts import ShoppingCart, ShoppingCartItem
+from ..models.products import ProductVariation
+from ..models.shopping_carts import ShoppingCartItem
 
 
 class ShoppingCartItemSerializer(serializers.ModelSerializer):
@@ -16,12 +15,13 @@ class ShoppingCartItemSerializer(serializers.ModelSerializer):
     name = serializers.SerializerMethodField()
     gender = serializers.SerializerMethodField()
     size = serializers.SerializerMethodField()
-    items_price = serializers.SerializerMethodField()
-    items_discount_price = serializers.SerializerMethodField()
+    item_price = serializers.SerializerMethodField()
+    item_discount_price = serializers.SerializerMethodField()
 
     class Meta:
         model = ShoppingCartItem
-        fields = ['id', 'cart_id', 'product_variation', 'name', 'gender', 'size', 'quantity', 'items_price', 'items_discount_price']
+        fields = ['id', 'cart_id', 'product_variation', 'name', 'gender',
+                  'size', 'quantity', 'item_price', 'item_discount_price']
 
     def get_name(self, obj):
         return obj.product_variation.product_item.product.name
@@ -32,10 +32,10 @@ class ShoppingCartItemSerializer(serializers.ModelSerializer):
     def get_size(self, obj):
         return obj.product_variation.size.name
 
-    def get_items_price(self, obj):
+    def get_item_price(self, obj):
         return obj.product_variation.product_item.price * obj.quantity
 
-    def get_items_discount_price(self, obj):
+    def get_item_discount_price(self, obj):
         return obj.product_variation.product_item.get_discount_price() * obj.quantity
 
     def create(self, validated_data):
@@ -47,7 +47,6 @@ class ShoppingCartItemSerializer(serializers.ModelSerializer):
         existing_item = None
         # Step 1. Check If added to shopping cart item is already in cart.
         for item in cart_items:
-            print(3)
             if product_variation == item.product_variation:
                 # Step 1.1. Sum quantity. (If item already exists in shopping cart).
                 quantity += item.quantity
@@ -60,14 +59,13 @@ class ShoppingCartItemSerializer(serializers.ModelSerializer):
         if not quantity:
             raise serializers.ValidationError("Unable to add an item to shopping cart due to out of stock")
 
-        # Step 4. If item existed in cart update quantity.
+        # Step 4. If item exists in cart update quantity.
         if existing_item:
             validated_data = {'product_variation': product_variation, 'quantity': quantity}
             return self.update(existing_item, validated_data)
 
         # Step 5. Create cart item and return it
         return ShoppingCartItem.objects.create(
-            # cart=cart,
             cart=self.context['cart'],
             product_variation=product_variation,
             quantity=quantity,

@@ -1,6 +1,5 @@
 from django.db import models
 from django.core.validators import MinValueValidator, MaxValueValidator
-from django.db.models import Sum
 
 from rest_framework.reverse import reverse
 
@@ -100,7 +99,7 @@ class ProductItem(models.Model):
         for discount in discounts:
             rate += discount.discount_rate
 
-        discount_price = self.price * (1 - (rate / 100))
+        discount_price = self.price * ((100 - rate) / 100)
         return int(discount_price)
 
 

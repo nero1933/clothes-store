@@ -72,20 +72,22 @@ class TestMixin(APITestCase):
     # def create_shipping_method(self):
     #     self.shipping_method_1 = 1
 
-    def create_discount(self, name='discount', discount_rate=10):
+    def create_discount(self, name='discount', discount_rate=10) -> Discount:
         # start_date = datetime(2023, 3, 27, 11, 2, 40, 742332, timezone.utc)
         # end_date = datetime(2023, 12, 31, 0, 0, 0, tzinfo=timezone.utc)
 
         start_date = datetime(2024, 1, 1)
         end_date = datetime(2024, 12, 31)
 
-        self.discount_1 = Discount.objects.create(
+        discount = Discount.objects.create(
             name=name,
             description='discount',
             discount_rate=discount_rate,
             start_date=start_date,
             end_date=end_date
         )
+
+        return discount
 
     def create_products(self) -> QuerySet:
         """
