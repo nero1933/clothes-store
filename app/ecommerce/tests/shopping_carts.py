@@ -173,6 +173,14 @@ class TestShoppingCartItem(TestMixin):
         product_variation.product_item.discount.set([discount_1, discount_2])
         product_price = product_variation.product_item.price
 
+        print()
+        print('product_variation')
+        print(product_variation)
+        print()
+        print('product_variation.pk', product_variation.pk)
+        print('product_price', product_price)
+        print()
+
         data = {
            "product_variation": product_variation.pk,
            "quantity": 10
@@ -184,11 +192,11 @@ class TestShoppingCartItem(TestMixin):
         print()
         print(response.data)
         print()
-        print(response.data['id'])
-        print(response.data['product_variation_id'])
-        print(response.data['quantity'])
-        print(response.data['item_price'])
-        print(response.data['item_discount_price'])
+        print("response.data['id']", response.data['id'])
+        print("response.data['product_variation']", response.data['product_variation'])
+        print("response.data['quantity']", response.data['quantity'])
+        print("response.data['item_price']", response.data['item_price'])
+        print("response.data['item_discount_price']", response.data['item_discount_price'])
         print()
 
         self.assertEqual(response.data['item_price'], (product_price * data['quantity']),
