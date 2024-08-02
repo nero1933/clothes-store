@@ -206,3 +206,5 @@ class TestShoppingCartItem(TestMixin):
         self.assertEqual(response.data['item_discount_price'], int((product_price * 0.7)) * data['quantity'],
                          f"'discount_price' must be {int((product_price * 0.7)) * data['quantity']}"
                          f"but it is {response.data['item_discount_price']}")
+
+        # test
