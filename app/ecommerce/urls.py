@@ -14,15 +14,15 @@ router.register(r'products', ProductViewSet, basename='products')
 router.register(r'shopping_cart_items', ShoppingCartItemViewSet, basename='shopping_cart_items')
 
 urlpatterns = [
-    path('api/token/', TokenObtainPairView.as_view(), name='token_obtain_pair'),
-    path('api/token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
+    path('api/v1/token/', TokenObtainPairView.as_view(), name='token_obtain_pair'),
+    path('api/v1/token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
 
-    path('api/register/user', RegisterUserAPIView.as_view(), name='register_user'),
-    path('api/register/guest', RegisterGuestAPIView.as_view(), name='register_guest'),
-    path('api/register/confirmation/<str:token>', register_user_confirmation, name='register_user_confirmation'),
+    path('api/v1/register/user/', RegisterUserAPIView.as_view(), name='register_user'),
+    path('api/v1/register/guest/', RegisterGuestAPIView.as_view(), name='register_guest'),
+    path('api/v1/register/confirmation/<str:token>', register_user_confirmation, name='register_user_confirmation'),
     
-    path('api/password-reset/', PasswordResetAPIView.as_view(), name='password_reset'),
-    path('api/password-reset/new-password/<str:token>', PasswordResetNewPasswordAPIView.as_view(), name='password_reset_new_password'),
+    path('api/v1/password-reset/', PasswordResetAPIView.as_view(), name='password_reset'),
+    path('api/v1/password-reset/new-password/<str:token>/', PasswordResetNewPasswordAPIView.as_view(), name='password_reset_new_password'),
 
-    path('api/', include(router.urls)),
+    path('api/v1/', include(router.urls)),
 ]
