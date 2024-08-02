@@ -1,0 +1,47 @@
+name: Django CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  run-tests:
+
+    runs-on: ubuntu-latest
+
+    env:
+      POSTGRES_DB: ${{ secrets.DB_NAME }}
+      POSTGRES_USER: ${{ secrets.DB_USER }}
+      POSTGRES_PASSWORD: ${{ secrets.DB_PASS }}
+      SECRET_KEY: ${{ secrets.SECRET_KEY }}
+      DEBUG: ${{ secrets.DEBUG }}
+      DB_HOST: db
+      DB_NAME: ${{ secrets.DB_NAME }}
+      DB_USER: ${{ secrets.DB_USER }}
+      DB_PASS: ${{ secrets.DB_PASS }}
+      ALLOWED_HOSTS: ${{ secrets.ALLOWED_HOSTS }}
+      SENDGRID_API_KEY: ${{ secrets.SENDGRID_API_KEY }}
+      FROM_EMAIL: ${{ secrets.FROM_EMAIL }}
+      USER_CONFIRMATION_KEY: ${{ secrets.USER_CONFIRMATION_KEY }}
+      PASSWORD_CONFIRMATION_KEY: ${{ secrets.PASSWORD_CONFIRMATION_KEY }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Build Docker images
+        run: docker compose build
+
+      - name: Make Migrations & Migrate
+        run: |
+          chmod -R a+w ./app
+          docker compose run --rm app sh -c "python manage.py makemigrations ecommerce"
+          docker compose run --rm app sh -c "python manage.py migrate"
+
+      - name: Run tests
+        run: docker compose run --rm app sh -c "python manage.py test"
+
+      - name: Coverage py
+        run: docker compose run --rm app sh -c "coverage run manage.py test -v 2 && coverage json"
