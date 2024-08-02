@@ -180,12 +180,21 @@ class TestShoppingCartItem(TestMixin):
 
         response = self.client.post(reverse(self.url_name), data, format='json')
         self.assertEqual(response.status_code, 201, 'Product must be successfully added')
+
+        print()
+        print(response.data)
+        print()
+        print(response.data['id'])
+        print(response.data['product_variation_id'])
+        print(response.data['quantity'])
+        print(response.data['item_price'])
+        print(response.data['item_discount_price'])
+        print()
+
         self.assertEqual(response.data['item_price'], (product_price * data['quantity']),
                          f"'item_price' must be {(product_price * data['quantity'])}"
                          f" but it is {response.data['item_price']}")
 
-        print((response.data['item_price']), (product_price * data['quantity']))
-
         self.assertEqual(response.data['item_discount_price'], int((product_price * 0.7)) * data['quantity'],
-                         f"'discount_price' must be {int((product_price * 0.7)) * data['quantity']} "
+                         f"'discount_price' must be {int((product_price * 0.7)) * data['quantity']}"
                          f"but it is {response.data['item_discount_price']}")
