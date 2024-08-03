@@ -42,6 +42,3 @@ jobs:
 
       - name: Run tests
         run: docker compose run --rm app sh -c "python manage.py test"
-
-      - name: Coverage py
-        run: docker compose run --rm app sh -c "coverage run manage.py test -v 2 && coverage json"
