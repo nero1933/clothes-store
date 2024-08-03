@@ -39,7 +39,7 @@ class Order(models.Model):
 
 class OrderItem(models.Model):
     order = models.ForeignKey('Order', related_name='order_item', on_delete=models.CASCADE)
-    product_variation = models.ForeignKey('ProductVariation', related_name='ordered_product', on_delete=models.PROTECT)
+    product_variation = models.ForeignKey('ProductVariation', related_name='order_item', on_delete=models.PROTECT)
     quantity = models.PositiveIntegerField(validators=[MinValueValidator(1), ])
     price = models.PositiveIntegerField()
     date_created = models.DateTimeField(auto_now_add=True)

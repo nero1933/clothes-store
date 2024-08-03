@@ -14,28 +14,57 @@ class OrderItemSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = OrderItem
-        fields = ['id', 'product_item_size_quantity', 'quantity', 'price']
+        fields = ['id', 'product_variation', 'quantity', 'price']
 
 
-class OrderSerializer(serializers.ModelSerializer):
-    email = serializers.EmailField(required=True)
-    user = serializers.PrimaryKeyRelatedField(read_only=True)
-    order_item = OrderItemSerializer(many=True, read_only=True)
+class OrderUserCreateSerializer(serializers.ModelSerializer):
+    """
+    User have to choose shipping address from existing ones
+    """
+    email = serializers.EmailField(read_only=True)
+    user = serializers.HiddenField(default=serializers.CurrentUserDefault())
     order_price = serializers.IntegerField(read_only=True)
-    shipping_address = serializers.PrimaryKeyRelatedField(queryset=UserAddress.objects.none())
+    shipping_address = serializers.PrimaryKeyRelatedField(queryset=Address.objects.none())
 
     class Meta:
         model = Order
-        fields = ['id', 'user', 'email', 'shipping_address', 'shipping_method', 'payment_method', 'order_item', 'order_price']
+        fields = ['id', 'user', 'email', 'shipping_address', 'shipping_method',
+                  'payment_method', 'order_price']
 
     def __init__(self, *args, **kwargs):
-        super(OrderSerializer, self).__init__(*args, **kwargs)
+        super(OrderUserCreateSerializer, self).__init__(*args, **kwargs)
         request = self.context.get('request', None)
         if request and hasattr(request, 'user'):
-            self.fields['shipping_address'].queryset = UserAddress.objects.filter(user=request.user)
+            self.fields['shipping_address'].queryset = (
+                Address.objects \
+                    .prefetch_related('address__user')
+                    .filter(address__user=request.user))
 
     def create(self, validated_data):
-        pass
+        user = self.context.get('user', None)
+        order_price = self.context.get('order_price', None)
+        return Order.objects.create(email=user.email, order_price=order_price, **validated_data)
+
+
+class OrderGuestCreateSerializer(OrderUserCreateSerializer):
+    """
+    Guest have to enter new shipping address
+    """
+    email = serializers.EmailField()
+    shipping_address = AddressSerializer()
+
+    def create(self, validated_data):
+
+        print(validated_data)
+
+        user = self.context.get('user', None)
+        shipping_address_data = validated_data.pop('shipping_address')
+        order_price = self.context.get('order_price', None)
+        shipping_address = Address.objects.create(**shipping_address_data)
+        UserAddress.objects.create(address=shipping_address, user=user)
+        return Order.objects.create(shipping_address=shipping_address,
+                                    order_price=order_price,
+                                    **validated_data)
 
 
 

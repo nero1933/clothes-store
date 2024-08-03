@@ -1,40 +1,19 @@
-import secrets
-import string
-
 from urllib.parse import urlsplit
 
 from django.urls import resolve
 
-from rest_framework import viewsets, status, mixins
+from rest_framework import viewsets, status
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
-from rest_framework.reverse import reverse
-from rest_framework.generics import GenericAPIView, CreateAPIView
-
-from ecommerce.models import UserProfile
+from rest_framework.generics import CreateAPIView
 from ecommerce.models.orders import Order, OrderItem
 from ecommerce.models.shopping_carts import ShoppingCartItem
-from ecommerce.serializers.orders import OrderSerializer
+from ecommerce.serializers.orders import OrderGuestCreateSerializer, OrderUserCreateSerializer
 
 
 class OrderCreateAPIView(CreateAPIView):
-    """
-    1 post,
-    2 create,
-    3 get_serializer_context,
-    4 perform_create,
-    5 serializer.save(),
-    6 Response
-    """
-
-    # 1. Guest -> to -> User
-    # 2. Shopping cart items -> to -> Order items
-    # 3. Calculate order price and set context['price']
-    # 4. Retrieve address and set context['address']
-    # 5. Create Order
 
     is_authenticated = (IsAuthenticated,)
-    serializer_class = OrderSerializer
 
     def get_queryset(self):
         queryset = ShoppingCartItem.objects \
@@ -66,34 +45,52 @@ class OrderCreateAPIView(CreateAPIView):
 
         return bulk_list
 
+    def create_order_items(self, order_id: int, bulk_list: list[OrderItem]):
+        for item in bulk_list:
+            item.order_id = order_id
+
+        OrderItem.objects.bulk_create(bulk_list)
+
+
+    def get_serializer_class(self):
+        if self.request.user.is_guest:
+            return OrderGuestCreateSerializer
+
+        return OrderUserCreateSerializer
 
     def post(self, request, *args, **kwargs):
         """
         Test
         """
-        customer = request.user
-
-        # Order serializer requires email.
-        # If user isn't a guest than add
-        # his email to self.request.data['email']
-
 
         serializer = self.get_serializer(data=request.data)
 
         order_items = self.prepare_order_items()
         order_price = sum(map(lambda x: x.price, order_items))
         serializer.context['order_price'] = order_price
+        serializer.context['user'] = request.user
 
         serializer.is_valid(raise_exception=True)
+        self.perform_create(serializer)
+        headers = self.get_success_headers(serializer.data)
 
-        if customer.is_guest: # if guest
+        order_id = serializer.data['id']
+        self.create_order_items(order_id, order_items)
+
+        ShoppingCartItem.objects.filter(user=request.user).delete()
+
+        if request.user.is_guest: # upgrade guest to user after SUCCESSFUL order
             new_email = serializer.validated_data['email']
-            customer.guest_to_user(new_email)
+            first_name = serializer.validated_data['shipping_address']['first_name']
+            last_name = serializer.validated_data['shipping_address']['last_name']
+            request.user.guest_to_user(new_email, first_name, last_name)
+
+        # SEND EMAIL WITH ORDER DETAIL TO THE USER
         #
-        #
-        #
-        # self.perform_create(serializer)
-        # headers = self.get_success_headers(serializer.data)
+        # WRITE HERE
+
+        return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
+
 
 
 
@@ -176,7 +173,7 @@ class Splitter:
 
 
 class OrderReadOnlyViewSet(viewsets.ReadOnlyModelViewSet):
-    serializer_class = OrderSerializer
+#     serializer_class = OrderSerializer
     lookup_field = 'pk'
 
     def retrieve(self, request, *args, **kwargs):
