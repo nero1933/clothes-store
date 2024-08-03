@@ -15,9 +15,9 @@ class Order(models.Model):
         DONE = 4
 
     class OrderMethods(enum.Enum):
-        CASH_ON_DELIVERY = 1
+        CARD = 1
+        CASH_ON_DELIVERY = 2
         BANK_TRANSFER = 3
-        ONLINE_PAYMENT = 4
 
     class ShippingMethods(enum.Enum):
         UPS = 1

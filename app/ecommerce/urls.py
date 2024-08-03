@@ -20,9 +20,17 @@ urlpatterns = [
     path('api/v1/register/user/', RegisterUserAPIView.as_view(), name='register_user'),
     path('api/v1/register/guest/', RegisterGuestAPIView.as_view(), name='register_guest'),
     path('api/v1/register/confirmation/<str:token>', register_user_confirmation, name='register_user_confirmation'),
-    
+
+    # path('api/v1/create_order/', '#', name='create_order'),
+    #
+    # path('api/v1/payment/successful/', '#', name='payment_successful'),
+    # path('api/v1/payment/cancelled/', '#', name='payment_cancelled'),
+    # path('api/v1/stripe_webhook/', '#', name='stripe_webhook'),
+
+
     path('api/v1/password-reset/', PasswordResetAPIView.as_view(), name='password_reset'),
     path('api/v1/password-reset/new-password/<str:token>/', PasswordResetNewPasswordAPIView.as_view(), name='password_reset_new_password'),
 
     path('api/v1/', include(router.urls)),
+    # path('api/v1/', '#', name='#'),
 ]

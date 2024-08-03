@@ -1,6 +1,5 @@
 from urllib.parse import urlsplit
 
-from django.http import HttpResponseBadRequest
 from django.shortcuts import redirect
 from django.urls import resolve
 
@@ -8,10 +7,8 @@ from rest_framework import viewsets, status, mixins
 from rest_framework.response import Response
 from rest_framework.reverse import reverse
 from rest_framework.generics import GenericAPIView
-from rest_framework.permissions import IsAuthenticated
 
 from ecommerce.models.orders import Order
-from ecommerce.models.shopping_carts import ShoppingCartItem
 from ecommerce.serializers.orders import OrderSerializer
 
 

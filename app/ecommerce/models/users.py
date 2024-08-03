@@ -28,7 +28,7 @@ class UserProfileManager(BaseUserManager):
         user.save(using=self.db)
 
         # Creates a shopping cart for the user
-        ShoppingCart.objects.create(user=user)
+        # ShoppingCart.objects.create(user=user)
 
         return user
 
@@ -44,9 +44,9 @@ class UserProfileManager(BaseUserManager):
 
         user.save(using=self.db)
 
-        cart_exists = len(ShoppingCart.objects.filter(user=user))
-        if not cart_exists:
-            ShoppingCart.objects.create(user=user)
+        # cart_exists = len(ShoppingCart.objects.filter(user=user))
+        # if not cart_exists:
+        #     ShoppingCart.objects.create(user=user)
 
         return user
 
