@@ -242,6 +242,10 @@ EMAIL_PORT = 587
 EMAIL_USE_TLS = True
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 
+# Stripe
+STRIPE_SECRET_KEY = os.environ.get("STRIPE_SECRET_KEY", 0)
+STRIPE_DEVICE_NAME = os.environ.get("STRIPE_DEVICE_NAME", 0)
+
 # Logging
 
 LOGGING = {

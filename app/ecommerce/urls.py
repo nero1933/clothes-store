@@ -5,6 +5,7 @@ from rest_framework.routers import SimpleRouter
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 
 from .views import *
+from .views.payments import CreateCheckoutSessionAPIView, StripeWebhookView
 from .views.shopping_carts import ShoppingCartItemViewSet
 
 router = SimpleRouter()
@@ -23,9 +24,10 @@ urlpatterns = [
 
     path('api/v1/create_order/', OrderCreateAPIView.as_view(), name='create_order'),
     #
+    path('api/v1/payment/checkout/', CreateCheckoutSessionAPIView.as_view(), name='payment_checkout'),
     # path('api/v1/payment/successful/', '#', name='payment_successful'),
     # path('api/v1/payment/cancelled/', '#', name='payment_cancelled'),
-    # path('api/v1/stripe_webhook/', '#', name='stripe_webhook'),
+    path('api/v1/stripe_webhook/', StripeWebhookView.as_view(), name='stripe_webhook'),
 
 
     path('api/v1/password-reset/', PasswordResetAPIView.as_view(), name='password_reset'),

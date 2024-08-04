@@ -1,13 +1,8 @@
-import secrets
-import string
-
-from django.core.exceptions import ObjectDoesNotExist
 from rest_framework import serializers
 
 from ..models.addresses import Address, UserAddress
-from ..models.users import UserProfile
 from ..models.orders import Order, OrderItem
-from ..serializers.addresses import AddressSerializer, UserAddressSerializer
+from ..serializers.addresses import AddressSerializer
 
 
 class OrderItemSerializer(serializers.ModelSerializer):
