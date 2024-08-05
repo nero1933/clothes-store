@@ -13,11 +13,11 @@ from ecommerce.models.shopping_carts import ShoppingCartItem
 from ecommerce.serializers.orders import OrderGuestCreateSerializer, OrderUserCreateSerializer
 
 
-class OrderViewSetAPIView(CreateAPIView):
-# class OrderViewSetAPIView(mixins.CreateModelMixin,
-#                           mixins.RetrieveModelMixin,
-#                           mixins.ListModelMixin,
-#                           viewsets.GenericViewSet):
+# class OrderViewSetAPIView(CreateAPIView):
+class OrderViewSetAPIView(mixins.CreateModelMixin,
+                          mixins.RetrieveModelMixin,
+                          mixins.ListModelMixin,
+                          viewsets.GenericViewSet):
 
     is_authenticated = (IsAuthenticated,)
 
