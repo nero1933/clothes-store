@@ -2,16 +2,22 @@ from urllib.parse import urlsplit
 
 from django.urls import resolve
 
-from rest_framework import viewsets, status
+from rest_framework import viewsets, status, mixins
+from rest_framework.generics import CreateAPIView
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
-from rest_framework.generics import CreateAPIView
+from rest_framework.viewsets import ReadOnlyModelViewSet, GenericViewSet
+
 from ecommerce.models.orders import Order, OrderItem
 from ecommerce.models.shopping_carts import ShoppingCartItem
 from ecommerce.serializers.orders import OrderGuestCreateSerializer, OrderUserCreateSerializer
 
 
-class OrderCreateAPIView(CreateAPIView):
+class OrderViewSetAPIView(CreateAPIView):
+# class OrderViewSetAPIView(mixins.CreateModelMixin,
+#                           mixins.RetrieveModelMixin,
+#                           mixins.ListModelMixin,
+#                           viewsets.GenericViewSet):
 
     is_authenticated = (IsAuthenticated,)
 
@@ -22,9 +28,10 @@ class OrderCreateAPIView(CreateAPIView):
                             'product_variation__product_item') \
             .prefetch_related('cart__user__address',
                               'product_variation__product_item__discount') \
-            .filter(cart__user=self.request.user, cart__user__address=self.request.user)
+            .filter(cart__user=self.request.user)
 
         return queryset
+
 
     def prepare_order_items(self) -> list[OrderItem]:
         cart_items = ShoppingCartItem.objects \

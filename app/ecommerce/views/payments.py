@@ -1,5 +1,6 @@
 import stripe
 from django.shortcuts import redirect
+from rest_framework.generics import get_object_or_404
 
 from rest_framework.views import APIView
 from rest_framework.response import Response
@@ -16,7 +17,6 @@ class CreateCheckoutSessionAPIView(APIView):
     #
     # Create OrderReadOnlyViewSet
     # Create Order tests
-    # Make checkout session achievable by order_id (in urls.py <int:order_id>)
     # Make command to create stripe.Products # https://docs.stripe.com/api/products
     # Make command to create stripe.Price # https://docs.stripe.com/api/prices
     # Make signal to change stripe.Price if product_item.price is changed (if it is possible)
@@ -27,17 +27,26 @@ class CreateCheckoutSessionAPIView(APIView):
 
     def get_queryset(self):
         queryset = Order.objects \
-            .prefetch_related('order_item') \
-            .select_related('order_item__product_variation__product_item') \
+            .prefetch_related('order_item',
+                              'order_item__product_variation__product_item') \
             .filter(user=self.request.user)
 
         return queryset
 
-    def post(self, request):
+    def get_object(self, pk):
+        return get_object_or_404(self.get_queryset(), pk=pk)
+
+    def post(self, request, order_id):
         serializer = CreateCheckoutSessionSerializer(data=request.data)
         if serializer.is_valid():
+
+            # Create get all order_items method
+
             try:
-                session = stripe.checkout.Session.create(
+
+                # Create order_to_checkout_session method
+
+                session = stripe.checkout.Session.create( # https://docs.stripe.com/api/checkout/sessions/object
                     payment_method_types=['card'],
                     line_items=[{
                         'price_data': {
@@ -50,10 +59,11 @@ class CreateCheckoutSessionAPIView(APIView):
                         'quantity': 1,
                     }],
                     mode='payment',
-                    success_url=settings.REDIRECT_DOMAIN + '/api/v1/payments/checkout/success', # BAD CODE
-                    cancel_url=serializer.validated_data['cancel_url'],
+                    # success_url=settings.REDIRECT_DOMAIN + '/api/v1/payment/checkout/success', # BAD CODE
+                    success_url='127.0.0.1:8000/api/v1/payment/checkout/success',  # BAD CODE
+                    cancel_url='127.0.0.1:8000/api/v1/payment/checkout/cancel',  # BAD CODE
                 )
-                return Response({'id': session.id, 'url': session.url})
+                return Response({'id': session.id, 'url': session.url, 'order_id': order_id})
             except Exception as e:
                 return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
