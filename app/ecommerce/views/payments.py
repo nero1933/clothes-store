@@ -1,7 +1,6 @@
 import stripe
-from django.shortcuts import redirect
-from rest_framework.generics import get_object_or_404
 
+from rest_framework.generics import get_object_or_404
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
@@ -15,12 +14,12 @@ stripe.api_key = settings.STRIPE_SECRET_KEY
 
 class CreateCheckoutSessionAPIView(APIView):
     #
-    # Create OrderReadOnlyViewSet
+    # Create OrderReadOnlyViewSet (DONE!)
     # Create Order tests
     # Make command to create stripe.Products # https://docs.stripe.com/api/products
     # Make command to create stripe.Price # https://docs.stripe.com/api/prices
     # Make signal to change stripe.Price if product_item.price is changed (if it is possible)
-    # Make signal to create Payment when new order is created
+    # Make signal to create Payment when new order is created (DONE!)
     # Make Order -> to -> stripe.checkout.Session method
     # Make proper webhook handlers for every event
     #    Make payment successful handler. Set payment.stripe_id

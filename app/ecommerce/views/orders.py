@@ -1,25 +1,29 @@
-from urllib.parse import urlsplit
-
-from django.urls import resolve
-
-from rest_framework import viewsets, status, mixins
+from rest_framework import status
 from rest_framework.generics import CreateAPIView
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
-from rest_framework.viewsets import ReadOnlyModelViewSet, GenericViewSet
+from rest_framework.viewsets import ReadOnlyModelViewSet
 
 from ecommerce.models.orders import Order, OrderItem
 from ecommerce.models.shopping_carts import ShoppingCartItem
-from ecommerce.serializers.orders import OrderGuestCreateSerializer, OrderUserCreateSerializer
+from ecommerce.serializers.orders import OrderGuestCreateSerializer, OrderUserCreateSerializer, OrderSerializer
 
 
-# class OrderViewSetAPIView(CreateAPIView):
-class OrderViewSetAPIView(mixins.CreateModelMixin,
-                          mixins.RetrieveModelMixin,
-                          mixins.ListModelMixin,
-                          viewsets.GenericViewSet):
+class OrderViewSet(ReadOnlyModelViewSet):
+    serializer_class = OrderSerializer
+    permission_classes = [IsAuthenticated]
 
-    is_authenticated = (IsAuthenticated,)
+    def get_queryset(self):
+        queryset = Order.objects \
+            .prefetch_related('order_item',
+                              'payment') \
+            .filter(user=self.request.user)
+
+        return queryset
+
+
+class OrderCreateAPIView(CreateAPIView):
+    permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
         queryset = ShoppingCartItem.objects \
@@ -84,7 +88,8 @@ class OrderViewSetAPIView(mixins.CreateModelMixin,
         order_id = serializer.data['id']
         self.create_order_items(order_id, order_items)
 
-        ShoppingCartItem.objects.filter(user=request.user).delete()
+        queryset = self.get_queryset()
+        queryset.delete()
 
         if request.user.is_guest: # upgrade guest to user after SUCCESSFUL order
             new_email = serializer.validated_data['email']
@@ -177,30 +182,3 @@ class Splitter:
 #     def get_queryset(self):
 #         queryset = super().get_queryset()
 #         return queryset
-
-
-class OrderReadOnlyViewSet(viewsets.ReadOnlyModelViewSet):
-#     serializer_class = OrderSerializer
-    lookup_field = 'pk'
-
-    def retrieve(self, request, *args, **kwargs):
-        instance = self.get_object()
-        serializer = self.get_serializer(instance)
-
-        # Check if the request came from a redirect
-        if 'HTTP_REFERER' in request.META:
-            referrer_url = request.META.get('HTTP_REFERER', '')
-            referrer_path = urlsplit(referrer_url).path
-            # Check if the redirect came from a 'create_order'
-            if resolve(referrer_path).url_name == 'create_order':
-                return Response(serializer.data, status=status.HTTP_201_CREATED)
-        else:
-            return Response(serializer.data, status=status.HTTP_200_OK)
-
-    def get_queryset(self):
-        if self.request.user.is_authenticated:
-            return Order.objects.filter(user=self.request.user) \
-                .prefetch_related('order_item')
-        else:
-            return Order.objects.filter(pk=self.request.session['order_id']) \
-                .prefetch_related('order_item')

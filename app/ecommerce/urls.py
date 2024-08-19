@@ -13,7 +13,7 @@ router.register(r'users', UserProfileViewSet, basename='users')
 router.register(r'addresses', UserAddressViewSet, basename='addresses')
 router.register(r'products', ProductViewSet, basename='products')
 router.register(r'shopping_cart_items', ShoppingCartItemViewSet, basename='shopping_cart_items')
-router.register(r'orders', OrderViewSetAPIView, basename='orders')
+router.register(r'orders', OrderViewSet, basename='orders')
 
 urlpatterns = [
     path('api/v1/token/', TokenObtainPairView.as_view(), name='token_obtain_pair'),
@@ -23,7 +23,7 @@ urlpatterns = [
     path('api/v1/register/guest/', RegisterGuestAPIView.as_view(), name='register_guest'),
     path('api/v1/register/confirmation/<str:token>', register_user_confirmation, name='register_user_confirmation'),
 
-    # path('api/v1/create_order/', OrderViewSetAPIView.as_view(), name='create_order'),
+    path('api/v1/create_order/', OrderCreateAPIView.as_view(), name='create_order'),
     #
     path('api/v1/payment/checkout/<int:order_id>', CreateCheckoutSessionAPIView.as_view(), name='payment_checkout'),
     # path('api/v1/payment/successful/', '#', name='payment_successful'),

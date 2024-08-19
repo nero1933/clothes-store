@@ -2,7 +2,15 @@ from rest_framework import serializers
 
 from ..models.addresses import Address, UserAddress
 from ..models.orders import Order, OrderItem
+from ..models.payments import Payment
 from ..serializers.addresses import AddressSerializer
+
+
+class PaymentSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = Payment
+        fields = '__all__'
 
 
 class OrderItemSerializer(serializers.ModelSerializer):
@@ -10,6 +18,15 @@ class OrderItemSerializer(serializers.ModelSerializer):
     class Meta:
         model = OrderItem
         fields = ['id', 'product_variation', 'quantity', 'price']
+
+
+class OrderSerializer(serializers.ModelSerializer):
+    order_item = OrderItemSerializer(many=True, read_only=True)
+    payment = PaymentSerializer(read_only=True)
+
+    class Meta:
+        model = Order
+        fields = '__all__'
 
 
 class OrderUserCreateSerializer(serializers.ModelSerializer):
