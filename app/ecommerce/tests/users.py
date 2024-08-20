@@ -7,7 +7,7 @@ from rest_framework.reverse import reverse
 from rest_framework.test import APITestCase
 
 from ecommerce.models import UserProfile
-from ecommerce.utils.tests.tests_mixins import TestMixin
+from ecommerce.utils.tests.tests_mixins import TestAPIEcommerce
 
 
 def get_link_from_message(message):
@@ -17,7 +17,7 @@ def get_link_from_message(message):
     return link
 
 
-class UserTestCase(TestMixin):
+class UserTestCase(TestAPIEcommerce):
 
     def setUp(self):
         self.user = self.create_user()

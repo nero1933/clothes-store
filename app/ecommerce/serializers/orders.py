@@ -1,9 +1,9 @@
 from rest_framework import serializers
 
-from ..models.addresses import Address, UserAddress
-from ..models.orders import Order, OrderItem
-from ..models.payments import Payment
-from ..serializers.addresses import AddressSerializer
+from ecommerce.models.addresses import Address, UserAddress
+from ecommerce.models.orders import Order, OrderItem
+from ecommerce.models.payments import Payment
+from ecommerce.serializers.addresses import AddressSerializer
 
 
 class PaymentSerializer(serializers.ModelSerializer):
@@ -65,10 +65,11 @@ class OrderGuestCreateSerializer(OrderUserCreateSerializer):
     email = serializers.EmailField()
     shipping_address = AddressSerializer()
 
+    class Meta:
+        model = Order
+        fields = '__all__'
+
     def create(self, validated_data):
-
-        print(validated_data)
-
         user = self.context.get('user', None)
         shipping_address_data = validated_data.pop('shipping_address')
         order_price = self.context.get('order_price', None)

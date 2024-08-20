@@ -3,10 +3,10 @@ from collections import OrderedDict
 from rest_framework import status
 from rest_framework.reverse import reverse
 
-from ecommerce.utils.tests.tests_mixins import TestMixin
+from ecommerce.utils.tests.tests_mixins import TestAPIEcommerce
 
 
-class AddressTestCase(TestMixin):
+class AddressTestCase(TestAPIEcommerce):
     def setUp(self):
         self.user = self.create_user()
         self.jwt_access_token = self.get_jwt_access_token()

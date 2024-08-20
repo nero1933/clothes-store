@@ -1,3 +1,6 @@
+from drf_spectacular.types import OpenApiTypes
+from drf_spectacular.utils import extend_schema, OpenApiExample, inline_serializer, OpenApiParameter, \
+    PolymorphicProxySerializer
 from rest_framework import status
 from rest_framework.generics import CreateAPIView
 from rest_framework.permissions import IsAuthenticated
@@ -6,6 +9,7 @@ from rest_framework.viewsets import ReadOnlyModelViewSet
 
 from ecommerce.models.orders import Order, OrderItem
 from ecommerce.models.shopping_carts import ShoppingCartItem
+from ecommerce.serializers.addresses import AddressSerializer
 from ecommerce.serializers.orders import OrderGuestCreateSerializer, OrderUserCreateSerializer, OrderSerializer
 
 
@@ -20,7 +24,6 @@ class OrderViewSet(ReadOnlyModelViewSet):
             .filter(user=self.request.user)
 
         return queryset
-
 
 class OrderCreateAPIView(CreateAPIView):
     permission_classes = [IsAuthenticated]
@@ -69,12 +72,58 @@ class OrderCreateAPIView(CreateAPIView):
 
         return OrderUserCreateSerializer
 
+    @extend_schema(
+        examples=[
+            OpenApiExample(
+                "Guest Request Example",
+                value=OrderGuestCreateSerializer().to_representation(
+                    OrderGuestCreateSerializer.Meta.model()
+                ),
+                request_only=True,
+            ),
+            OpenApiExample(
+                "User Request Example",
+                value=OrderUserCreateSerializer().to_representation(
+                    OrderUserCreateSerializer.Meta.model()
+                ),
+                request_only=True,
+            ),
+            OpenApiExample(
+                "Guest Response Example",
+                value=OrderGuestCreateSerializer().to_representation(
+                    OrderGuestCreateSerializer.Meta.model()
+                ),
+                response_only=True,
+            ),
+            OpenApiExample(
+                "User Response Example",
+                value=OrderUserCreateSerializer().to_representation(
+                    OrderUserCreateSerializer.Meta.model()
+                ),
+                response_only=True,
+            ),
+        ],
+        request=PolymorphicProxySerializer(
+            component_name='OrderCreate',
+            serializers=[OrderUserCreateSerializer, OrderGuestCreateSerializer],
+            resource_type_field_name=None,
+        ),
+        responses={
+            status.HTTP_201_CREATED: PolymorphicProxySerializer(
+                component_name='OrderResponse',
+                serializers=[OrderUserCreateSerializer, OrderGuestCreateSerializer],
+                resource_type_field_name=None,
+            ),
+        },
+    )
     def post(self, request, *args, **kwargs):
         """
         Test
         """
+        serializer_class = self.get_serializer_class()
+        serializer = serializer_class(data=request.data)
 
-        serializer = self.get_serializer(data=request.data)
+        # serializer = self.get_serializer(data=request.data)
 
         order_items = self.prepare_order_items()
         order_price = sum(map(lambda x: x.price, order_items))

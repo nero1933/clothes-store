@@ -1,10 +1,10 @@
 from rest_framework.reverse import reverse
 
 from ecommerce.models import ProductVariation
-from ecommerce.utils.tests.tests_mixins import TestMixin
+from ecommerce.utils.tests.tests_mixins import TestAPIEcommerce
 
 
-class TestShoppingCartItem(TestMixin):
+class TestShoppingCartItem(TestAPIEcommerce):
 
     def setUp(self):
         self.user = self.create_user()

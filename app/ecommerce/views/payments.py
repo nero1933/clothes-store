@@ -22,7 +22,7 @@ class CreateCheckoutSessionAPIView(APIView):
     # Make signal to create Payment when new order is created (DONE!)
     # Make Order -> to -> stripe.checkout.Session method
     # Make proper webhook handlers for every event
-    #    Make payment successful handler. Set payment.stripe_id
+    # ---- Make payment successful handler. Set payment.stripe_id
 
     def get_queryset(self):
         queryset = Order.objects \
@@ -65,6 +65,7 @@ class CreateCheckoutSessionAPIView(APIView):
                 return Response({'id': session.id, 'url': session.url, 'order_id': order_id})
             except Exception as e:
                 return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 

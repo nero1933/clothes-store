@@ -6,7 +6,7 @@ from rest_framework.test import APITestCase
 from ecommerce.models import *
 
 
-class TestMixin(APITestCase):
+class TestAPIEcommerce(APITestCase):
 
     default_email = 'test@test.com'
     password = '12345678'

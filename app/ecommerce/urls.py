@@ -23,12 +23,12 @@ urlpatterns = [
     path('api/v1/register/guest/', RegisterGuestAPIView.as_view(), name='register_guest'),
     path('api/v1/register/confirmation/<str:token>', register_user_confirmation, name='register_user_confirmation'),
 
-    path('api/v1/create_order/', OrderCreateAPIView.as_view(), name='create_order'),
+    path('api/v1/create-order/', OrderCreateAPIView.as_view(), name='create_order'),
     #
     path('api/v1/payment/checkout/<int:order_id>', CreateCheckoutSessionAPIView.as_view(), name='payment_checkout'),
     # path('api/v1/payment/successful/', '#', name='payment_successful'),
     # path('api/v1/payment/cancelled/', '#', name='payment_cancelled'),
-    path('api/v1/stripe_webhook/', StripeWebhookView.as_view(), name='stripe_webhook'),
+    path('api/v1/stripe-webhook/', StripeWebhookView.as_view(), name='stripe_webhook'),
 
 
     path('api/v1/password-reset/', PasswordResetAPIView.as_view(), name='password_reset'),
