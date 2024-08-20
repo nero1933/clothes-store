@@ -1,6 +1,7 @@
 from phonenumber_field.serializerfields import PhoneNumberField
 from rest_framework import serializers
 
+from ecommerce.models import UserProfile
 from ecommerce.models.addresses import Address, UserAddress
 from ecommerce.models.orders import Order, OrderItem
 from ecommerce.models.payments import Payment
@@ -59,19 +60,19 @@ class OrderUserCreateSerializer(serializers.ModelSerializer):
         return Order.objects.create(email=user.email, order_price=order_price, **validated_data)
 
 
-
-
-class OrderGuestCreateSerializer(OrderUserCreateSerializer):
+class OrderGuestCreateSerializer(serializers.ModelSerializer):
     """
     Guest have to enter new shipping address
     """
     email = serializers.EmailField()
     phone = PhoneNumberField()
     shipping_address = AddressSerializer()
+    order_price = serializers.IntegerField(read_only=True)
+    user = serializers.PrimaryKeyRelatedField(read_only=True)
 
     class Meta:
         model = Order
-        fields = ['id', 'user', 'email', 'phone', 'shipping_address', 'shipping_method',
+        fields = ['id', 'email', 'user', 'phone', 'shipping_address', 'shipping_method',
                   'payment_method', 'order_price']
 
     def create(self, validated_data):
@@ -82,6 +83,7 @@ class OrderGuestCreateSerializer(OrderUserCreateSerializer):
         UserAddress.objects.create(address=shipping_address, user=user)
         return Order.objects.create(shipping_address=shipping_address,
                                     order_price=order_price,
+                                    user=user,
                                     **validated_data)
 
 

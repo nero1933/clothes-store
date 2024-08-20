@@ -1,3 +1,4 @@
+from django.core.exceptions import ObjectDoesNotExist
 from drf_spectacular.types import OpenApiTypes
 from drf_spectacular.utils import extend_schema, OpenApiExample, inline_serializer, OpenApiParameter, \
     PolymorphicProxySerializer
@@ -70,10 +71,18 @@ class OrderCreateAPIView(CreateAPIView):
         queryset = self.get_queryset()
         queryset.delete()
 
+    def get_user(self):
+        try:
+            user = UserProfile.objects.get(email=self.request.data.get('email', None))
+            return user
+        except ObjectDoesNotExist:
+            return None
+
     def post(self, request, *args, **kwargs):
         """
         Test
         """
+        user = request.user
         serializer = self.get_serializer(data=request.data)
 
         order_items = self.prepare_order_items()
@@ -84,9 +93,12 @@ class OrderCreateAPIView(CreateAPIView):
         order_price = sum(map(lambda x: x.price, order_items))
         serializer.context['order_price'] = order_price
 
-        #
-        serializer.context['user'] = request.user
-        #
+        user_exists = self.get_user()
+        if user.is_guest and user_exists: # if existing user makes order from guest account
+            serializer.context['user'] = user_exists # existing account assigned to order
+            user.delete() # guest user is deleted
+        else:
+            serializer.context['user'] = user
 
         serializer.is_valid(raise_exception=True)
         self.perform_create(serializer)
@@ -111,11 +123,11 @@ class OrderUserCreateAPIView(OrderCreateAPIView):
 class OrderGuestCreateAPIView(OrderCreateAPIView):
     serializer_class = OrderGuestCreateSerializer
 
-    def user_upgrade(self, user, serializer_validated_data):
-        new_email = serializer_validated_data['email']
-        new_phone = serializer_validated_data['phone']
-        first_name = serializer_validated_data['shipping_address']['first_name']
-        last_name = serializer_validated_data['shipping_address']['last_name']
+    def guest_to_user(self, user, user_data):
+        new_email = user_data['email']
+        new_phone = user_data['phone']
+        first_name = user_data['shipping_address']['first_name']
+        last_name = user_data['shipping_address']['last_name']
         user = UserProfile.guest_to_user(user, new_email, first_name, last_name, new_phone)
         return user
 
@@ -123,13 +135,16 @@ class OrderGuestCreateAPIView(OrderCreateAPIView):
         response = super().post(request, *args, **kwargs)
 
         if response.status_code == status.HTTP_201_CREATED:
-            user = request.user
+            user = self.get_user()
+            if user:
+                return response
 
+            user = self.request.user
             serializer = self.get_serializer(data=request.data)
             serializer.is_valid(raise_exception=True)
 
             if user.is_guest:
-                self.user_upgrade(user, serializer.validated_data)
+                self.guest_to_user(user, serializer.validated_data)
 
         return response
 
