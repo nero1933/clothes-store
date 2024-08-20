@@ -122,13 +122,14 @@ class UserProfile(AbstractBaseUser, PermissionsMixin):
 
         return self.email
 
-    def guest_to_user(self, new_email, first_name, last_name):
+    def guest_to_user(self, new_email, first_name, last_name, phone):
         if self.is_guest:
             new_password = ''.join(secrets.choice(string.ascii_letters + string.digits) for _ in range(8))
 
             self.email = new_email
             self.first_name = first_name
             self.last_name = last_name
+            self.phone = phone
             self.set_password(new_password)
             self.is_guest = False
             self.save()

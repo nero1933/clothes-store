@@ -23,7 +23,8 @@ urlpatterns = [
     path('api/v1/register/guest/', RegisterGuestAPIView.as_view(), name='register_guest'),
     path('api/v1/register/confirmation/<str:token>', register_user_confirmation, name='register_user_confirmation'),
 
-    path('api/v1/create-order/', OrderCreateAPIView.as_view(), name='create_order'),
+    path('api/v1/create-user-order/', OrderUserCreateAPIView.as_view(), name='create_user_order'),
+    path('api/v1/create-guest-order/', OrderGuestCreateAPIView.as_view(), name='create_guest_order'),
     #
     path('api/v1/payment/checkout/<int:order_id>', CreateCheckoutSessionAPIView.as_view(), name='payment_checkout'),
     # path('api/v1/payment/successful/', '#', name='payment_successful'),

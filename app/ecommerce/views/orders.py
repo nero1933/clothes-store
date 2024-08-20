@@ -7,6 +7,7 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.viewsets import ReadOnlyModelViewSet
 
+from ecommerce.models import UserProfile
 from ecommerce.models.orders import Order, OrderItem
 from ecommerce.models.shopping_carts import ShoppingCartItem
 from ecommerce.serializers.addresses import AddressSerializer
@@ -65,70 +66,27 @@ class OrderCreateAPIView(CreateAPIView):
 
         OrderItem.objects.bulk_create(bulk_list)
 
+    def empty_shopping_cart(self):
+        queryset = self.get_queryset()
+        queryset.delete()
 
-    def get_serializer_class(self):
-        if self.request.user.is_guest:
-            return OrderGuestCreateSerializer
-
-        return OrderUserCreateSerializer
-
-    @extend_schema(
-        examples=[
-            OpenApiExample(
-                "Guest Request Example",
-                value=OrderGuestCreateSerializer().to_representation(
-                    OrderGuestCreateSerializer.Meta.model()
-                ),
-                request_only=True,
-            ),
-            OpenApiExample(
-                "User Request Example",
-                value=OrderUserCreateSerializer().to_representation(
-                    OrderUserCreateSerializer.Meta.model()
-                ),
-                request_only=True,
-            ),
-            OpenApiExample(
-                "Guest Response Example",
-                value=OrderGuestCreateSerializer().to_representation(
-                    OrderGuestCreateSerializer.Meta.model()
-                ),
-                response_only=True,
-            ),
-            OpenApiExample(
-                "User Response Example",
-                value=OrderUserCreateSerializer().to_representation(
-                    OrderUserCreateSerializer.Meta.model()
-                ),
-                response_only=True,
-            ),
-        ],
-        request=PolymorphicProxySerializer(
-            component_name='OrderCreate',
-            serializers=[OrderUserCreateSerializer, OrderGuestCreateSerializer],
-            resource_type_field_name=None,
-        ),
-        responses={
-            status.HTTP_201_CREATED: PolymorphicProxySerializer(
-                component_name='OrderResponse',
-                serializers=[OrderUserCreateSerializer, OrderGuestCreateSerializer],
-                resource_type_field_name=None,
-            ),
-        },
-    )
     def post(self, request, *args, **kwargs):
         """
         Test
         """
-        serializer_class = self.get_serializer_class()
-        serializer = serializer_class(data=request.data)
-
-        # serializer = self.get_serializer(data=request.data)
+        serializer = self.get_serializer(data=request.data)
 
         order_items = self.prepare_order_items()
+
+        if not order_items:
+            return Response("Can't create the order because the shopping cart is empty", status=status.HTTP_400_BAD_REQUEST)
+
         order_price = sum(map(lambda x: x.price, order_items))
         serializer.context['order_price'] = order_price
+
+        #
         serializer.context['user'] = request.user
+        #
 
         serializer.is_valid(raise_exception=True)
         self.perform_create(serializer)
@@ -137,20 +95,45 @@ class OrderCreateAPIView(CreateAPIView):
         order_id = serializer.data['id']
         self.create_order_items(order_id, order_items)
 
-        queryset = self.get_queryset()
-        queryset.delete()
-
-        if request.user.is_guest: # upgrade guest to user after SUCCESSFUL order
-            new_email = serializer.validated_data['email']
-            first_name = serializer.validated_data['shipping_address']['first_name']
-            last_name = serializer.validated_data['shipping_address']['last_name']
-            request.user.guest_to_user(new_email, first_name, last_name)
+        self.empty_shopping_cart()
 
         # SEND EMAIL WITH ORDER DETAIL TO THE USER
         #
         # WRITE HERE
 
         return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
+
+
+class OrderUserCreateAPIView(OrderCreateAPIView):
+    serializer_class = OrderUserCreateSerializer
+
+
+class OrderGuestCreateAPIView(OrderCreateAPIView):
+    serializer_class = OrderGuestCreateSerializer
+
+    def user_upgrade(self, user, serializer_validated_data):
+        new_email = serializer_validated_data['email']
+        new_phone = serializer_validated_data['phone']
+        first_name = serializer_validated_data['shipping_address']['first_name']
+        last_name = serializer_validated_data['shipping_address']['last_name']
+        user = UserProfile.guest_to_user(user, new_email, first_name, last_name, new_phone)
+        return user
+
+    def post(self, request, *args, **kwargs):
+        response = super().post(request, *args, **kwargs)
+
+        if response.status_code == status.HTTP_201_CREATED:
+            user = request.user
+
+            serializer = self.get_serializer(data=request.data)
+            serializer.is_valid(raise_exception=True)
+
+            if user.is_guest:
+                self.user_upgrade(user, serializer.validated_data)
+
+        return response
+
+
 
 
 

@@ -1,3 +1,4 @@
+from phonenumber_field.serializerfields import PhoneNumberField
 from rest_framework import serializers
 
 from ecommerce.models.addresses import Address, UserAddress
@@ -58,16 +59,20 @@ class OrderUserCreateSerializer(serializers.ModelSerializer):
         return Order.objects.create(email=user.email, order_price=order_price, **validated_data)
 
 
+
+
 class OrderGuestCreateSerializer(OrderUserCreateSerializer):
     """
     Guest have to enter new shipping address
     """
     email = serializers.EmailField()
+    phone = PhoneNumberField()
     shipping_address = AddressSerializer()
 
     class Meta:
         model = Order
-        fields = '__all__'
+        fields = ['id', 'user', 'email', 'phone', 'shipping_address', 'shipping_method',
+                  'payment_method', 'order_price']
 
     def create(self, validated_data):
         user = self.context.get('user', None)
