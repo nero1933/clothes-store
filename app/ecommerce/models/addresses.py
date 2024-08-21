@@ -6,7 +6,7 @@ from ecommerce.utils.addresses.countries import COUNTRY_CHOICES
 
 
 class UserAddress(models.Model):
-    user = models.ForeignKey('UserProfile', on_delete=models.CASCADE)
+    user = models.ForeignKey('UserProfile', related_name='user', on_delete=models.CASCADE)
     address = models.ForeignKey('Address', related_name='address', on_delete=models.CASCADE)
     is_default = models.BooleanField(default=False)
 

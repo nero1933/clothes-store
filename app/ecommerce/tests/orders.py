@@ -1,7 +1,7 @@
 from rest_framework import status
 from rest_framework.reverse import reverse
 
-from ecommerce.models import ProductVariation, UserProfile
+from ecommerce.models import ProductVariation, UserProfile, Address
 from ecommerce.utils.tests.tests_mixins import TestAPIEcommerce
 
 
@@ -89,7 +89,7 @@ class TestOrders(TestAPIEcommerce):
 
         self.fill_in_shopping_cart()
 
-        order_data = {
+        order_data_guest = {
             'email': email,
             'phone': phone,
             'shipping_address': self.address_dict,
@@ -97,7 +97,7 @@ class TestOrders(TestAPIEcommerce):
             'payment_method': self.payment_method,
         }
 
-        response = self.client.post(reverse(self.url_order_guest), order_data, format='json')
+        response = self.client.post(reverse(self.url_order_guest), order_data_guest, format='json')
 
         self.assertEqual(response.status_code, 201, 'Order must be created successfully')
         self.assertEqual(response.data.get('order_price'), self.order_price,
@@ -113,7 +113,7 @@ class TestOrders(TestAPIEcommerce):
 
         self.fill_in_shopping_cart()
 
-        response = self.client.post(reverse(self.url_order_guest), order_data, format='json')
+        response = self.client.post(reverse(self.url_order_guest), order_data_guest, format='json')
 
         self.assertEqual(response.status_code, 201, 'Order must be created successfully')
         self.assertEqual(response.data.get('order_price'), self.order_price,
@@ -137,6 +137,30 @@ class TestOrders(TestAPIEcommerce):
 
         response = self.client.get(reverse(self.url_order_list), data)
         self.assertEqual(len(response.data), 2, 'User must have 2 orders')
+        
+        # Try to create third order as logged-in user 
+        
+        self.fill_in_shopping_cart()
+
+        address = Address.objects \
+                    .prefetch_related('address__user') \
+                    .filter(address__user=user) \
+                    .first()
+
+        order_data_user = {
+            'shipping_address': address.pk,
+            'shipping_method': self.shipping_method,
+            'payment_method': self.payment_method,
+        }
+
+        response = self.client.post(reverse(self.url_order_user), order_data_user, format='json')
+        self.assertEqual(response.status_code, 201, 'Order must be created successfully')
+
+        response = self.client.get(reverse(self.url_order_list), data)
+        self.assertEqual(len(response.data), 3, 'User must have 3 orders')
+        
+        
+        
 
 
 
