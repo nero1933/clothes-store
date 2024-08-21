@@ -173,31 +173,16 @@ class TestShoppingCartItem(TestAPIEcommerce):
         product_variation.product_item.discount.set([discount_1, discount_2])
         product_price = product_variation.product_item.price
 
-        # print()
-        # print('product_variation')
-        # print(product_variation)
-        # print()
-        # print('product_variation.pk', product_variation.pk)
-        # print('product_price', product_price)
-        # print()
-
         data = {
            "product_variation": product_variation.pk,
-           "quantity": 10
+           "quantity": 10 if product_variation.qty_in_stock >= 10 else product_variation.qty_in_stock,
         }
+
+        # !!! IF QTY IN CART IS BIGGER THAN QTY IN STOCK THAN THE ERROR OCCURS
+        # !!! BEFORE ASSERTING CHECK VALUE
 
         response = self.client.post(reverse(self.url_name), data, format='json')
         self.assertEqual(response.status_code, 201, 'Product must be successfully added')
-
-        # print()
-        # print(response.data)
-        # print()
-        # print("response.data['id']", response.data['id'])
-        # print("response.data['product_variation']", response.data['product_variation'])
-        # print("response.data['quantity']", response.data['quantity'])
-        # print("response.data['item_price']", response.data['item_price'])
-        # print("response.data['item_discount_price']", response.data['item_discount_price'])
-        # print()
 
         self.assertEqual(response.data['item_price'], (product_price * data['quantity']),
                          f"'item_price' must be {(product_price * data['quantity'])}"
@@ -206,5 +191,3 @@ class TestShoppingCartItem(TestAPIEcommerce):
         self.assertEqual(response.data['item_discount_price'], int((product_price * 0.7)) * data['quantity'],
                          f"'discount_price' must be {int((product_price * 0.7)) * data['quantity']}"
                          f"but it is {response.data['item_discount_price']}")
-
-        # test

@@ -1,7 +1,7 @@
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 
-from ecommerce.models import Order
+from ecommerce.models.orders import Order
 from ecommerce.models.payments import Payment
 
 

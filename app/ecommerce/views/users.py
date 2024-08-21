@@ -80,9 +80,9 @@ class RegisterGuestAPIView(CreateAPIView):
             refresh_token = str(refresh)
 
             response_data = {
-                'email': user.email,
+                'refresh': refresh_token,
                 'access': access_token,
-                'refresh': refresh_token
+                'email': user.email,
             }
 
             return Response(response_data, status=status.HTTP_201_CREATED)
