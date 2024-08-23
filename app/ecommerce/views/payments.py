@@ -18,7 +18,7 @@ class CreateCheckoutSessionAPIView(APIView):
     # Create Order tests (DONE!)
     # Make command to create stripe.Products # https://docs.stripe.com/api/products (DONE!)
     # Make command to create stripe.Price # https://docs.stripe.com/api/prices (DONE!)
-    # Make signal to change stripe.Price if product_item.price is changed (if it is possible)
+    # Make signal to change stripe.Price if product_item.price is changed (DONE!)
     # Make signal to create Payment when new order is created (DONE!)
     # Make Order -> to -> stripe.checkout.Session method
     # Make proper webhook handlers for every event

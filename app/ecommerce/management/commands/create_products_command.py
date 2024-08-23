@@ -14,7 +14,7 @@ from slugify import slugify
 
 from ecommerce.utils.products.sizes import sizes
 
-stripe.api_key = settings.STRIPE_SECRET_KEY
+
 
 
 class Command(BaseCommand):
@@ -205,26 +205,6 @@ class Command(BaseCommand):
 
             ProductItem.objects.bulk_create(bulk_list)
 
-        def _create_stripe_products_prices():
-            product_items_qs = ProductItem.objects.select_related('product').all()
-
-            for product_item in product_items_qs:
-                stripe_product = stripe.Product.create(
-                    name=product_item.product.name,
-                    description=product_item.product.description,
-                )
-
-                stripe_price = stripe.Price.create(
-                    product=stripe_product.id,
-                    unit_amount=product_item.price,
-                    currency='eur',
-                )
-
-                product_item.stripe_product_id = stripe_product.id
-                product_item.stripe_price_id = stripe_price.id
-                product_item.save()
-
-
         def _create_product_variations():
             bulk_list = []
             qty_range = (1, 100)
@@ -262,8 +242,6 @@ class Command(BaseCommand):
             _create_products()
 
             _create_product_items()
-
-            _create_stripe_products_prices()
 
             _create_product_variations()
 
