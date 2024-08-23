@@ -1,6 +1,10 @@
 import uuid
 import random
 
+import stripe
+
+from app import settings
+
 from django.core.management.base import BaseCommand
 
 from ecommerce.models import Brand, Color, AttributeType, SizeCategory, ProductCategory, Product, ProductItem, \
@@ -9,6 +13,8 @@ from ecommerce.models import Brand, Color, AttributeType, SizeCategory, ProductC
 from slugify import slugify
 
 from ecommerce.utils.products.sizes import sizes
+
+stripe.api_key = settings.STRIPE_SECRET_KEY
 
 
 class Command(BaseCommand):
@@ -139,7 +145,6 @@ class Command(BaseCommand):
                         attr_options_dict[k].append(attr_option)
                         attr_options_dict[k].remove(attr_option.name)
 
-
             bulk_list = [
                 Product(name=names[0], slug=slugify(names[0]), description=decs,
                         gender=genders[0], category=cat_dict['cat_t_shirt']),
@@ -172,19 +177,35 @@ class Command(BaseCommand):
                 product.save()
 
         def _create_product_items():
+            # def _create_stripe_products_prices(product: Product, obj: ProductItem) -> (stripe.Product.id, stripe.Price.id):
+            #     stripe_product = stripe.Product.create(
+            #         name=product.name,
+            #         description=product.description,
+            #     )
+            #     print(stripe_product)
+            #     stripe_price = stripe.Price.create(
+            #         product=stripe_product.id,
+            #         unit_amount=obj.price,
+            #         currency='eur',
+            #     )
+            #
+            #     return stripe_product.id, stripe_price.id
+
             bulk_list = []
             price_range = (3900, 11900)
 
             product_qs = Product.objects.all()
             color_qs = Color.objects.all()
 
-            for i in range(len(product_qs)):
+            for product in product_qs:
                 obj = ProductItem(
-                    product=product_qs[i],
+                    product=product,
                     color=random.choice(color_qs),
                     price=random.randint(price_range[0], price_range[1]),
                     product_code=uuid.uuid4().hex,
                 )
+
+                # obj.stripe_product_id, obj.stripe_price_id = _create_stripe_products_prices(product, obj)
 
                 bulk_list.append(obj)
 
@@ -195,9 +216,42 @@ class Command(BaseCommand):
                     product_code=uuid.uuid4().hex,
                 )
 
+                # obj_2.stripe_product_id, obj_2.stripe_price_id = _create_stripe_products_prices(product, obj_2)
+
                 bulk_list.append(obj_2)
 
             ProductItem.objects.bulk_create(bulk_list)
+
+        def _create_stripe_products_prices():
+            product_items_qs = ProductItem.objects.select_related('product').all()
+
+            for product_item in product_items_qs:
+                stripe_product = stripe.Product.create(
+                    name=product_item.product.name,
+                    description=product_item.product.description,
+                )
+
+                stripe_price = stripe.Price.create(
+                    product=stripe_product.id,
+                    unit_amount=product_item.price,
+                    currency='eur',
+                )
+
+                product_item.stripe_product_id = stripe_product.id
+                product_item.stripe_price_id = stripe_price.id
+                product_item.save()
+
+        #     stripe_product = stripe.Product.create(
+        #         name=product.name,
+        #         description=product.description,
+        #     )
+        #     print(stripe_product)
+        #     stripe_price = stripe.Price.create(
+        #         product=stripe_product.id,
+        #         unit_amount=obj.price,
+        #         currency='eur',
+        #     )
+
 
         def _create_product_variations():
             bulk_list = []
@@ -236,6 +290,8 @@ class Command(BaseCommand):
             _create_products()
 
             _create_product_items()
+
+            _create_stripe_products_prices()
 
             _create_product_variations()
 

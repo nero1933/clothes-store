@@ -81,6 +81,8 @@ class ProductItem(models.Model):
     product_code = models.CharField(max_length=32)
     discount = models.ManyToManyField('Discount', related_name='discount')
     created = models.DateTimeField(auto_now_add=True)
+    stripe_product_id = models.CharField(max_length=255, blank=True, null=True)
+    stripe_price_id = models.CharField(max_length=255, blank=True, null=True)
 
     def __str__(self):
         return self.product.name + ' ' + self.color.name
