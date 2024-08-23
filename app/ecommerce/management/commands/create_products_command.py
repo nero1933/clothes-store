@@ -177,19 +177,6 @@ class Command(BaseCommand):
                 product.save()
 
         def _create_product_items():
-            # def _create_stripe_products_prices(product: Product, obj: ProductItem) -> (stripe.Product.id, stripe.Price.id):
-            #     stripe_product = stripe.Product.create(
-            #         name=product.name,
-            #         description=product.description,
-            #     )
-            #     print(stripe_product)
-            #     stripe_price = stripe.Price.create(
-            #         product=stripe_product.id,
-            #         unit_amount=obj.price,
-            #         currency='eur',
-            #     )
-            #
-            #     return stripe_product.id, stripe_price.id
 
             bulk_list = []
             price_range = (3900, 11900)
@@ -205,8 +192,6 @@ class Command(BaseCommand):
                     product_code=uuid.uuid4().hex,
                 )
 
-                # obj.stripe_product_id, obj.stripe_price_id = _create_stripe_products_prices(product, obj)
-
                 bulk_list.append(obj)
 
                 obj_2 = ProductItem(
@@ -215,8 +200,6 @@ class Command(BaseCommand):
                     price=obj.price,
                     product_code=uuid.uuid4().hex,
                 )
-
-                # obj_2.stripe_product_id, obj_2.stripe_price_id = _create_stripe_products_prices(product, obj_2)
 
                 bulk_list.append(obj_2)
 
@@ -240,17 +223,6 @@ class Command(BaseCommand):
                 product_item.stripe_product_id = stripe_product.id
                 product_item.stripe_price_id = stripe_price.id
                 product_item.save()
-
-        #     stripe_product = stripe.Product.create(
-        #         name=product.name,
-        #         description=product.description,
-        #     )
-        #     print(stripe_product)
-        #     stripe_price = stripe.Price.create(
-        #         product=stripe_product.id,
-        #         unit_amount=obj.price,
-        #         currency='eur',
-        #     )
 
 
         def _create_product_variations():

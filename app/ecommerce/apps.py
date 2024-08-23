@@ -8,3 +8,4 @@ class EcommerceConfig(AppConfig):
     def ready(self):
         import ecommerce.signals.shopping_carts
         import ecommerce.signals.payments
+        import ecommerce.signals.stripe

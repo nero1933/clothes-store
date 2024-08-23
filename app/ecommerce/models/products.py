@@ -79,7 +79,7 @@ class ProductItem(models.Model):
     color = models.ForeignKey('Color', on_delete=models.CASCADE)
     price = models.PositiveIntegerField()
     product_code = models.CharField(max_length=32)
-    discount = models.ManyToManyField('Discount', related_name='discount')
+    discount = models.ManyToManyField('Discount', related_name='discount', blank=True)
     created = models.DateTimeField(auto_now_add=True)
     stripe_product_id = models.CharField(max_length=255, blank=True, null=True)
     stripe_price_id = models.CharField(max_length=255, blank=True, null=True)
