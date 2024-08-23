@@ -8,4 +8,4 @@ from ecommerce.models.payments import Payment
 @receiver(post_save, sender=Order)
 def create_payment(sender, instance, created, **kwargs):
     if created:
-        Payment.objects.create(order=instance, stripe_checkout_id='')
+        Payment.objects.create(order=instance, stripe_session_id='')
