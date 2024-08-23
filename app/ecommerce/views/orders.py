@@ -94,11 +94,12 @@ class OrderCreateAPIView(CreateAPIView):
         user_exists = self.get_user(request.data.get('email', None))
         if user.is_guest and user_exists: # if existing user makes order from guest account
             serializer.context['user'] = user_exists # existing account assigned to order
+            serializer.is_valid(raise_exception=True) # Validate serializer before deleting user!!!
             user.delete() # guest user is deleted
         else:
             serializer.context['user'] = user
+            serializer.is_valid(raise_exception=True)
 
-        serializer.is_valid(raise_exception=True)
         self.perform_create(serializer)
         headers = self.get_success_headers(serializer.data)
 

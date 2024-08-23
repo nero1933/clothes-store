@@ -36,6 +36,7 @@ ALLOWED_HOSTS.extend(
     )
 )
 
+
 # INTERNAL_IPS = [
 #     "127.0.0.1",
 # ]
@@ -245,6 +246,7 @@ EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 # Stripe
 STRIPE_SECRET_KEY = os.environ.get("STRIPE_SECRET_KEY", 0)
 STRIPE_DEVICE_NAME = os.environ.get("STRIPE_DEVICE_NAME", 0)
+STRIPE_WEBHOOK_SECRET = os.environ.get("STRIPE_WEBHOOK_SECRET", 0)
 
 # Logging
 
