@@ -68,3 +68,54 @@ services:
         - STRIPE_DEVICE_NAME=${STRIPE_DEVICE_NAME}
 #        - STRIPE_WEBHOOK_SECRET=${STRIPE_WEBHOOK_SECRET}
     command: listen --forward-to 0.0.0.0:8000/api/v1/stripe_webhook/
+
+  worker:
+    container_name: celery
+    build:
+      context: .
+    hostname: worker
+    entrypoint: celery
+    command: -A app worker --beat -l INFO
+    volumes:
+      - ./app:/app
+    environment:
+      - DEBUG=${DEBUG}
+      - SECRET_KEY=${SECRET_KEY}
+      - ALLOWED_HOSTS=${ALLOWED_HOSTS}
+      - DB_HOST=db
+      - DB_NAME=${DB_NAME}
+      - DB_USER=${DB_USER}
+      - DB_PASS=${DB_PASS}
+    links:
+      - redis
+      - db
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      app:
+        condition: service_started
+
+  flower:
+    container_name: flower
+    build:
+      context: .
+    hostname: flower
+    entrypoint: celery
+    command: -A app flower -l INFO
+    ports:
+      - "5555:5555"
+    volumes:
+      - ./app:/app
+    environment:
+      - DEBUG=${DEBUG}
+      - SECRET_KEY=${SECRET_KEY}
+      - ALLOWED_HOSTS=${ALLOWED_HOSTS}
+    links:
+      - redis
+      - worker
+    depends_on:
+      worker:
+        condition: service_started
+

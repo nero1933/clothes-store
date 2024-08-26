@@ -248,6 +248,31 @@ STRIPE_SECRET_KEY = os.environ.get("STRIPE_SECRET_KEY", 0)
 STRIPE_DEVICE_NAME = os.environ.get("STRIPE_DEVICE_NAME", 0)
 STRIPE_WEBHOOK_SECRET = os.environ.get("STRIPE_WEBHOOK_SECRET", 0)
 
+# Coverage
+# https://docs.djangoproject.com/en/4.2/topics/testing/advanced/#measuring-code-coverage
+# Integration with coverage.py
+
+COVERAGE_MODULE_EXCLUDES = [
+    'tests*',
+    'admin*',
+    'settings*',
+    'urls*',
+    'wsgi*',
+    '*/migrations/*',
+]
+
+COVERAGE_REPORT_HTML_OUTPUT_DIR = 'coverage'
+
+# Celery
+# https://docs.celeryq.dev/en/stable/
+
+CELERY_BROKER_URL = 'redis://redis:6379/0'
+CELERY_RESULT_BACKEND = 'redis://redis:6379/0'
+CELERY_TIMEZONE = 'Europe/Kyiv'
+CELERY_TASK_TRACK_STARTED = True
+CELERY_TASK_TIME_LIMIT = 30 * 60
+CELERY_BROKER_CONNECTION_RETRY_ON_STARTUP = True
+
 # Logging
 
 LOGGING = {
@@ -280,7 +305,7 @@ PASSWORD_RESET_TIMEOUT = 300
 
 
 if DEBUG:
-    # `debug` is only True in templates if the vistor IP is in INTERNAL_IPS.
+    # `debug` is only True in templates if the visitor IP is in INTERNAL_IPS.
     INTERNAL_IPS = type("c", (), {"__contains__": lambda *a: True})()
 
 # if DEBUG:

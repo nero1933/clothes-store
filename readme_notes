@@ -1,1 +1,20 @@
-test
+Create send_order_email
+
+Create tests for stripe
+Create tests for webhook-payments
+Create test for send_order_email
+
+Create Review models
+Create Review views
+Create Review serializer
+
+Create tests for review
+
+Renew db_structure.png
+
+Celery
+Create Celery-worker which deletes guest users ones at 00:00 if user age is > 24 hours
+
+Admin...
+...
+...
