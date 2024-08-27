@@ -5,6 +5,7 @@ services:
       context: .
     command: >
       sh -c "python manage.py migrate &&
+             python manage.py migrate django_celery_beat &&
              python manage.py runserver 0.0.0.0:8000"
 #             coverage run --source='.' manage.py test ecommerce &&
 #             coverage html &&
@@ -69,13 +70,41 @@ services:
 #        - STRIPE_WEBHOOK_SECRET=${STRIPE_WEBHOOK_SECRET}
     command: listen --forward-to 0.0.0.0:8000/api/v1/stripe_webhook/
 
-  worker:
-    container_name: celery
+  celery-worker:
+    container_name: celery-worker
     build:
       context: .
-    hostname: worker
+    hostname: celery-worker
     entrypoint: celery
-    command: -A app worker --beat -l INFO
+    command: -A app worker -l INFO
+    volumes:
+      - ./app:/app
+    environment:
+      - DEBUG=${DEBUG}
+      - SECRET_KEY=${SECRET_KEY}
+      - ALLOWED_HOSTS=${ALLOWED_HOSTS}
+      - DB_HOST=db
+      - DB_NAME=${DB_NAME}
+      - DB_USER=${DB_USER}
+      - DB_PASS=${DB_PASS}
+    links:
+      - redis
+      - db
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      app:
+        condition: service_started
+
+  celery-beat:
+    container_name: celery-beat
+    build:
+      context: .
+    hostname: celery-beat
+    entrypoint: celery
+    command: -A app beat -l INFO
     volumes:
       - ./app:/app
     environment:
@@ -114,8 +143,11 @@ services:
       - ALLOWED_HOSTS=${ALLOWED_HOSTS}
     links:
       - redis
-      - worker
+      - celery-worker
+      - celery-beat
     depends_on:
-      worker:
+      celery-worker:
+        condition: service_started
+      celery-beat:
         condition: service_started
 

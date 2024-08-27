@@ -11,8 +11,8 @@ https://docs.djangoproject.com/en/4.2/ref/settings/
 """
 
 import os
-from datetime import timedelta
 
+from datetime import timedelta
 from pathlib import Path
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -36,11 +36,6 @@ ALLOWED_HOSTS.extend(
     )
 )
 
-
-# INTERNAL_IPS = [
-#     "127.0.0.1",
-# ]
-
 # Application definition
 
 INSTALLED_APPS = [
@@ -58,6 +53,7 @@ INSTALLED_APPS = [
     'drf_spectacular',
     'django_filters',
     'phonenumber_field',
+    'django_celery_beat',
 
     # apps
     'ecommerce.apps.EcommerceConfig',
@@ -273,6 +269,15 @@ CELERY_TASK_TRACK_STARTED = True
 CELERY_TASK_TIME_LIMIT = 30 * 60
 CELERY_BROKER_CONNECTION_RETRY_ON_STARTUP = True
 
+# CELERY_IMPORTS = [
+#     'ecommerce.tasks',
+# ]
+
+# Celery beat
+# CELERY_BEAT_SCHEDULER = 'django_celery_beat.schedulers:DatabaseScheduler'
+# CELERY_BEAT_SCHEDULE_INTERVAL = 300
+# CELERY_BEAT_SYNC_EVERY = 300
+
 # Logging
 
 LOGGING = {
@@ -288,9 +293,7 @@ LOGGING = {
     }
 }
 
-#
-#
-#
+
 
 # Custom variables
 
