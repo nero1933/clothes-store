@@ -37,4 +37,6 @@ urlpatterns = [
 
     path('api/v1/', include(router.urls)),
     # path('api/v1/', '#', name='#'),
+
+    # path('api/v1/<order_id>', TempPaymentClass.as_view(), name='temp_order'),
 ]

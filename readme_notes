@@ -13,7 +13,10 @@ Create tests for review
 Renew db_structure.png
 
 Celery
-Create Celery-worker which deletes guest users ones at 00:00 if user age is > 24 hours
+Create Celery task which deletes guest users ones at 00:00 if user age is > 24 hours (OK!)
+Create Celery task for sending email after order is paid 
+
+Create tests for Celery
 
 Admin...
 ...

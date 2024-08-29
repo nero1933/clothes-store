@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Order Details</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            color: #333;
+            padding: 20px;
+        }
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 5px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+        .header {
+            background-color: #007BFF;
+            color: #fff;
+            padding: 10px;
+            text-align: center;
+            border-radius: 5px 5px 0 0;
+        }
+        .header h1 {
+            margin: 0;
+            font-size: 24px;
+        }
+        .content {
+            padding: 20px;
+        }
+        .content p {
+            font-size: 16px;
+            line-height: 1.5;
+            margin: 10px 0;
+        }
+        .order-details {
+            margin-top: 20px;
+        }
+        .order-details th, .order-details td {
+            padding: 10px;
+            text-align: left;
+        }
+        .order-details th {
+            background-color: #f4f4f4;
+        }
+        .footer {
+            text-align: center;
+            margin-top: 20px;
+            font-size: 12px;
+            color: #777;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Order Details</h1>
+        </div>
+        <div class="content">
+            <p>Hello,</p>
+            <p>Thank you for your order! We're excited to let you know that your order has been received and is now being processed. Below are the details of your order:</p>
+
+            <div class="order-details">
+                <h2>Order Summary</h2>
+                <table>
+                    <tr>
+                        <th>Order Number:</th>
+                        <td>{{ order.id }}</td>
+                    </tr>
+                    <tr>
+                        <th>Order Date:</th>
+                        <td>{{ order.date_created }}</td>
+                    </tr>
+                    <tr>
+                        <th>Total Amount:</th>
+                        <td>{{ order.price }}</td>
+                    </tr>
+                </table>
+            </div>
+
+            <h2>Items Ordered</h2>
+            <table class="order-details">
+                <tr>
+                    <th>Product</th>
+                    <th>Quantity</th>
+                    <th>Price</th>
+                </tr>
+                {% for item in order.items %}
+                <tr>
+                    <td>{{ item.product_name }}</td>
+                    <td>{{ item.quantity }}</td>
+                    <td>{{ item.price }}</td>
+                </tr>
+                {% endfor %}
+            </table>
+
+            <div class="order-details">
+                <h2>Shipping Address</h2>
+                <table class="order-details">
+                    <tr>
+                        <th>Address</th>
+                    </tr>
+                    <tr>
+                        <td>{{ shipping_address.first_name }} {{ shipping_address.last_name }}</td>
+                    </tr>
+                    <tr>
+                        <td>{{ shipping_address.region }} {{ shipping_address.street }} {{ shipping_address.unit_number }}</td>
+                    </tr>
+                    <tr>
+                        <td>{{ shipping_address.city }} {{ shipping_address.country }}</td>
+                    </tr>
+                </table>
+            </div>
+
+            <p>If you have any questions or need further assistance, please don't hesitate to contact our support team.</p>
+            <p>Thank you for shopping with us!</p>
+        </div>
+        <div class="footer">
+            <p>&copy; {{ current_year }} Clothes Store. All rights reserved.</p>
+        </div>
+    </div>
+</body>
+</html>

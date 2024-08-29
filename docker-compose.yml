@@ -76,7 +76,7 @@ services:
       context: .
     hostname: celery-worker
     entrypoint: celery
-    command: -A app worker -l INFO
+    command: -A app worker --loglevel=INFO
     volumes:
       - ./app:/app
     environment:
@@ -104,7 +104,7 @@ services:
       context: .
     hostname: celery-beat
     entrypoint: celery
-    command: -A app beat -l INFO
+    command: -A app beat --loglevel=INFO
     volumes:
       - ./app:/app
     environment:
@@ -132,7 +132,7 @@ services:
       context: .
     hostname: flower
     entrypoint: celery
-    command: -A app flower -l INFO
+    command: -A app flower --loglevel=INFO
     ports:
       - "5555:5555"
     volumes:

@@ -1,15 +1,17 @@
 from django.core.exceptions import ObjectDoesNotExist
 
 from rest_framework import status
-from rest_framework.generics import CreateAPIView
+from rest_framework.generics import CreateAPIView, RetrieveAPIView
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
+from rest_framework.views import APIView
 from rest_framework.viewsets import ReadOnlyModelViewSet
 
 from ecommerce.models import UserProfile
 from ecommerce.models.orders import Order, OrderItem
 from ecommerce.models.shopping_carts import ShoppingCartItem
 from ecommerce.serializers.orders import OrderGuestCreateSerializer, OrderUserCreateSerializer, OrderSerializer
+from ecommerce.tasks.send_email import send_order_email
 
 
 class OrderViewSet(ReadOnlyModelViewSet):
@@ -108,10 +110,6 @@ class OrderCreateAPIView(CreateAPIView):
 
         self.empty_shopping_cart()
 
-        # SEND EMAIL WITH ORDER DETAIL TO THE USER
-        #
-        # WRITE HERE
-
         return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
 
 
@@ -146,3 +144,7 @@ class OrderGuestCreateAPIView(OrderCreateAPIView):
                 self.guest_to_user(user, serializer.validated_data)
 
         return response
+
+
+
+

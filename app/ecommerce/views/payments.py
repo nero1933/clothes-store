@@ -1,4 +1,5 @@
 import stripe
+
 from rest_framework.generics import get_object_or_404
 from rest_framework.permissions import IsAuthenticated
 
@@ -10,6 +11,7 @@ from django.conf import settings
 
 from ecommerce.models import Order, OrderItem
 from ecommerce.models.payments import Payment
+from ecommerce.tasks.send_email import send_order_email
 
 stripe.api_key = settings.STRIPE_SECRET_KEY
 
@@ -51,6 +53,9 @@ class CreateCheckoutSessionAPIView(APIView):
             return Response('Order is paid', status=status.HTTP_400_BAD_REQUEST)
 
         line_items = self.get_line_items(order_id)
+        if not line_items:
+            return Response('No order items available', status=status.HTTP_400_BAD_REQUEST)
+
         session = stripe.checkout.Session.create(
             payment_method_types=['card'],
             line_items=line_items,
@@ -91,12 +96,111 @@ class StripeWebhookView(APIView):
 
         return Response(status=status.HTTP_204_NO_CONTENT)
 
+    def get_order_email_context(self, order_id) -> (str, list):
+        """
+
+        :return: email, context
+        """
+        queryset = OrderItem.objects.filter(order_id=order_id) \
+            .select_related('product_variation__product_item__product',
+                            'order__shipping_address',
+                            'order__user')
+
+        if not queryset:
+            return None
+
+        order_obj = queryset[0].order
+        order = {
+            'id': order_obj.pk,
+            'date_created': order_obj.date_created.date(),
+            'price': order_obj.order_price,
+        }
+        shipping_address_obj = order_obj.shipping_address
+        shipping_address = {
+            'first_name': shipping_address_obj.first_name,
+            'last_name': shipping_address_obj.last_name,
+            'region': shipping_address_obj.region,
+            'street': shipping_address_obj.street,
+            'unit_number': shipping_address_obj.unit_number,
+            'city': shipping_address_obj.city,
+            'country': shipping_address_obj.country,
+        }
+        order_items = [[x.product_variation.product_item.product.name, x.quantity, x.price] for x in queryset]
+        email = order_obj.user.email
+
+        context = dict(
+            order=order,
+            order_items=order_items,
+            shipping_address=shipping_address,
+            email=email,
+        )
+
+        return context
+
     def handle_checkout_session(self, session):
         payment = get_object_or_404(Payment, stripe_session_id=session.id)
         # payment = Payment.objects.get(stripe_session_id=session.id)
-        if payment:
-            payment.payment_bool = True
-            payment.save()
 
-        # SEND EMAIL
-        # ORDER PAID
+        payment.payment_bool = True
+        payment.save()
+
+        context = self.get_order_email_context(payment.order)
+        email = context.pop('email', None)
+        send_order_email.delay(email, context)
+
+
+# class TempPaymentClass(APIView):
+#
+#     def get_queryset(self, order_id):
+#         queryset = OrderItem.objects.filter(order_id=order_id) \
+#             .select_related('product_variation__product_item__product',
+#                             'order__shipping_address')
+#
+#         return queryset
+#
+#     def get(self, request, order_id, *args, **kwargs):
+#         context = self.get_order_email_context(order_id)
+#         email = context.pop('email', None)
+#         send_order_email.delay(email, context)
+#
+#         return Response(context)
+#
+#     def get_order_email_context(self, order_id) -> (str, list):
+#         """
+#
+#         :return: email, context
+#         """
+#         queryset = self.get_queryset(order_id)
+#
+#         if not queryset:
+#             return None
+#
+#         order_obj = queryset[0].order
+#         order = {
+#             'id': order_obj.pk,
+#             'date_created': order_obj.date_created.date(),
+#             'price': order_obj.order_price,
+#         }
+#         shipping_address_obj = order_obj.shipping_address
+#         shipping_address = {
+#             'first_name': shipping_address_obj.first_name,
+#             'last_name': shipping_address_obj.last_name,
+#             'region': shipping_address_obj.region,
+#             'street': shipping_address_obj.street,
+#             'unit_number': shipping_address_obj.unit_number,
+#             'city': shipping_address_obj.city,
+#             'country': shipping_address_obj.country,
+#         }
+#         order_items = [[x.product_variation.product_item.product.name, x.quantity, x.price] for x in queryset]
+#         email = order_obj.user.email
+#
+#         context = dict(
+#             order=order,
+#             order_items=order_items,
+#             shipping_address=shipping_address,
+#             email=email,
+#         )
+#
+#         return context
+#
+

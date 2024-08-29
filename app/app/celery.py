@@ -18,10 +18,10 @@ app.config_from_object('django.conf:settings', namespace='CELERY')
 # Load task modules from all registered Django apps.
 app.autodiscover_tasks()
 
-
+# Celery beat schedule
 app.conf.beat_schedule = {
     'delete_old_guest_users-every-day': {
         'task': 'ecommerce.tasks.users.delete_old_guest_users',
-        'schedule': crontab(minute='*/1'),
+        'schedule': crontab(minute=0, hour=0),
     },
 }

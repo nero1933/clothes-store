@@ -29,7 +29,7 @@ class Order(models.Model):
     user = models.ForeignKey('UserProfile', on_delete=models.PROTECT)
     email = models.EmailField(max_length=255, blank=False, null=False)
     phone = PhoneNumberField()
-    order_date = models.DateTimeField(auto_now_add=True)
+    order_date = models.DateTimeField(auto_now_add=True) # DELETE IT!!!
     payment_method = models.PositiveSmallIntegerField(choices=[(x.value, x.name) for x in OrderMethods], default=1)
     shipping_address = models.ForeignKey('Address', on_delete=models.PROTECT)
     shipping_method = models.PositiveSmallIntegerField(choices=[(x.value, x.name) for x in ShippingMethods], default=1)
