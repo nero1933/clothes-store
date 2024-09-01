@@ -149,58 +149,58 @@ class StripeWebhookView(APIView):
         send_order_email.delay(email, context)
 
 
-# class TempPaymentClass(APIView):
-#
-#     def get_queryset(self, order_id):
-#         queryset = OrderItem.objects.filter(order_id=order_id) \
-#             .select_related('product_variation__product_item__product',
-#                             'order__shipping_address')
-#
-#         return queryset
-#
-#     def get(self, request, order_id, *args, **kwargs):
-#         context = self.get_order_email_context(order_id)
-#         email = context.pop('email', None)
-#         send_order_email.delay(email, context)
-#
-#         return Response(context)
-#
-#     def get_order_email_context(self, order_id) -> (str, list):
-#         """
-#
-#         :return: email, context
-#         """
-#         queryset = self.get_queryset(order_id)
-#
-#         if not queryset:
-#             return None
-#
-#         order_obj = queryset[0].order
-#         order = {
-#             'id': order_obj.pk,
-#             'date_created': order_obj.date_created.date(),
-#             'price': order_obj.order_price,
-#         }
-#         shipping_address_obj = order_obj.shipping_address
-#         shipping_address = {
-#             'first_name': shipping_address_obj.first_name,
-#             'last_name': shipping_address_obj.last_name,
-#             'region': shipping_address_obj.region,
-#             'street': shipping_address_obj.street,
-#             'unit_number': shipping_address_obj.unit_number,
-#             'city': shipping_address_obj.city,
-#             'country': shipping_address_obj.country,
-#         }
-#         order_items = [[x.product_variation.product_item.product.name, x.quantity, x.price] for x in queryset]
-#         email = order_obj.user.email
-#
-#         context = dict(
-#             order=order,
-#             order_items=order_items,
-#             shipping_address=shipping_address,
-#             email=email,
-#         )
-#
-#         return context
-#
+class TempPaymentClass(APIView):
+
+    def get_queryset(self, order_id):
+        queryset = OrderItem.objects.filter(order_id=order_id) \
+            .select_related('product_variation__product_item__product',
+                            'order__shipping_address')
+
+        return queryset
+
+    def get(self, request, order_id, *args, **kwargs):
+        context = self.get_order_email_context(order_id)
+        email = context.pop('email', None)
+        send_order_email.delay(email, context)
+
+        return Response(context)
+
+    def get_order_email_context(self, order_id) -> (str, list):
+        """
+
+        :return: email, context
+        """
+        queryset = self.get_queryset(order_id)
+
+        if not queryset:
+            return None
+
+        order_obj = queryset[0].order
+        order = {
+            'id': order_obj.pk,
+            'date_created': order_obj.date_created.date(),
+            'price': order_obj.order_price,
+        }
+        shipping_address_obj = order_obj.shipping_address
+        shipping_address = {
+            'first_name': shipping_address_obj.first_name,
+            'last_name': shipping_address_obj.last_name,
+            'region': shipping_address_obj.region,
+            'street': shipping_address_obj.street,
+            'unit_number': shipping_address_obj.unit_number,
+            'city': shipping_address_obj.city,
+            'country': shipping_address_obj.country,
+        }
+        order_items = [[x.product_variation.product_item.product.name, x.quantity, x.price] for x in queryset]
+        email = order_obj.user.email
+
+        context = dict(
+            order=order,
+            order_items=order_items,
+            shipping_address=shipping_address,
+            email=email,
+        )
+
+        return context
+
 

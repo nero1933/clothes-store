@@ -1,4 +1,5 @@
 from celery import shared_task
+
 from django.core.mail import EmailMultiAlternatives
 from django.template.loader import render_to_string
 from django.utils.html import strip_tags
@@ -12,12 +13,14 @@ def send_order_email(user_email, context):
 
     html_body = render_to_string(template, context)
 
-    text_body = strip_tags(html_body)
+    # text_body = strip_tags(html_body)
+
+    print(settings.DEFAULT_FROM_EMAIL)
 
     message = EmailMultiAlternatives(
         subject=f"Order №{context.get('order_id')}",
-        body=text_body,
-        from_email=settings.DEFAULT_FROM_EMAIL,
+        body=f"Order №{context.get('order_id')}",
+        from_email='nero.pet.1933@gmail.com',
         to=[user_email]
     )
     message.attach_alternative(html_body, "text/html")

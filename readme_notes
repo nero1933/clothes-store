@@ -4,9 +4,7 @@ Create tests for stripe
 Create tests for webhook-payments
 Create test for send_order_email
 
-Create Review models
-Create Review views
-Create Review serializer
+Create only one review for each product bought by user
 
 Create tests for review
 
