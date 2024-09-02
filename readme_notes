@@ -1,4 +1,4 @@
-Create send_order_email
+Create send_order_email (NOT WORKING, WRITE TO SENDGRID)
 
 Create tests for stripe
 Create tests for webhook-payments
