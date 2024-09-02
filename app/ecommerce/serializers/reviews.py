@@ -9,6 +9,7 @@ class ReviewSerializer(serializers.ModelSerializer):
     order_item = serializers.PrimaryKeyRelatedField(queryset=OrderItem.objects.all())
     comment = serializers.CharField(max_length=255)
     rating = serializers.IntegerField()
+    created_at = serializers.DateTimeField()
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)

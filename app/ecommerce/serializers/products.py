@@ -1,6 +1,7 @@
 from rest_framework import serializers
 from rest_framework.relations import SlugRelatedField
 
+from .reviews import ReviewSerializer
 from ..models import Product, ProductVariation, ProductItem, Image, AttributeOption, Discount
 
 
@@ -58,15 +59,16 @@ class ProductItemSerializer(serializers.ModelSerializer):
     """
 
     color = serializers.SlugRelatedField(slug_field='name', read_only=True)
-    image = ImageSerializer(many=True, read_only=True)
-    product_variation = ProductVariationSerializer(many=True, read_only=True)
+    images = ImageSerializer(many=True, read_only=True, source='image')
+    product_variations = ProductVariationSerializer(many=True, read_only=True, source='product_variation')
     price = serializers.IntegerField()
     discount_price = serializers.SerializerMethodField()
-    discount = DiscountSerializer(many=True, read_only=True)
+    discounts = DiscountSerializer(many=True, read_only=True, source='discount')
 
     class Meta:
         model = ProductItem
-        fields = ['id', 'product_code', 'price', 'discount_price', 'color', 'image', 'discount', 'product_variation']
+        fields = ['id', 'product_code', 'price', 'discount_price',
+                  'color', 'images', 'discounts', 'product_variations']
 
     def get_discount_price(self, obj):
         return obj.get_discount_price()
@@ -79,12 +81,13 @@ class ProductSerializer(serializers.ModelSerializer):
 
     brand = serializers.SlugRelatedField(slug_field='name', read_only=True)
     category = serializers.SlugRelatedField(slug_field='name', read_only=True)
-    attribute_option = AttributeOptionSerializer(many=True, read_only=True)
-    product_item = ProductItemSerializer(many=True, read_only=True)
+    attribute_options = AttributeOptionSerializer(many=True, read_only=True, source='attribute_option')
+    product_items = ProductItemSerializer(many=True, read_only=True, source='product_item')
 
     class Meta:
         model = Product
-        fields = ['id', 'name', 'slug', 'description', 'brand', 'category', 'gender', 'attribute_option', 'product_item']
+        fields = ['id', 'name', 'slug', 'description', 'brand', 'category',
+                  'gender', 'attribute_options', 'product_items',]
 
 
 class ProductDetailSerializer(ProductSerializer):
@@ -93,8 +96,9 @@ class ProductDetailSerializer(ProductSerializer):
     Values are show in 'ProductAPIList' view.
     """
 
-    # reviews = ReviewSerializer(many=True, read_only=True)
+    reviews = ReviewSerializer(many=True, read_only=True, source='review')
 
     class Meta:
         model = Product
-        fields = ['id', 'name', 'slug', 'description', 'brand', 'category', 'gender', 'attribute_option', 'product_item']
+        fields = ['id', 'name', 'slug', 'description', 'brand', 'category',
+                  'gender', 'attribute_options', 'product_items', 'reviews']

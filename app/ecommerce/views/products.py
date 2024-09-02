@@ -1,7 +1,5 @@
 from django.db.models import Prefetch
-from rest_framework.generics import GenericAPIView
-from rest_framework.response import Response
-from rest_framework import mixins
+
 from rest_framework import viewsets
 
 from ecommerce.models import Product, ProductVariation
@@ -15,17 +13,19 @@ class ProductViewSet(viewsets.ReadOnlyModelViewSet):
     def get_queryset(self):
         queryset = Product.objects \
             .select_related('category', 'brand') \
-            .prefetch_related('product_item',
-                              'product_item__color',
-                              'product_item__image',
-                              'product_item__discount',
-                              Prefetch(
-                                  'product_item__product_variation',
-                                  queryset=ProductVariation.objects.filter(qty_in_stock__gt=0)),
-                              'product_item__product_variation__size',
-                              'attribute_option',
-                              'attribute_option__attribute_type',
-                              )
+            .prefetch_related(
+                'product_item',
+                'product_item__color',
+                'product_item__image',
+                'product_item__discount',
+                Prefetch(
+                    'product_item__product_variation',
+                    queryset=ProductVariation.objects.filter(qty_in_stock__gt=0)),
+                'product_item__product_variation__size',
+                'attribute_option',
+                'attribute_option__attribute_type',
+                'review',
+            )
 
         return queryset
 
@@ -35,4 +35,3 @@ class ProductViewSet(viewsets.ReadOnlyModelViewSet):
             serializer_class = ProductDetailSerializer
 
         return serializer_class
-
