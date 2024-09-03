@@ -1,13 +1,13 @@
 import re
 
 from django.core import mail
+
 from rest_framework import status
 from rest_framework.generics import get_object_or_404
 from rest_framework.reverse import reverse
-from rest_framework.test import APITestCase
 
 from ecommerce.models import UserProfile
-from ecommerce.utils.tests.tests_mixins import TestAPIEcommerce
+from ecommerce.utils.tests.mixins import TestAPIEcommerce
 
 
 def get_link_from_message(message):

@@ -20,6 +20,13 @@ from ecommerce.utils.products.sizes import sizes
 class Command(BaseCommand):
     help = 'Creates products for developing ang testing purposes.'
 
+    def add_arguments(self, parser):
+        parser.add_argument(
+            '--silence',
+            action='store_true',
+            help='Silences the output.'
+        )
+
     def handle(self, *args, **options):
 
         def get_sizes() -> dict:
@@ -245,6 +252,8 @@ class Command(BaseCommand):
 
             _create_product_variations()
 
-            self.stdout.write(self.style.SUCCESS(f'All products are successfully created'))
+            silence = options['silence']
+            if not silence:
+                self.stdout.write(self.style.SUCCESS(f'All products are successfully created'))
         except Exception as e:
             self.stdout.write(self.style.ERROR(str(e)))

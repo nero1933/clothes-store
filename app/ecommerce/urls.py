@@ -28,9 +28,9 @@ urlpatterns = [
     path('api/v1/create-order/user', OrderUserCreateAPIView.as_view(), name='create_order_user'),
     path('api/v1/create-order/guest', OrderGuestCreateAPIView.as_view(), name='create_order_guest'),
     #
-    path('api/v1/payment/checkout/<int:order_id>', CreateCheckoutSessionAPIView.as_view(), name='payment_checkout'),
-    # path('api/v1/payment/successful/', '#', name='payment_successful'),
-    # path('api/v1/payment/cancelled/', '#', name='payment_cancelled'),
+    path('api/v1/payment/<int:order_id>/checkout', CreateCheckoutSessionAPIView.as_view(), name='payment_checkout'),
+    # path('api/v1/payment/<int:?>/successful/', '#', name='payment_successful'),
+    # path('api/v1/payment/<int:?>/cancelled/', '#', name='payment_cancelled'),
     path('api/v1/stripe_webhook/', StripeWebhookView.as_view(), name='stripe_webhook'),
 
 

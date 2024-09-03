@@ -4,7 +4,7 @@ Create tests for stripe
 Create tests for webhook-payments
 Create test for send_order_email
 
-Create only one review for each product bought by user
+Create only one review for each product bought by user (DONE) / Create tests
 
 Create tests for review
 
@@ -12,7 +12,7 @@ Renew db_structure.png
 
 Celery
 Create Celery task which deletes guest users ones at 00:00 if user age is > 24 hours (OK!)
-Create Celery task for sending email after order is paid 
+Create Celery task for sending email after order is paid (NOT WORKING, WRITE TO SENDGRID)
 
 Create tests for Celery
 

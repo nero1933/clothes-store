@@ -144,7 +144,3 @@ class OrderGuestCreateAPIView(OrderCreateAPIView):
                 self.guest_to_user(user, serializer.validated_data)
 
         return response
-
-
-
-

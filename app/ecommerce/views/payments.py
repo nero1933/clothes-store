@@ -67,7 +67,7 @@ class CreateCheckoutSessionAPIView(APIView):
         payment.save()
         return Response({'checkout_session_id': session.id,
                          'checkout_session_url': session.url},
-                        status=status.HTTP_200_OK)
+                        status=status.HTTP_201_CREATED)
 
 
 class StripeWebhookView(APIView):
@@ -202,5 +202,3 @@ class TempPaymentClass(APIView):
         )
 
         return context
-
-

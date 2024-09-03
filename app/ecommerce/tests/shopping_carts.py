@@ -1,12 +1,14 @@
 from rest_framework.reverse import reverse
 
 from ecommerce.models import ProductVariation
-from ecommerce.utils.tests.tests_mixins import TestAPIEcommerce
+from ecommerce.utils.tests.mixins import TestAPIEcommerce
 
 
 class TestShoppingCartItem(TestAPIEcommerce):
 
     def setUp(self):
+        self.create_products()
+
         self.user = self.create_user()
         self.jwt_access_token = self.get_jwt_access_token()
 
@@ -32,9 +34,6 @@ class TestShoppingCartItem(TestAPIEcommerce):
         """
 
         self.client.credentials(HTTP_AUTHORIZATION='Bearer ' + self.jwt_access_token)
-
-        # self.product_qs = self.create_products()
-        self.create_products()
 
         product_variation = ProductVariation.objects \
             .select_related('product_item').values('pk', 'product_item__price').first()
@@ -73,7 +72,6 @@ class TestShoppingCartItem(TestAPIEcommerce):
         Quantity must not be greater than the 'qty_in_stock'
         """
         self.client.credentials(HTTP_AUTHORIZATION='Bearer ' + self.jwt_access_token)
-        self.create_products()
 
         product_variation_qs = ProductVariation.objects \
             .select_related('product_item').values('pk', 'qty_in_stock')[:2]
@@ -134,7 +132,6 @@ class TestShoppingCartItem(TestAPIEcommerce):
         if qty_in_stock is 0
         """
         self.client.credentials(HTTP_AUTHORIZATION='Bearer ' + self.jwt_access_token)
-        self.create_products()
 
         product_variation = ProductVariation.objects \
             .select_related('product_item').first()
@@ -161,7 +158,6 @@ class TestShoppingCartItem(TestAPIEcommerce):
         'item_discount_price' must be ('price' - 30%) * quantity
         """
         self.client.credentials(HTTP_AUTHORIZATION='Bearer ' + self.jwt_access_token)
-        self.create_products()
         discount_1 = self.create_discount(name='discount 1', discount_rate=10)
         discount_2 = self.create_discount(name='discount 2', discount_rate=20)
 

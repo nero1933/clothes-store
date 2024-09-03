@@ -7,6 +7,13 @@ from ecommerce.utils.products import sizes
 class Command(BaseCommand):
     help = 'Creates sizes for developing and testing purposes.'
 
+    def add_arguments(self, parser):
+        parser.add_argument(
+            '--silence',
+            action='store_true',
+            help='Silences the output.'
+        )
+
     def handle(self, *args, **options):
 
         def _create_size_categories():
@@ -29,6 +36,9 @@ class Command(BaseCommand):
         try:
             _create_size_categories()
             _create_product_sizes()
-            self.stdout.write(self.style.SUCCESS(f'All sizes are successfully created'))
+
+            silence = options['silence']
+            if not silence:
+                self.stdout.write(self.style.SUCCESS(f'All sizes are successfully created'))
         except Exception as e:
             self.stdout.write(self.style.ERROR(str(e)))
