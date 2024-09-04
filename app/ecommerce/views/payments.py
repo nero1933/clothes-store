@@ -46,7 +46,7 @@ class CreateCheckoutSessionAPIView(APIView):
 
         return line_items
 
-    def post(self, request, order_id):
+    def post(self, request, order_id, *args, **kwargs):
         payment = get_object_or_404(Payment, order=order_id)
         # payment = Payment.objects.get(order=order_id)
         if payment.payment_bool:
@@ -139,7 +139,6 @@ class StripeWebhookView(APIView):
 
     def handle_checkout_session(self, session):
         payment = get_object_or_404(Payment, stripe_session_id=session.id)
-        # payment = Payment.objects.get(stripe_session_id=session.id)
 
         payment.payment_bool = True
         payment.save()
