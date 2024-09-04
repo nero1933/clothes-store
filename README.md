@@ -1,1 +1,2 @@
-Clothes store is my pet project. It's going to be an ecommerce website. 
+Clothes store is my pet project. It's going to be an ecommerce website.
+![CI](https://github.com/nero1933/clothes-store/actions/workflows/main.yml/badge.svg)
