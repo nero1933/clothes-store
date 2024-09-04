@@ -1,10 +1,11 @@
-import uuid
+import json
 from unittest.mock import patch, MagicMock
 
 from rest_framework import status
 from rest_framework.reverse import reverse
 
-from ecommerce.models import UserProfile, ProductItem, Payment
+from app import settings
+from ecommerce.models import ProductItem, Payment
 from ecommerce.utils.tests.mixins import TestAPIOrder
 from ecommerce.views.payments import CreateCheckoutSessionAPIView
 
@@ -15,6 +16,7 @@ class TestPayments(TestAPIOrder):
         super().setUp()
 
         self.url_payment_checkout = 'payment_checkout'
+        self.url_stripe_payment = 'stripe_webhook'
 
         product_item_1 = ProductItem.objects.get(product_variation=self.product_variation_1)
         product_item_1.stripe_price_id = 'price_1H2gJvFxrQk8dXzA1p'
@@ -23,6 +25,8 @@ class TestPayments(TestAPIOrder):
 
         product_item_1.save()
         product_item_2.save()
+
+
 
     @patch('stripe.checkout.Session.create')  # Mocking the Stripe API
     def test_create_checkout_session_success(self, mock_stripe_session_create):
@@ -72,16 +76,41 @@ class TestPayments(TestAPIOrder):
             {'price': 'price_1H2gJvFxrQk8dXzA1f', 'quantity': 2}],
             'Line items must display price & quantity'
         )
+    @patch('stripe.Webhook.construct_event.data.object')
+    @patch('stripe.Webhook.construct_event')  # Mock the stripe module
+    def test_valid_checkout_session_event(self, mock_stripe, mock_obj_session):
 
-    # def test_payment(self):
-    #     response = self.create_guest_order()
-    #     order_id = response.data.get('id', None)
-    #     response = self.client.post(reverse(self.url_payment_checkout, args=[order_id]), {})
-    #     self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-    #
-    #     # checkout_session_id = response.data.get('checkout_session_id', None)
-    #     # checkout_session_url = response.data.get('checkout_session_url', None)
-    #     # print(checkout_session_id, checkout_session_url)
-    #     self.assertEqual(response.data['checkout_session_id'], 'cs_test_12345')
-    #     self.assertEqual(response.data['checkout_session_url'], 'https://checkout.stripe.com/pay/cs_test_12345')
+        # Arrange: Create a mock object
+        mock_obj = MagicMock()
+        mock_obj.id = 'cs_test_session'
 
+        # Set the mock to return the object
+        mock_obj_session.return_value = mock_obj
+
+        # Mock the Stripe webhook signature verification
+        mock_stripe.return_value = {
+            'type': 'checkout.session.completed',
+            'data': {
+                'object': mock_obj
+            }
+        }
+
+        response = self.create_guest_order()
+        order_id = response.data.get('id', None)
+
+        payment = Payment.objects.get(order_id=order_id)
+
+        payment.stripe_session_id='cs_test_session'
+        payment.payment_bool = False
+        payment.save()
+
+        # Make a POST request to the webhook endpoint
+        response = self.client.post(reverse(self.url_stripe_payment))
+
+        # Check that the response status code is 204
+        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
+        # Ensure the webhook event was processed
+
+        # Check that the payment object was updated
+        payment.refresh_from_db()
+        self.assertTrue(payment.payment_bool)

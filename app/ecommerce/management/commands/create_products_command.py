@@ -214,7 +214,7 @@ class Command(BaseCommand):
 
         def _create_product_variations():
             bulk_list = []
-            qty_range = (1, 100)
+            qty_range = (10, 100)
 
             product_items_qs = ProductItem.objects.all().select_related(
                 'product',
