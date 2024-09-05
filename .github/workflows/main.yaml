@@ -48,6 +48,7 @@ jobs:
           docker compose run --rm app coverage run manage.py test
           docker compose run --rm app coverage xml
       - name: Upload coverage to Codecov
-        uses: codecov/codecov-action@v3
+        uses: codecov/codecov-action@v4
         with:
+          token: ${{ secrets.CODECOV_TOKEN }}
           file: ./coverage.xml
