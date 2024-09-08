@@ -11,7 +11,7 @@ from ecommerce.models import UserProfile
 from ecommerce.models.orders import Order, OrderItem
 from ecommerce.models.shopping_carts import ShoppingCartItem
 from ecommerce.serializers.orders import OrderGuestCreateSerializer, OrderUserCreateSerializer, OrderSerializer
-from ecommerce.tasks.send_email import send_order_email
+from ecommerce.tasks.send_order_details_email import send_order_details_email
 
 
 class OrderViewSet(ReadOnlyModelViewSet):

@@ -11,7 +11,7 @@ from django.conf import settings
 
 from ecommerce.models import Order, OrderItem
 from ecommerce.models.payments import Payment
-from ecommerce.tasks.send_email import send_order_email
+from ecommerce.tasks.send_order_details_email import send_order_details_email
 
 stripe.api_key = settings.STRIPE_SECRET_KEY
 
@@ -104,13 +104,13 @@ class StripeWebhookView(APIView):
 
         context = self.get_order_email_context(payment.order)
         email = context.pop('email', None)
-        send_order_email.delay(email, context)
+        send_order_details_email.delay(email, context) # Celery task
 
-    def get_order_email_context(self, order_id) -> (str, list):
+    def get_order_email_context(self, order_id) -> dict:
+        """
+        Creates context for emailing an order
         """
 
-        :return: email, context
-        """
         queryset = OrderItem.objects.filter(order_id=order_id) \
             .select_related('product_variation__product_item__product',
                             'order__shipping_address',

@@ -18,4 +18,4 @@ def delete_old_guest_users():
     count, _ = old_guest_users.delete()
 
     # Optionally, log how many users were deleted
-    print(f'Deleted {count} guest users who logged in more than a day ago.')
+    # print(f'Deleted {count} guest users who logged in more than a day ago.')
