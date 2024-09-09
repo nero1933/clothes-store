@@ -42,15 +42,15 @@ class UserTestCase(TestAPIEcommerce):
         user_id = response.data.get('id')
         user = get_object_or_404(UserProfile, pk=user_id)
 
-        # Check that the email was sent
-        self.assertEqual(len(mail.outbox), 1, 'email with a verification link must be sent')
-
         # Check that the response has a success status code
         self.assertEqual(response.status_code, status.HTTP_201_CREATED, 'Code must be 201')
 
         # Check 'is_active' status of created user before opening link from email
         self.assertEqual(user.is_active, False,
                          'Before opening link from email "is_active" status of the user must be True')
+
+        # Check that the email was sent
+        self.assertEqual(len(mail.outbox), 1, 'Email must be sent')
 
         # Get confirmation link from message
         message = mail.outbox[0].body
@@ -85,6 +85,9 @@ class UserTestCase(TestAPIEcommerce):
 
         # Check that the response has a success status code
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT, 'Code must be 204')
+
+        # Check that email was sent
+        self.assertEqual(len(mail.outbox), 1, 'Email must be sent')
 
         # Get confirmation link from message
         message = mail.outbox[0].body

@@ -51,3 +51,12 @@ class DeleteOldGuestUsersTest(TestCase):
         # Check that there are now 2 users remaining
         self.assertEqual(UserProfile.objects.count(), 2,
                          'There should be two users left')
+
+
+class SendOrderDetailsEmailTest(TestCase):
+
+    def setUp(self):
+        pass
+
+    def test_send_order_details_email(self):
+        pass

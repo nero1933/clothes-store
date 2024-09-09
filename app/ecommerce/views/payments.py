@@ -1,4 +1,6 @@
 import stripe
+from django.core.mail import send_mail, EmailMultiAlternatives
+from django.template.loader import render_to_string
 
 from rest_framework.generics import get_object_or_404
 from rest_framework.permissions import IsAuthenticated
@@ -11,7 +13,7 @@ from django.conf import settings
 
 from ecommerce.models import Order, OrderItem
 from ecommerce.models.payments import Payment
-from ecommerce.tasks.send_order_details_email import send_order_details_email
+from ecommerce.tasks.send_order_details_email import send_order_details_email_task
 
 stripe.api_key = settings.STRIPE_SECRET_KEY
 
@@ -103,8 +105,23 @@ class StripeWebhookView(APIView):
         payment.save()
 
         context = self.get_order_email_context(payment.order)
-        email = context.pop('email', None)
-        send_order_details_email.delay(email, context) # Celery task
+        user_email = context.pop('email', None)
+
+        order = context.get('order', None)
+        order_id = order.get('id', None)
+
+        template = 'ecommerce/order_details.html'
+        html_body = render_to_string(template, context)
+        message = EmailMultiAlternatives(
+            subject=f"Order №{order_id}",
+            body=f"Order №{order_id}",
+            from_email=settings.DEFAULT_FROM_EMAIL,
+            to=[user_email]
+        )
+        message.attach_alternative(html_body, "text/html")
+        message.send(fail_silently=False)
+
+        #send_order_details_email_task.delay(email, context) # Celery task
 
     def get_order_email_context(self, order_id) -> dict:
         """
@@ -147,56 +164,77 @@ class StripeWebhookView(APIView):
 
         return context
 
-# class TempPaymentClass(APIView):
-#
-#     def get_queryset(self, order_id):
-#         queryset = OrderItem.objects.filter(order_id=order_id) \
-#             .select_related('product_variation__product_item__product',
-#                             'order__shipping_address')
-#
-#         return queryset
-#
-#     def get(self, request, order_id, *args, **kwargs):
-#         context = self.get_order_email_context(order_id)
-#         email = context.pop('email', None)
-#         send_order_email.delay(email, context)
-#
-#         return Response(context)
-#
-#     def get_order_email_context(self, order_id) -> (str, list):
-#         """
-#
-#         :return: email, context
-#         """
-#         queryset = self.get_queryset(order_id)
-#
-#         if not queryset:
-#             return None
-#
-#         order_obj = queryset[0].order
-#         order = {
-#             'id': order_obj.pk,
-#             'date_created': order_obj.date_created.date(),
-#             'price': order_obj.order_price,
-#         }
-#         shipping_address_obj = order_obj.shipping_address
-#         shipping_address = {
-#             'first_name': shipping_address_obj.first_name,
-#             'last_name': shipping_address_obj.last_name,
-#             'region': shipping_address_obj.region,
-#             'street': shipping_address_obj.street,
-#             'unit_number': shipping_address_obj.unit_number,
-#             'city': shipping_address_obj.city,
-#             'country': shipping_address_obj.country,
-#         }
-#         order_items = [[x.product_variation.product_item.product.name, x.quantity, x.price] for x in queryset]
-#         email = order_obj.user.email
-#
-#         context = dict(
-#             order=order,
-#             order_items=order_items,
-#             shipping_address=shipping_address,
-#             email=email,
-#         )
-#
-#         return context
+class TempPaymentClass(APIView):
+    """
+    ONLY FOR TESTING WEBHOOK
+
+    (TEST CELERY TASK / SEND ORDER DETAILS EMAIL)
+    """
+
+    def get_queryset(self, order_id):
+        queryset = OrderItem.objects.filter(order_id=order_id) \
+            .select_related('product_variation__product_item__product',
+                            'order__shipping_address')
+
+        return queryset
+
+    def get(self, request, order_id, *args, **kwargs):
+        context = self.get_order_email_context(order_id)
+        user_email = context.pop('email', None)
+
+        order = context.get('order', None)
+        order_id = order.get('id', None)
+
+        template = 'ecommerce/order_details.html'
+        html_body = render_to_string(template, context)
+        message = EmailMultiAlternatives(
+            subject=f"Order №{order_id}",
+            body=f"Order №{order_id}",
+            from_email=settings.DEFAULT_FROM_EMAIL,
+            to=[user_email]
+        )
+        message.attach_alternative(html_body, "text/html")
+        message.send(fail_silently=False)
+
+        # _ = send_order_details_email_task.delay(email, context)
+        # print(_)
+
+        return Response(context)
+
+    def get_order_email_context(self, order_id) -> (str, list):
+        """
+
+        :return: email, context
+        """
+        queryset = self.get_queryset(order_id)
+
+        if not queryset:
+            return None
+
+        order_obj = queryset[0].order
+        order = {
+            'id': order_obj.pk,
+            'date_created': order_obj.date_created.date(),
+            'price': order_obj.order_price,
+        }
+        shipping_address_obj = order_obj.shipping_address
+        shipping_address = {
+            'first_name': shipping_address_obj.first_name,
+            'last_name': shipping_address_obj.last_name,
+            'region': shipping_address_obj.region,
+            'street': shipping_address_obj.street,
+            'unit_number': shipping_address_obj.unit_number,
+            'city': shipping_address_obj.city,
+            'country': shipping_address_obj.country,
+        }
+        order_items = [[x.product_variation.product_item.product.name, x.quantity, x.price] for x in queryset]
+        email = order_obj.user.email
+
+        context = dict(
+            order=order,
+            order_items=order_items,
+            shipping_address=shipping_address,
+            email=email,
+        )
+
+        return context

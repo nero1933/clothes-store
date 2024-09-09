@@ -1,10 +1,11 @@
-import json
+from time import sleep
 from unittest.mock import patch, MagicMock
+
+from django.core import mail
 
 from rest_framework import status
 from rest_framework.reverse import reverse
 
-from app import settings
 from ecommerce.models import ProductItem, Payment
 from ecommerce.utils.tests.mixins import TestAPIOrder
 from ecommerce.views.payments import CreateCheckoutSessionAPIView
@@ -76,9 +77,10 @@ class TestPayments(TestAPIOrder):
             {'price': 'price_1H2gJvFxrQk8dXzA1f', 'quantity': 2}],
             'Line items must display price & quantity'
         )
+
     @patch('stripe.Webhook.construct_event.data.object')
-    @patch('stripe.Webhook.construct_event')  # Mock the stripe module
-    def test_valid_checkout_session_event(self, mock_stripe, mock_obj_session):
+    @patch('stripe.Webhook.construct_event')
+    def test_success_payment_webhook(self, mock_stripe, mock_obj_session):
 
         # Arrange: Create a mock object
         mock_obj = MagicMock()
@@ -114,3 +116,8 @@ class TestPayments(TestAPIOrder):
         # Check that the payment object was updated
         payment.refresh_from_db()
         self.assertTrue(payment.payment_bool)
+
+        ### TEST EMAIL
+
+        # Check that the email was sent
+        self.assertEqual(len(mail.outbox), 1, 'Email must be sent')

@@ -14,7 +14,7 @@ Celery
 Create Celery task which deletes guest users ones at 00:00 if user age is > 24 hours (OK!)
 Create Celery task for sending email after order is paid (NOT WORKING, WRITE TO SENDGRID)
 
-Create tests for Celery
+Create tests for Celery (1/2)
 
 Admin...
 ...
