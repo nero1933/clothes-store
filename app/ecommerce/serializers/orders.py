@@ -54,7 +54,7 @@ class OrderUserCreateSerializer(OrderCreateSerializer):
     """
     email = serializers.EmailField(read_only=True)
     user = serializers.HiddenField(default=serializers.CurrentUserDefault())
-    guest = serializers.PrimaryKeyRelatedField(default=None, allow_null=True, read_only=True)
+    # guest = serializers.PrimaryKeyRelatedField(default=None, allow_null=True, read_only=True)
     shipping_address = serializers.PrimaryKeyRelatedField(queryset=Address.objects.none())
 
     class Meta:

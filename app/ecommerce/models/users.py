@@ -11,7 +11,6 @@ from django.contrib.auth.models import BaseUserManager
 from phonenumber_field.modelfields import PhoneNumberField
 
 from ecommerce.models.addresses import Address
-from ecommerce.models.shopping_carts import ShoppingCart
 
 
 class UserProfileManager(BaseUserManager):
