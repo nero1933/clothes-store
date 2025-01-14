@@ -12,7 +12,7 @@ from rest_framework.viewsets import GenericViewSet
 from rest_framework_simplejwt.tokens import RefreshToken
 
 from app import settings
-from ecommerce.models import UserProfile, UserProfileManager
+from ecommerce.models import UserProfile, UserProfileManager, Order, OrderItem
 from ecommerce.serializers import RegisterUserSerializer, PasswordResetSerializer, PasswordSerializer, \
     UserProfileSerializer, RegisterGuestSerializer
 from ecommerce.utils.email.senders import RegistrationEmail, PasswordResetEmail
@@ -70,7 +70,6 @@ class RegisterGuestAPIView(CreateAPIView):
 
     def post(self, request, *args, **kwargs):
         user_profile_manager = UserProfileManager()
-
         user = user_profile_manager.create_guest()
 
         if user:

@@ -38,7 +38,6 @@ class OrderCreateAPIView(CreateAPIView):
 
         return queryset
 
-
     def prepare_order_items(self) -> list[OrderItem]:
         cart_items = ShoppingCartItem.objects \
             .prefetch_related('product_variation__product_item__discount') \
@@ -76,6 +75,9 @@ class OrderCreateAPIView(CreateAPIView):
         except ObjectDoesNotExist:
             return None
 
+    def prepare_user_guest(self):
+        pass
+
     def post(self, request, *args, **kwargs):
         """
         Test
@@ -91,14 +93,41 @@ class OrderCreateAPIView(CreateAPIView):
         order_price = sum(map(lambda x: x.price, order_items))
         serializer.context['order_price'] = order_price
 
+
+        ### NEED FIX!!! (START)
+        # After creating order from logged in guest, the guest account
+        # deletes and user if forced to log in manual to make payment
+
+        # fix -- add to order email that user entered while ordering
+        # automatically log in user after payment or after creating order is not secure!!!
+
+        # user_exists = self.get_user(request.data.get('email', None))
+        # if user.is_guest and user_exists: # if existing user makes order from guest account
+        #     serializer.context['user'] = user_exists # existing account assigned to order
+        #     serializer.is_valid(raise_exception=True) # Validate serializer before deleting user!!!
+        #     user.delete() # guest user is deleted
+        # else:
+        #     serializer.context['user'] = user
+        #     serializer.context['guest'] = ''
+        #     serializer.is_valid(raise_exception=True)
+
         user_exists = self.get_user(request.data.get('email', None))
         if user.is_guest and user_exists: # if existing user makes order from guest account
-            serializer.context['user'] = user_exists # existing account assigned to order
-            serializer.is_valid(raise_exception=True) # Validate serializer before deleting user!!!
-            user.delete() # guest user is deleted
+
+            # existing account assigned to order (to let user see his new order in account)
+            serializer.context['user'] = user_exists
+
+            # guest_user assigned to guest (to let logged in guest make a payment)
+            serializer.context['guest'] = user
+
+            # serializer.is_valid(raise_exception=True) # Validate serializer before deleting user!!!
+            # user.delete() # guest user is deleted
         else:
             serializer.context['user'] = user
-            serializer.is_valid(raise_exception=True)
+
+        serializer.is_valid(raise_exception=True)
+
+        ### NEED FIX!!! (END)
 
         self.perform_create(serializer)
         headers = self.get_success_headers(serializer.data)

@@ -1,8 +1,4 @@
-import time
-
 import stripe
-from django.core.mail import send_mail, EmailMultiAlternatives
-from django.template.loader import render_to_string
 
 from rest_framework.generics import get_object_or_404
 from rest_framework.permissions import IsAuthenticated
@@ -24,10 +20,14 @@ class CreateCheckoutSessionAPIView(APIView):
     permission_classes = (IsAuthenticated,)
 
     def get_queryset(self, order_id):
+        user_filter = {'order__user': self.request.user} \
+            if not self.request.user.is_guest \
+            else {'order__guest': self.request.user}
+
         queryset = OrderItem.objects \
             .select_related('order', 'product_variation__product_item') \
             .prefetch_related('order__payment') \
-            .filter(order__user=self.request.user, order_id=order_id)
+            .filter(**user_filter, order_id=order_id)
 
         return queryset
 

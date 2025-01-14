@@ -22,6 +22,16 @@ class RegisterUserSerializer(serializers.ModelSerializer):
 
         return data
 
+    def create(self, validated_data):
+        user = UserProfile.objects.create_user(
+            email=validated_data['email'],
+            first_name=validated_data['first_name'],
+            last_name=validated_data['last_name'],
+            phone=validated_data.get('phone', None),
+            password=validated_data['password']
+        )
+        return user
+
 
 class RegisterGuestSerializer(serializers.ModelSerializer):
     email = serializers.EmailField(read_only=True)
