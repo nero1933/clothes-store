@@ -1,11 +1,8 @@
 from datetime import timedelta
-from unittest.mock import patch
 
 from django.core import mail
 from django.utils import timezone
-from django.test import TestCase
-
-from celery.result import EagerResult
+from django.test import TestCase, override_settings
 
 from app import settings
 
@@ -64,7 +61,7 @@ class DeleteOldGuestUsersTest(TestCase):
 
 class SendOrderDetailsEmailTest(TestCase):
     def setUp(self):
-        self.user_email = "nero.1933.nike@gmail.com"
+        self.user_email = "test@test.test"
         self.context = {
             "order": {
                 "id": "12345",
@@ -90,6 +87,7 @@ class SendOrderDetailsEmailTest(TestCase):
         self.template_path = "ecommerce/order_details.html"
 
     # @patch("django.core.mail.EmailMultiAlternatives.send")
+    @override_settings(EMAIL_BACKEND='django.core.mail.backends.locmem.EmailBackend')
     def test_send_order_details_email(self):
         send_order_details_email(self.user_email, self.context)
         # Check that the email was sent

@@ -1,6 +1,7 @@
 import re
 
 from django.core import mail
+from django.test import override_settings
 
 from rest_framework import status
 from rest_framework.generics import get_object_or_404
@@ -23,6 +24,7 @@ class UserTestCase(TestAPIEcommerce):
         self.user = self.create_user()
         self.jwt_access_token = self.get_jwt_access_token()
 
+    @override_settings(EMAIL_BACKEND='django.core.mail.backends.locmem.EmailBackend')
     def test_register_user(self):
         """
         Try to register user and follow the confirmation link.
