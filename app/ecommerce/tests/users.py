@@ -29,7 +29,7 @@ class UserTestCase(TestAPIEcommerce):
         """
 
         data = {
-            "email": "tests@tests.com",
+            "email": "adrenaline.1933@gmail.com",
             "first_name": "tests",
             "last_name": "tests",
             "phone": '+380956665544',

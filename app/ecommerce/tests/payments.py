@@ -1,7 +1,4 @@
-from time import sleep
 from unittest.mock import patch, MagicMock
-
-from django.core import mail
 
 from rest_framework import status
 from rest_framework.reverse import reverse

@@ -99,17 +99,19 @@ class TestOrders(TestAPIOrder):
 
         """
 
+        # Create order as a completely new guest user
         response = self.create_guest_order()
         self.assertEqual(response.status_code, 201, 'Order must be created successfully')
         self.assertEqual(response.data.get('order_price'), self.order_price,
                          f'Order price must be: {self.order_price}')
 
-        # First order has been created by new gest user
+        # First order has been created by new guest user
         # Now he is registered and has an account in db
         #
-        # Try now to create one more order as a gest using
+        # Now try to create one more order as a guest using
         # credentials of registered user (same as first time)
 
+        # Create order as a guest but with credentials of already registered user
         response = self.create_guest_order()
         self.assertEqual(response.status_code, 201, 'Order must be created successfully')
         self.assertEqual(response.data.get('order_price'), self.order_price,

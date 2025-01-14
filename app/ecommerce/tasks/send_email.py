@@ -36,9 +36,6 @@ def send_order_details_email(user_email, context):
     order = context.get('order', None)
     order_id = order.get('id', None)
 
-    print(settings.DEFAULT_FROM_EMAIL)
-    print(user_email)
-
     template = 'ecommerce/order_details.html'
     html_body = render_to_string(template, context)
     message = EmailMultiAlternatives(
@@ -49,5 +46,3 @@ def send_order_details_email(user_email, context):
     )
     message.attach_alternative(html_body, "text/html")
     message.send(fail_silently=False)
-
-    print('END')

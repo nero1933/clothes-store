@@ -1,8 +1,17 @@
 from datetime import timedelta
+from unittest.mock import patch
+
+from django.core import mail
 from django.utils import timezone
 from django.test import TestCase
+
+from celery.result import EagerResult
+
+from app import settings
+
 from ecommerce.models import UserProfile
 from ecommerce.tasks import delete_old_guest_users
+from ecommerce.tasks import send_order_details_email
 
 
 class DeleteOldGuestUsersTest(TestCase):
@@ -54,9 +63,59 @@ class DeleteOldGuestUsersTest(TestCase):
 
 
 class SendOrderDetailsEmailTest(TestCase):
-
     def setUp(self):
-        pass
+        self.user_email = "ner.1933.nike@gmail.com"
+        self.context = {
+            "order": {
+                "id": "12345",
+                "date_created": "2025-01-14",
+                "price": "99.99",
+            },
+            "order_items": [
+                ["Product A", "2", "19.99"],
+                ["Product B", "1", "59.99"],
+            ],
+            "shipping_address": {
+                "first_name": "John",
+                "last_name": "Doe",
+                "region": "Region A",
+                "street": "123 Main St",
+                "unit_number": "Unit 4B",
+                "city": "Somewhere",
+                "country": "Country",
+            },
+            "email": self.user_email,
+        }
 
+        self.template_path = "ecommerce/order_details.html"
+
+    # @patch("django.core.mail.EmailMultiAlternatives.send")
     def test_send_order_details_email(self):
-        pass
+        send_order_details_email(self.user_email, self.context)
+        # Check that the email was sent
+        self.assertEqual(len(mail.outbox), 1, 'Email must be sent')
+
+        # Get confirmation link from message
+        message = mail.outbox[0]
+
+        # """
+        # Test that the `send_order_details_email` task sends an email with the correct details.
+        # """
+        # # Run the task synchronously
+        # result = send_order_details_email.apply(args=(self.user_email, self.context))
+        #
+        # # Assert that the task completed successfully
+        # self.assertIsInstance(result, EagerResult)
+        # self.assertEqual(result.status, "SUCCESS")
+        #
+        # # Check if the email was sent
+        # mock_send.assert_called_once()
+        #
+        # # Check the email content
+        # message_instance = mock_send.call_args[0][0]
+
+        self.assertIn(f"Order №{self.context['order']['id']}", message.subject)
+        self.assertIn(f"Order №{self.context['order']['id']}", message.body)
+        self.assertIn(self.context["shipping_address"]["first_name"], message.alternatives[0][0])
+        self.assertEqual(message.to, [self.user_email])
+        self.assertEqual(message.from_email, settings.DEFAULT_FROM_EMAIL)

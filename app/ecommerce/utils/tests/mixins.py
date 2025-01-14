@@ -177,6 +177,7 @@ class TestAPIOrder(TestAPIEcommerce):
 
     def fill_in_shopping_cart(self):
         response = self.client.post(reverse(self.url_shopping_cart), self.product_data_1, format='json')
+        self.assertEqual(response.status_code, 201, 'Shopping cart items must be created successfully')
         response = self.client.post(reverse(self.url_shopping_cart), self.product_data_2, format='json')
         self.assertEqual(response.status_code, 201, 'Shopping cart items must be created successfully')
 
