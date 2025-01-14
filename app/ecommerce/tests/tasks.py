@@ -64,7 +64,7 @@ class DeleteOldGuestUsersTest(TestCase):
 
 class SendOrderDetailsEmailTest(TestCase):
     def setUp(self):
-        self.user_email = "ner.1933.nike@gmail.com"
+        self.user_email = "nero.1933.nike@gmail.com"
         self.context = {
             "order": {
                 "id": "12345",
