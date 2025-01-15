@@ -2,20 +2,34 @@ Create send_order_email (NOT WORKING, WRITE TO SENDGRID)
 
 Create tests for stripe (DONE)
 Create tests for webhook-payments
-Create test for send_order_email
 
-Create only one review for each product bought by user (DONE) / Create tests
-
-Create tests for review
-
-Renew db_structure.png
 
 Celery
 Create Celery task which deletes guest users ones at 00:00 if user age is > 24 hours (OK!)
-Create Celery task for sending email after order is paid (NOT WORKING, WRITE TO SENDGRID)
+Create Celery task for sending email after order is paid (DONE)
 
-Create tests for Celery (1/2)
+Create tests for Celery (DONE)
 
 Admin...
 ...
 ...
+...
+
+I'm here:
+
+Show payment link only if order isn't payed (DONE)
+
+Link which allows to add a review must be reachable through order-detail for each product if order is payed
+Also
+Link must be reachable though product-detail if order is payed and only if user is logged in
+
+Add tests for reviews
+
+Add rating to product-detail
+
+Add filters to product-list
+
+Renew db_structure.png (after all manipulations with models)
+
+Whole admin
+

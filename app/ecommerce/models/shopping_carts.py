@@ -10,9 +10,6 @@ class ShoppingCart(models.Model):
         return f"Shopping Cart for {self.user}"
 
 
-
-
-
 class ShoppingCartItem(models.Model):
     cart = models.ForeignKey('ShoppingCart', related_name='shopping_cart_item', on_delete=models.CASCADE)
     product_variation = models.ForeignKey('ProductVariation', related_name='shopping_cart_item', on_delete=models.CASCADE)

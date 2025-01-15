@@ -24,6 +24,15 @@ class OrderViewSet(ReadOnlyModelViewSet):
 
         return queryset
 
+    def get_object(self):
+        queryset = Order.objects \
+            .prefetch_related('order_item', # remove -> 'order_item'
+                              'order_item__review', # leave -> 'order_item__reviews'
+                              'payment') \
+            .filter(user=self.request.user).get(pk=self.kwargs['pk'])
+
+        return queryset
+
 class OrderCreateAPIView(CreateAPIView):
     permission_classes = [IsAuthenticated]
 

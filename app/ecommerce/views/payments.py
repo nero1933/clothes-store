@@ -69,6 +69,7 @@ class CreateCheckoutSessionAPIView(APIView):
         )
         payment.stripe_session_id = session.id
         payment.save()
+
         return Response({'checkout_session_id': session.id,
                          'checkout_session_url': session.url},
                         status=status.HTTP_201_CREATED)
@@ -77,7 +78,8 @@ class CreateCheckoutSessionAPIView(APIView):
 class StripeWebhookView(APIView):
 
     def get_queryset(self, order_id):
-        queryset = OrderItem.objects.filter(order_id=order_id) \
+        queryset = OrderItem.objects \
+            .filter(order_id=order_id) \
             .select_related('product_variation__product_item__product',
                             'order__shipping_address')
 
