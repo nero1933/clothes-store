@@ -1,4 +1,5 @@
 from django.core.exceptions import ObjectDoesNotExist
+from django.db.models import Prefetch
 
 from rest_framework import status
 from rest_framework.generics import CreateAPIView
@@ -6,7 +7,7 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.viewsets import ReadOnlyModelViewSet
 
-from ecommerce.models import UserProfile
+from ecommerce.models import UserProfile, Payment, Review, Product, ProductItem, ProductVariation
 from ecommerce.models.orders import Order, OrderItem
 from ecommerce.models.shopping_carts import ShoppingCartItem
 from ecommerce.serializers.orders import OrderGuestCreateSerializer, OrderUserCreateSerializer, OrderSerializer
@@ -25,13 +26,29 @@ class OrderViewSet(ReadOnlyModelViewSet):
         return queryset
 
     def get_object(self):
-        queryset = Order.objects \
-            .prefetch_related('order_item', # remove -> 'order_item'
-                              'order_item__review', # leave -> 'order_item__reviews'
-                              'payment') \
-            .filter(user=self.request.user).get(pk=self.kwargs['pk'])
+        payment_queryset = Payment.objects.only('id', 'order_id', 'payment_bool')  # Only fetch necessary fields
+        review_queryset = Review.objects.only('id', 'order_item_id', 'product')
+        product_variation_queryset = ProductVariation.objects.only('id', 'product_item_id')
+        product_item_queryset = ProductItem.objects.only('id', 'product_id')
+        product_queryset = Product.objects.only('id', 'slug')
 
-        return queryset
+        obj = Order.objects \
+            .prefetch_related(
+                Prefetch('order_item__review', queryset=review_queryset),
+                Prefetch('payment', queryset=payment_queryset),
+                Prefetch('order_item__product_variation', queryset=product_variation_queryset),
+                Prefetch('order_item__product_variation__product_item', queryset=product_item_queryset),
+                Prefetch('order_item__product_variation__product_item__product', queryset=product_queryset)
+            ) \
+            .only('id', 'email', 'order_price', 'user__id', 'order_item__id', 'order_item__review__id') \
+            .get(user=self.request.user, pk=self.kwargs['pk'])
+
+        return obj
+
+    def get_serializer_context(self):
+        context = super().get_serializer_context()
+        context['action'] = self.action  # Pass the current action to the context
+        return context
 
 class OrderCreateAPIView(CreateAPIView):
     permission_classes = [IsAuthenticated]

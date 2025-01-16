@@ -13,27 +13,52 @@ class PaymentSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Payment
-        fields = '__all__'
+        fields = ('id', 'payment_bool')
 
 
 class OrderItemSerializer(serializers.ModelSerializer):
+    product_link = serializers.SerializerMethodField()
+    # review_link = serializers.SerializerMethodField()
 
     class Meta:
         model = OrderItem
-        fields = ['id', 'product_variation', 'quantity', 'price']
+        # fields = '__all__'
+        fields = ['id', 'product_variation', 'quantity', 'price', 'product_link'] # 'review_link']
+
+    def get_product_link(self, obj):
+        action = self.context.get('action')
+        if action == 'retrieve':
+            return self.context['request'].build_absolute_uri(
+                reverse('products-detail',
+                        kwargs={'slug': obj.product_variation.product_item.product.slug})
+            )
+
+        return None
+
+    # def get_review_link(self, obj):
+    #     # Check the action from the context
+    #     action = self.context.get('action')
+    #     if action == 'retrieve':
+    #         return self.context['request'].build_absolute_uri(
+    #             reverse('review', kwargs={'order_id': obj.id})
+    #         )
+    #
+    #     return NoneW
 
 
 class OrderSerializer(serializers.ModelSerializer):
+    email = serializers.EmailField(read_only=True)
     order_item = OrderItemSerializer(many=True, read_only=True)
     payment = PaymentSerializer(read_only=True)
     payment_link = serializers.SerializerMethodField()
 
     class Meta:
         model = Order
-        fields = '__all__'
+        fields = ('id', 'user_id', 'email', 'order_item', 'payment', 'order_price', 'payment_link')
 
     def get_payment_link(self, obj):
         if not obj.payment.payment_bool:
+        # if not obj.get('payment__payment_bool', False):
             # Use the reverse function to generate the URL dynamically
             return self.context['request'].build_absolute_uri(
                 reverse('payment_checkout', kwargs={'order_id': obj.id})
@@ -49,7 +74,7 @@ class OrderCreateSerializer(serializers.ModelSerializer):
     payment_link = serializers.SerializerMethodField()
 
     def get_payment_link(self, obj):
-        if obj:
+        if not obj.payment.payment_bool:
             # Use the reverse function to generate the URL dynamically
             return self.context['request'].build_absolute_uri(
                 reverse('payment_checkout', kwargs={'order_id': obj.id})

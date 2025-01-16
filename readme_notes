@@ -1,5 +1,3 @@
-Create send_order_email (NOT WORKING, WRITE TO SENDGRID)
-
 Create tests for stripe (DONE)
 Create tests for webhook-payments
 
@@ -18,6 +16,7 @@ Admin...
 I'm here:
 
 Show payment link only if order isn't payed (DONE)
+add test
 
 Link which allows to add a review must be reachable through order-detail for each product if order is payed
 Also
