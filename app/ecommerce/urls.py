@@ -15,7 +15,9 @@ router.register(r'addresses', UserAddressViewSet, basename='addresses')
 router.register(r'products', ProductViewSet, basename='products')
 router.register(r'shopping_cart_items', ShoppingCartItemViewSet, basename='shopping_cart_items')
 router.register(r'orders', OrderViewSet, basename='orders')
-router.register(r'reviews', ReviewViewSet, basename='reviews')
+
+router2 = SimpleRouter()
+router2.register(r'product/(?P<product_slug>[^/.]+)/order_item/(?P<order_item_id>\d+)/reviews', ReviewViewSet, basename='reviews')
 
 urlpatterns = [
     path('api/v1/token/', TokenObtainPairView.as_view(), name='token_obtain_pair'),
@@ -25,6 +27,10 @@ urlpatterns = [
     path('api/v1/register/guest/', RegisterGuestAPIView.as_view(), name='register_guest'),
     path('api/v1/register/confirmation/<str:token>', register_user_confirmation, name='register_user_confirmation'),
 
+    path('api/v1/password-reset/', PasswordResetAPIView.as_view(), name='password_reset'),
+    path('api/v1/password-reset/new-password/<str:token>/', PasswordResetNewPasswordAPIView.as_view(),
+         name='password_reset_new_password'),
+
     path('api/v1/create-order/user', OrderUserCreateAPIView.as_view(), name='create_order_user'),
     path('api/v1/create-order/guest', OrderGuestCreateAPIView.as_view(), name='create_order_guest'),
     #
@@ -33,9 +39,10 @@ urlpatterns = [
     # path('api/v1/payment/<int:?>/cancelled/', '#', name='payment_cancelled'),
     path('api/v1/stripe_webhook/', StripeWebhookView.as_view(), name='stripe_webhook'),
 
-
-    path('api/v1/password-reset/', PasswordResetAPIView.as_view(), name='password_reset'),
-    path('api/v1/password-reset/new-password/<str:token>/', PasswordResetNewPasswordAPIView.as_view(), name='password_reset_new_password'),
+    path('api/v1/product/<str:product_slug>/order_item/<int:order_item_id>/reviews',
+         ReviewViewSet.as_view({'post': 'create'}), name='reviews_create'),
+    path('api/v1/product/<str:product_slug>/order_item/<int:order_item_id>/reviews/<int:pk>',
+         ReviewViewSet.as_view({'patch': 'update', 'delete': 'destroy'}), name='reviews_update_delete'),
 
     path('api/v1/', include(router.urls)),
     # path('api/v1/', '#', name='#'),

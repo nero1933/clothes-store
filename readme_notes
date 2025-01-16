@@ -18,9 +18,13 @@ I'm here:
 Show payment link only if order isn't payed (DONE)
 add test
 
-Link which allows to add a review must be reachable through order-detail for each product if order is payed
+Link which allows to add a review must be reachable through order-detail for each product if order is payed (DONE)
 Also
 Link must be reachable though product-detail if order is payed and only if user is logged in
+
+Can create review only less then a month form date order was payed
+
+Change order status to 2 (PAYED) in hande_checkout_session
 
 Add tests for reviews
 

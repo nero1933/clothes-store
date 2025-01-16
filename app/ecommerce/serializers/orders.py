@@ -1,3 +1,4 @@
+from django.core.exceptions import ObjectDoesNotExist
 from phonenumber_field.serializerfields import PhoneNumberField
 
 from rest_framework import serializers
@@ -8,7 +9,6 @@ from ecommerce.models.orders import Order, OrderItem
 from ecommerce.models.payments import Payment
 from ecommerce.serializers.addresses import AddressSerializer
 
-
 class PaymentSerializer(serializers.ModelSerializer):
 
     class Meta:
@@ -18,32 +18,37 @@ class PaymentSerializer(serializers.ModelSerializer):
 
 class OrderItemSerializer(serializers.ModelSerializer):
     product_link = serializers.SerializerMethodField()
-    # review_link = serializers.SerializerMethodField()
+    review_link = serializers.SerializerMethodField()
 
     class Meta:
         model = OrderItem
         # fields = '__all__'
-        fields = ['id', 'product_variation', 'quantity', 'price', 'product_link'] # 'review_link']
+        fields = ['id', 'product_variation', 'quantity', 'price', 'product_link', 'review_link'] # 'review_link']
 
     def get_product_link(self, obj):
         action = self.context.get('action')
         if action == 'retrieve':
             return self.context['request'].build_absolute_uri(
                 reverse('products-detail',
-                        kwargs={'slug': obj.product_variation.product_item.product.slug})
+                        kwargs={'product_slug': obj.product_variation.product_item.product.slug})
             )
 
         return None
 
-    # def get_review_link(self, obj):
-    #     # Check the action from the context
-    #     action = self.context.get('action')
-    #     if action == 'retrieve':
-    #         return self.context['request'].build_absolute_uri(
-    #             reverse('review', kwargs={'order_id': obj.id})
-    #         )
-    #
-    #     return NoneW
+    def get_review_link(self, obj):
+        action = self.context.get('action')
+        if action == 'retrieve' and obj.order.payment.payment_bool:
+            try:
+                exists = obj.review
+                return None
+            except ObjectDoesNotExist:
+                return self.context['request'].build_absolute_uri(
+                    reverse('reviews_create',
+                            kwargs={'product_slug': obj.product_variation.product_item.product.slug,
+                                    'order_item_id': obj.pk})
+                )
+
+        return None
 
 
 class OrderSerializer(serializers.ModelSerializer):
@@ -59,7 +64,6 @@ class OrderSerializer(serializers.ModelSerializer):
     def get_payment_link(self, obj):
         if not obj.payment.payment_bool:
         # if not obj.get('payment__payment_bool', False):
-            # Use the reverse function to generate the URL dynamically
             return self.context['request'].build_absolute_uri(
                 reverse('payment_checkout', kwargs={'order_id': obj.id})
             )
