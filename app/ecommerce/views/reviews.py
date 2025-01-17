@@ -14,7 +14,8 @@ from ecommerce.models.reviews import Review
 from ecommerce.serializers.reviews import ReviewSerializer
 
 
-class ReviewViewSet(mixins.CreateModelMixin,
+class ReviewViewSet(mixins.RetrieveModelMixin,
+                    mixins.CreateModelMixin,
                     mixins.UpdateModelMixin,
                     mixins.DestroyModelMixin,
                     GenericViewSet):

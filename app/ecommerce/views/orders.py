@@ -40,8 +40,8 @@ class OrderViewSet(ReadOnlyModelViewSet):
                 Prefetch('order_item__product_variation__product_item', queryset=product_item_queryset),
                 Prefetch('order_item__product_variation__product_item__product', queryset=product_queryset)
             ) \
-            .only('id', 'email', 'order_price', 'user__id', 'order_item__id', 'order_item__review__id') \
-            .get(user=self.request.user, pk=self.kwargs['pk'])
+            .defer('guest') \
+            .get(user=self.request.user.id, pk=self.kwargs['pk'])
 
         return obj
 

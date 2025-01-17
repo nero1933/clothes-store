@@ -2,12 +2,14 @@ from django.core.exceptions import ObjectDoesNotExist
 from phonenumber_field.serializerfields import PhoneNumberField
 
 from rest_framework import serializers
+from rest_framework.fields import SerializerMethodField
 from rest_framework.reverse import reverse
 
 from ecommerce.models.addresses import Address, UserAddress
 from ecommerce.models.orders import Order, OrderItem
 from ecommerce.models.payments import Payment
 from ecommerce.serializers.addresses import AddressSerializer
+
 
 class PaymentSerializer(serializers.ModelSerializer):
 
@@ -19,11 +21,12 @@ class PaymentSerializer(serializers.ModelSerializer):
 class OrderItemSerializer(serializers.ModelSerializer):
     product_link = serializers.SerializerMethodField()
     review_link = serializers.SerializerMethodField()
+    review_id = serializers.SerializerMethodField()
 
     class Meta:
         model = OrderItem
         # fields = '__all__'
-        fields = ['id', 'product_variation', 'quantity', 'price', 'product_link', 'review_link'] # 'review_link']
+        fields = ['id', 'product_variation', 'quantity', 'price', 'review_id', 'review_link', 'product_link']
 
     def get_product_link(self, obj):
         action = self.context.get('action')
@@ -38,17 +41,23 @@ class OrderItemSerializer(serializers.ModelSerializer):
     def get_review_link(self, obj):
         action = self.context.get('action')
         if action == 'retrieve' and obj.order.payment.payment_bool:
-            try:
-                exists = obj.review
-                return None
-            except ObjectDoesNotExist:
-                return self.context['request'].build_absolute_uri(
-                    reverse('reviews_create',
-                            kwargs={'product_slug': obj.product_variation.product_item.product.slug,
-                                    'order_item_id': obj.pk})
-                )
+            return self.context['request'].build_absolute_uri(
+                reverse('reviews_create',
+                        kwargs={'order_id': obj.order.id,
+                                'order_item_id': obj.pk,
+                                'product_slug': obj.product_variation.product_item.product.slug})
+            )
 
         return None
+
+    def get_review_id(self, obj):
+        action = self.context.get('action')
+        if action == 'retrieve':
+            try:
+                return obj.review.pk
+            except ObjectDoesNotExist:
+                return None
+
 
 
 class OrderSerializer(serializers.ModelSerializer):
@@ -59,7 +68,8 @@ class OrderSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Order
-        fields = ('id', 'user_id', 'email', 'order_item', 'payment', 'order_price', 'payment_link')
+        exclude = ('guest', )
+        # fields = ('id', 'user_id', 'email', 'order_item', 'payment', 'order_price', 'payment_link')
 
     def get_payment_link(self, obj):
         if not obj.payment.payment_bool:

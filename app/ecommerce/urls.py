@@ -17,7 +17,11 @@ router.register(r'shopping_cart_items', ShoppingCartItemViewSet, basename='shopp
 router.register(r'orders', OrderViewSet, basename='orders')
 
 router2 = SimpleRouter()
-router2.register(r'product/(?P<product_slug>[^/.]+)/order_item/(?P<order_item_id>\d+)/reviews', ReviewViewSet, basename='reviews')
+router2.register(
+    r'orders/(?P<order_id>\d+)/'
+    r'order_items/(?P<order_item_id>\d+)/'
+    r'products/(?P<product_slug>[^/.]+)/'
+    r'reviews', ReviewViewSet, basename='reviews')
 
 urlpatterns = [
     path('api/v1/token/', TokenObtainPairView.as_view(), name='token_obtain_pair'),
@@ -39,10 +43,20 @@ urlpatterns = [
     # path('api/v1/payment/<int:?>/cancelled/', '#', name='payment_cancelled'),
     path('api/v1/stripe_webhook/', StripeWebhookView.as_view(), name='stripe_webhook'),
 
-    path('api/v1/product/<str:product_slug>/order_item/<int:order_item_id>/reviews',
-         ReviewViewSet.as_view({'post': 'create'}), name='reviews_create'),
-    path('api/v1/product/<str:product_slug>/order_item/<int:order_item_id>/reviews/<int:pk>',
-         ReviewViewSet.as_view({'patch': 'update', 'delete': 'destroy'}), name='reviews_update_delete'),
+    path('api/v1/'
+         'orders/<int:order_id>/'
+         'order_items/<int:order_item_id>/'
+         'products/<str:product_slug>/'
+         'reviews/',
+         ReviewViewSet.as_view({'post': 'create'}),
+         name='reviews_create'),
+    path('api/v1/'
+         'orders/<int:order_id>/'
+         'order_items/<int:order_item_id>/'
+         'products/<str:product_slug>/'
+         'reviews/<int:pk>',
+         ReviewViewSet.as_view({'get': 'retrieve', 'patch': 'update', 'delete': 'destroy'}),
+         name='reviews_rud'),
 
     path('api/v1/', include(router.urls)),
     # path('api/v1/', '#', name='#'),
