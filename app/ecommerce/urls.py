@@ -54,7 +54,7 @@ urlpatterns = [
          'orders/<int:order_id>/'
          'order_items/<int:order_item_id>/'
          'products/<str:product_slug>/'
-         'reviews/<int:pk>',
+         'reviews/<int:pk>/',
          ReviewViewSet.as_view({'get': 'retrieve', 'patch': 'update', 'delete': 'destroy'}),
          name='reviews_rud'),
 

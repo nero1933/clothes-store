@@ -25,7 +25,8 @@ class ReviewViewSet(mixins.RetrieveModelMixin,
     def get_queryset(self):
         queryset = Review.objects \
             .select_related('order_item__order__user') \
-            .filter(order_item__order__user=self.request.user)
+            .filter(order_item__order__user=self.request.user) \
+            .only('id', 'product_id', 'order_item_id', 'comment', 'rating', 'created_at', 'order_item__order__user__id', )
 
         return queryset
 
@@ -33,8 +34,15 @@ class ReviewViewSet(mixins.RetrieveModelMixin,
         order_item_id = self.kwargs.get('order_item_id')
         product_slug = self.kwargs.get('product_slug')
         try:
-            order_item = OrderItem.objects.only('pk', 'order_id', 'order__user__email').select_related('order__user').get(id=order_item_id)
-            product = Product.objects.only('pk', 'slug').get(slug=product_slug)
+            order_item = OrderItem.objects \
+                .only('pk', 'order_id', 'order__user__email') \
+                .select_related('order__user') \
+                .get(id=order_item_id, order__user=self.request.user)
+
+            product = Product.objects \
+                .only('pk', 'slug') \
+                .get(slug=product_slug)
+
             if order_item.order.user != self.request.user:
                 raise PermissionDenied()
         except OrderItem.DoesNotExist:

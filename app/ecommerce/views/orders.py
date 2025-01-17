@@ -41,7 +41,7 @@ class OrderViewSet(ReadOnlyModelViewSet):
                 Prefetch('order_item__product_variation__product_item__product', queryset=product_queryset)
             ) \
             .defer('guest') \
-            .get(user=self.request.user.id, pk=self.kwargs['pk'])
+            .get(user=self.request.user, pk=self.kwargs['pk'])
 
         return obj
 
