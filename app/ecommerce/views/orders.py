@@ -7,7 +7,7 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.viewsets import ReadOnlyModelViewSet
 
-from ecommerce.models import UserProfile, Payment, Review, Product, ProductItem, ProductVariation
+from ecommerce.models import UserProfile, Payment, Review, Product, ProductItem, ProductVariation, Image
 from ecommerce.models.orders import Order, OrderItem
 from ecommerce.models.shopping_carts import ShoppingCartItem
 from ecommerce.serializers.orders import OrderGuestCreateSerializer, OrderUserCreateSerializer, OrderSerializer
@@ -31,6 +31,7 @@ class OrderViewSet(ReadOnlyModelViewSet):
         product_variation_queryset = ProductVariation.objects.only('id', 'product_item_id')
         product_item_queryset = ProductItem.objects.only('id', 'product_id')
         product_queryset = Product.objects.only('id', 'slug')
+        image_queryset = Image.objects.filter(is_main=True)
 
         obj = Order.objects \
             .prefetch_related(
@@ -38,6 +39,7 @@ class OrderViewSet(ReadOnlyModelViewSet):
                 Prefetch('payment', queryset=payment_queryset),
                 Prefetch('order_item__product_variation', queryset=product_variation_queryset),
                 Prefetch('order_item__product_variation__product_item', queryset=product_item_queryset),
+                Prefetch('order_item__product_variation__product_item__image', queryset=image_queryset),
                 Prefetch('order_item__product_variation__product_item__product', queryset=product_queryset)
             ) \
             .defer('guest') \

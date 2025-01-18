@@ -8,6 +8,7 @@ from ecommerce.models.addresses import Address, UserAddress
 from ecommerce.models.orders import Order, OrderItem
 from ecommerce.models.payments import Payment
 from ecommerce.serializers.addresses import AddressSerializer
+from ecommerce.serializers.products import ImageSerializer
 
 
 class PaymentSerializer(serializers.ModelSerializer):
@@ -21,11 +22,12 @@ class OrderItemSerializer(serializers.ModelSerializer):
     product_link = serializers.SerializerMethodField()
     review_link = serializers.SerializerMethodField()
     review_id = serializers.SerializerMethodField()
+    main_image = serializers.SerializerMethodField()
 
     class Meta:
         model = OrderItem
         # fields = '__all__'
-        fields = ['id', 'product_variation', 'quantity', 'price', 'review_id', 'review_link', 'product_link']
+        fields = ['id', 'product_variation', 'quantity', 'price', 'review_id', 'review_link', 'product_link', 'main_image']
 
     def get_product_link(self, obj):
         action = self.context.get('action')
@@ -44,6 +46,20 @@ class OrderItemSerializer(serializers.ModelSerializer):
                         kwargs={'order_id': obj.order.id,
                                 'order_item_id': obj.pk,
                                 'product_slug': obj.product_variation.product_item.product.slug}))
+
+        return None
+
+    def get_main_image(self, obj):
+        action = self.context.get('action')
+        if action == 'retrieve':
+            # Access the prefetch related images
+            main_image = None
+            for image in obj.product_variation.product_item.image.all():
+                if image.is_main:
+                    main_image = image
+                    break
+            if main_image:
+                return ImageSerializer(main_image).data
 
         return None
 
