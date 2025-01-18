@@ -1,5 +1,6 @@
 from django.db import models
 from django.core.validators import MinValueValidator, MaxValueValidator
+from django.db.models import Q
 
 from rest_framework.reverse import reverse
 
@@ -109,6 +110,16 @@ class Image(models.Model):
     product_item = models.ForeignKey('ProductItem', related_name='image', on_delete=models.CASCADE)
     name = models.CharField(max_length=255)
     url = models.URLField(max_length=255)
+    is_main = models.BooleanField(default=False)
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                fields=['product_item'],
+                condition=Q(is_main=True),
+                name='unique_main_image_per_product_item'
+            )
+        ]
 
     def __str__(self):
         return f'Image for: {self.product_item}'

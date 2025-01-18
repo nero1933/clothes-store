@@ -1,4 +1,5 @@
 import stripe
+from django.core.exceptions import BadRequest
 from django.db.models import Prefetch
 
 from rest_framework.generics import get_object_or_404
@@ -52,30 +53,55 @@ class CreateCheckoutSessionAPIView(APIView):
 
         return line_items
 
+    def create_checkout_session(self, order_id):
+        line_items = self.get_line_items(order_id)
+        if not line_items:
+            raise BadRequest('No order items available')
+
+        success_link = self.request.build_absolute_uri(reverse('orders-detail', kwargs={'pk': order_id}))
+        cancel_url = 'https://google.com'
+
+        checkout_session = stripe.checkout.Session.create(
+            payment_method_types=['card'],
+            line_items=line_items,
+            mode='payment',
+            success_url=success_link,
+            cancel_url=cancel_url,
+        )
+
+        return checkout_session
+
     def post(self, request, order_id, *args, **kwargs):
         payment = get_object_or_404(Payment, order=order_id)
         if payment.payment_bool:
             return Response('Order is paid', status=status.HTTP_400_BAD_REQUEST)
 
-        line_items = self.get_line_items(order_id)
-        if not line_items:
-            return Response('No order items available', status=status.HTTP_400_BAD_REQUEST)
+        if payment.stripe_session_id:
+            return Response('Checkout session already exists', status=status.HTTP_400_BAD_REQUEST)
 
-        success_link = self.request.build_absolute_uri(reverse('orders-detail', kwargs={'pk': order_id}))
-
-        session = stripe.checkout.Session.create(
-            payment_method_types=['card'],
-            line_items=line_items,
-            mode='payment',
-            success_url=success_link,
-            cancel_url='https://google.com',
-        )
-        payment.stripe_session_id = session.id
+        checkout_session = self.create_checkout_session(order_id)
+        payment.stripe_session_id = checkout_session.id
         payment.save()
 
-        return Response({'checkout_session_id': session.id,
-                         'checkout_session_url': session.url},
+        return Response({'checkout_session_id': checkout_session.id,
+                         'checkout_session_url': checkout_session.url},
                         status=status.HTTP_201_CREATED)
+
+    def get(self, request, order_id, *args, **kwargs):
+        payment = get_object_or_404(Payment, order=order_id)
+        if payment.payment_bool:
+            return Response('Order is paid', status=status.HTTP_400_BAD_REQUEST)
+
+        if not payment.stripe_session_id:
+            return Response('Checkout session does not exists', status=status.HTTP_400_BAD_REQUEST)
+
+        checkout_session = stripe.checkout.Session.retrieve(payment.stripe_session_id)
+        if checkout_session.status == 'expired':
+            return Response('Checkout session is expired', status=status.HTTP_400_BAD_REQUEST)
+
+        return Response({'checkout_session_id': checkout_session.id,
+                         'checkout_session_url': checkout_session.url},
+                        status=status.HTTP_200_OK)
 
 
 class StripeWebhookView(APIView):
@@ -107,6 +133,9 @@ class StripeWebhookView(APIView):
         if event['type'] == 'checkout.session.completed':
             session = event['data']['object']
             self.handle_checkout_session(session)
+        if event['type'] == 'checkout.session.expired':
+            session = event['data']['object']
+            self.handle_expired_session(session)
         # if event['type'] == 'payment_intent.succeeded':
         #     session = event['data']['object']
         #     self.handle_payment_intent(session)
@@ -114,7 +143,7 @@ class StripeWebhookView(APIView):
         return Response(status=status.HTTP_204_NO_CONTENT)
 
     def handle_checkout_session(self, session):
-        payment = get_object_or_404(Payment, stripe_session_id=session.id)
+        # payment = get_object_or_404(Payment, stripe_session_id=session.id)
 
         payment = get_object_or_404(
             Payment.objects.select_related('order'),
@@ -130,6 +159,12 @@ class StripeWebhookView(APIView):
         user_email = context.pop('email', None)
 
         send_order_details_email.delay(user_email, context)  # Celery task
+
+    def handle_expired_session(self, session):
+        payment = get_object_or_404(Payment, stripe_session_id=session.id)
+        payment.stripe_session_id = None
+        payment.save()
+
 
     def get_order_email_context(self, order_id) -> (str, list):
         """
