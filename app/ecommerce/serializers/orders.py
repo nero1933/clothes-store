@@ -32,7 +32,7 @@ class OrderItemSerializer(serializers.ModelSerializer):
         if action == 'retrieve':
             return self.context['request'].build_absolute_uri(
                 reverse('products-detail',
-                        kwargs={'product_slug': obj.product_variation.product_item.product.slug}))
+                        kwargs={'slug': obj.product_variation.product_item.product.slug}))
 
         return None
 

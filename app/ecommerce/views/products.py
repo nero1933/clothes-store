@@ -8,7 +8,7 @@ from ecommerce.serializers.products import ProductSerializer, ProductDetailSeria
 
 class ProductViewSet(viewsets.ReadOnlyModelViewSet):
     serializer_class = ProductSerializer
-    lookup_field = 'product_slug'
+    lookup_field = 'slug'
 
     def get_queryset(self):
         queryset = Product.objects \

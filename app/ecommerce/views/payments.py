@@ -3,6 +3,7 @@ from django.db.models import Prefetch
 
 from rest_framework.generics import get_object_or_404
 from rest_framework.permissions import IsAuthenticated
+from rest_framework.reverse import reverse
 
 from rest_framework.views import APIView
 from rest_framework.response import Response
@@ -60,11 +61,13 @@ class CreateCheckoutSessionAPIView(APIView):
         if not line_items:
             return Response('No order items available', status=status.HTTP_400_BAD_REQUEST)
 
+        success_link = self.request.build_absolute_uri(reverse('orders-detail', kwargs={'pk': order_id}))
+
         session = stripe.checkout.Session.create(
             payment_method_types=['card'],
             line_items=line_items,
             mode='payment',
-            success_url='https://google.com',
+            success_url=success_link,
             cancel_url='https://google.com',
         )
         payment.stripe_session_id = session.id
