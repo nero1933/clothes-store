@@ -26,7 +26,8 @@ class ReviewViewSet(mixins.RetrieveModelMixin,
         queryset = Review.objects \
             .select_related('order_item__order__user') \
             .filter(order_item__order__user=self.request.user) \
-            .only('id', 'product_id', 'order_item_id', 'comment', 'rating', 'created_at', 'order_item__order__user__id', )
+            .only('id', 'product_id', 'order_item_id', 'comment',
+                  'rating', 'created_at', 'order_item__order__user__id', )
 
         return queryset
 

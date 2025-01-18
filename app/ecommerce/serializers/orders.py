@@ -2,7 +2,6 @@ from django.core.exceptions import ObjectDoesNotExist
 from phonenumber_field.serializerfields import PhoneNumberField
 
 from rest_framework import serializers
-from rest_framework.fields import SerializerMethodField
 from rest_framework.reverse import reverse
 
 from ecommerce.models.addresses import Address, UserAddress
@@ -33,8 +32,7 @@ class OrderItemSerializer(serializers.ModelSerializer):
         if action == 'retrieve':
             return self.context['request'].build_absolute_uri(
                 reverse('products-detail',
-                        kwargs={'product_slug': obj.product_variation.product_item.product.slug})
-            )
+                        kwargs={'product_slug': obj.product_variation.product_item.product.slug}))
 
         return None
 
@@ -45,8 +43,7 @@ class OrderItemSerializer(serializers.ModelSerializer):
                 reverse('reviews_create',
                         kwargs={'order_id': obj.order.id,
                                 'order_item_id': obj.pk,
-                                'product_slug': obj.product_variation.product_item.product.slug})
-            )
+                                'product_slug': obj.product_variation.product_item.product.slug}))
 
         return None
 
@@ -57,7 +54,6 @@ class OrderItemSerializer(serializers.ModelSerializer):
                 return obj.review.pk
             except ObjectDoesNotExist:
                 return None
-
 
 
 class OrderSerializer(serializers.ModelSerializer):
@@ -75,8 +71,7 @@ class OrderSerializer(serializers.ModelSerializer):
         if not obj.payment.payment_bool:
         # if not obj.get('payment__payment_bool', False):
             return self.context['request'].build_absolute_uri(
-                reverse('payment_checkout', kwargs={'order_id': obj.id})
-            )
+                reverse('payment_checkout', kwargs={'order_id': obj.id}))
 
         return None
 
@@ -91,8 +86,7 @@ class OrderCreateSerializer(serializers.ModelSerializer):
         if not obj.payment.payment_bool:
             # Use the reverse function to generate the URL dynamically
             return self.context['request'].build_absolute_uri(
-                reverse('payment_checkout', kwargs={'order_id': obj.id})
-            )
+                reverse('payment_checkout', kwargs={'order_id': obj.id}))
 
         return None
 

@@ -27,7 +27,7 @@ class OrderViewSet(ReadOnlyModelViewSet):
 
     def get_object(self):
         payment_queryset = Payment.objects.only('id', 'order_id', 'payment_bool')  # Only fetch necessary fields
-        review_queryset = Review.objects.only('id', 'order_item_id', 'product')
+        review_queryset = Review.objects.only('id', 'order_item_id', )
         product_variation_queryset = ProductVariation.objects.only('id', 'product_item_id')
         product_item_queryset = ProductItem.objects.only('id', 'product_id')
         product_queryset = Product.objects.only('id', 'slug')

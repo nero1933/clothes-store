@@ -1,4 +1,5 @@
 import stripe
+from django.db.models import Prefetch
 
 from rest_framework.generics import get_object_or_404
 from rest_framework.permissions import IsAuthenticated
@@ -26,7 +27,7 @@ class CreateCheckoutSessionAPIView(APIView):
 
         queryset = OrderItem.objects \
             .select_related('order', 'product_variation__product_item') \
-            .prefetch_related('order__payment') \
+            .only('id', 'order__id', 'quantity', 'product_variation__product_item__stripe_price_id') \
             .filter(**user_filter, order_id=order_id)
 
         return queryset
@@ -52,7 +53,6 @@ class CreateCheckoutSessionAPIView(APIView):
 
     def post(self, request, order_id, *args, **kwargs):
         payment = get_object_or_404(Payment, order=order_id)
-        # payment = Payment.objects.get(order=order_id)
         if payment.payment_bool:
             return Response('Order is paid', status=status.HTTP_400_BAD_REQUEST)
 
@@ -113,10 +113,17 @@ class StripeWebhookView(APIView):
     def handle_checkout_session(self, session):
         payment = get_object_or_404(Payment, stripe_session_id=session.id)
 
-        payment.payment_bool = True
-        payment.save()
+        payment = get_object_or_404(
+            Payment.objects.select_related('order'),
+            stripe_session_id=session.id
+        )
 
-        context = self.get_order_email_context(payment.order)
+        payment.payment_bool = True
+        payment.order.order_status = 2 # PAYED
+        payment.save()
+        payment.order.save()
+
+        context = self.get_order_email_context(payment.order.id)
         user_email = context.pop('email', None)
 
         send_order_details_email.delay(user_email, context)  # Celery task
