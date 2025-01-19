@@ -132,7 +132,6 @@ class OrderUserCreateSerializer(OrderCreateSerializer):
         user = self.context.get('user', None)
         order_price = self.context.get('order_price', None)
         order = Order.objects.create(email=user.email, order_price=order_price, **validated_data)
-        # order.payment_url = self.get_payment_url(order)
         order.save()
         return order
 
@@ -142,7 +141,6 @@ class OrderGuestCreateSerializer(OrderCreateSerializer):
     Guest have to enter new shipping address
     """
     email = serializers.EmailField()
-    phone = PhoneNumberField()
     shipping_address = AddressSerializer()
     user = serializers.PrimaryKeyRelatedField(read_only=True)
     guest = serializers.PrimaryKeyRelatedField(read_only=True)
@@ -169,7 +167,6 @@ class OrderGuestCreateSerializer(OrderCreateSerializer):
             guest=guest,**validated_data
         )
 
-        # order.payment_url = self.get_payment_url(order)
         order.save()
 
         return order

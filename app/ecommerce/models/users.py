@@ -1,14 +1,11 @@
 import secrets
 import string
 import uuid
-from datetime import datetime
 
 from django.db import models, IntegrityError
 from django.contrib.auth.models import AbstractBaseUser
 from django.contrib.auth.models import PermissionsMixin
 from django.contrib.auth.models import BaseUserManager
-
-from phonenumber_field.modelfields import PhoneNumberField
 
 from ecommerce.models.addresses import Address
 
@@ -16,27 +13,24 @@ from ecommerce.models.addresses import Address
 class UserProfileManager(BaseUserManager):
     """ Helps Django work with our custom user model. """
 
-    def create_user(self, email, first_name, last_name, phone, password=None):
+    def create_user(self, email, first_name, last_name, password=None):
         """ Creates a new user profile object. """
 
         if not email:
             raise ValueError('Users must have an email address.')
 
         email = self.normalize_email(email)
-        user = self.model(email=email, first_name=first_name, last_name=last_name, phone=phone)
+        user = self.model(email=email, first_name=first_name, last_name=last_name)
 
         user.set_password(password)
         user.save(using=self.db)
 
-        # Creates a shopping cart for the user
-        # ShoppingCart.objects.create(user=user)
-
         return user
 
-    def create_superuser(self, email, first_name, last_name, phone=None, password=None):
+    def create_superuser(self, email, first_name, last_name, password=None):
         """ Creates and saves a new superuser with given details. """
 
-        user = self.create_user(email, first_name, last_name, phone, password)
+        user = self.create_user(email, first_name, last_name, password)
 
         user.is_superuser = True
         user.is_staff = True
@@ -66,7 +60,6 @@ class UserProfileManager(BaseUserManager):
                     first_name='guest',
                     last_name='guest',
                     password=password,
-                    phone=None,
                 )
             except IntegrityError:
                 return None
@@ -94,7 +87,6 @@ class UserProfile(AbstractBaseUser, PermissionsMixin):
     email = models.EmailField(max_length=255, unique=True)
     first_name = models.CharField(max_length=255)
     last_name = models.CharField(max_length=255)
-    phone = PhoneNumberField(null=True, blank=True)
     address = models.ManyToManyField(Address, through='UserAddress', related_name='address_to_user')
     is_active = models.BooleanField(default=False)
     is_staff = models.BooleanField(default=False)
@@ -104,7 +96,7 @@ class UserProfile(AbstractBaseUser, PermissionsMixin):
     objects = UserProfileManager()
 
     USERNAME_FIELD = 'email'
-    REQUIRED_FIELDS = ['first_name', 'last_name', 'phone']
+    REQUIRED_FIELDS = ['first_name', 'last_name']
 
     def get_full_name(self):
         """ Used to get a users full name. """
@@ -121,14 +113,15 @@ class UserProfile(AbstractBaseUser, PermissionsMixin):
 
         return self.email
 
-    def guest_to_user(self, new_email, first_name, last_name, phone):
+    def guest_to_user(self, new_email, first_name, last_name):
         if self.is_guest:
             new_password = ''.join(secrets.choice(string.ascii_letters + string.digits) for _ in range(8))
+
+            # send email with password
 
             self.email = new_email
             self.first_name = first_name
             self.last_name = last_name
-            self.phone = phone
             self.set_password(new_password)
             self.is_guest = False
             self.save()

@@ -1,3 +1,6 @@
+from abc import abstractmethod
+
+from django.core.cache import cache
 from django.core.exceptions import ObjectDoesNotExist
 from django.db.models import Prefetch
 
@@ -7,7 +10,8 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.viewsets import ReadOnlyModelViewSet
 
-from ecommerce.models import UserProfile, Payment, Review, Product, ProductItem, ProductVariation, Image
+from app import settings
+from ecommerce.models import UserProfile, Payment, Review, Product, ProductItem, ProductVariation, Image, Address
 from ecommerce.models.orders import Order, OrderItem
 from ecommerce.models.shopping_carts import ShoppingCartItem
 from ecommerce.serializers.orders import OrderGuestCreateSerializer, OrderUserCreateSerializer, OrderListSerializer, \
@@ -66,8 +70,7 @@ class OrderCreateAPIView(CreateAPIView):
             .select_related('cart__user',
                             'product_variation',
                             'product_variation__product_item') \
-            .prefetch_related('cart__user__address',
-                              'product_variation__product_item__discount') \
+            .prefetch_related('product_variation__product_item__discount') \
             .filter(cart__user=self.request.user)
 
         return queryset
@@ -101,19 +104,17 @@ class OrderCreateAPIView(CreateAPIView):
         queryset = self.get_queryset()
         queryset.delete()
 
-    def get_user(self, email: str) -> UserProfile:
-        """ Try to find the user with the given email address. If there is no user return None """
-        try:
-            user = UserProfile.objects.get(email=email)
-            return user
-        except ObjectDoesNotExist:
-            return None
+    def set_user_in_context(self, serializer):
+        serializer.context['user'] = self.request.user
+
+    def transform_guest_to_user(self, serializer):
+        pass
 
     def create(self, request, *args, **kwargs):
         """
         Test
         """
-        user = request.user
+        # user = request.user
         serializer = self.get_serializer(data=request.data)
 
         order_items = self.prepare_order_items()
@@ -124,14 +125,16 @@ class OrderCreateAPIView(CreateAPIView):
         order_price = sum(map(lambda x: x.price, order_items))
         serializer.context['order_price'] = order_price
 
-        user_exists = self.get_user(request.data.get('email', None))
-        if user.is_guest and user_exists: # if existing user makes order from guest account
-            # existing account assigned to order (to let user see his new order in account)
-            serializer.context['user'] = user_exists
-            # guest_user assigned to guest (to let logged in guest make a payment)
-            serializer.context['guest'] = user
-        else:
-            serializer.context['user'] = user
+        self.set_user_in_context(serializer)
+
+        # user_exists = self.get_user(request.data.get('email', None))
+        # if user.is_guest and user_exists: # if existing user makes order from guest account
+        #     # existing account assigned to order (to let user see his new order in account)
+        #     serializer.context['user'] = user_exists
+        #     # guest_user assigned to guest (to let logged in guest make a payment)
+        #     serializer.context['guest'] = user
+        # else:
+        #     serializer.context['user'] = user
 
         serializer.is_valid(raise_exception=True)
 
@@ -143,6 +146,8 @@ class OrderCreateAPIView(CreateAPIView):
 
         self.empty_shopping_cart()
 
+        self.transform_guest_to_user(serializer)
+
         return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
 
 
@@ -153,27 +158,67 @@ class OrderUserCreateAPIView(OrderCreateAPIView):
 class OrderGuestCreateAPIView(OrderCreateAPIView):
     serializer_class = OrderGuestCreateSerializer
 
-    def guest_to_user(self, user, user_data):
-        new_email = user_data['email']
-        new_phone = user_data['phone']
-        first_name = user_data['shipping_address']['first_name']
-        last_name = user_data['shipping_address']['last_name']
-        user = UserProfile.guest_to_user(user, new_email, first_name, last_name, new_phone)
-        return user
+    def set_user_form_email(self, email: str):
+        """
+        Try to find the user with the given email address.
+        Set 'self.user_form_email' to UserProfile if there is such user.
+        If there is no user set None.
+        """
 
-    def post(self, request, *args, **kwargs):
-        response = super().post(request, *args, **kwargs)
+        try:
+            self.user_form_email = UserProfile.objects.get(email=email)
+        except ObjectDoesNotExist:
+            self.user_form_email = None
 
-        if response.status_code == status.HTTP_201_CREATED:
-            user = self.get_user(request.data.get('email', None))
-            if user:
-                return response
+    # def guest_to_user(self, user, user_data):
+    #     new_email = user_data['email']
+    #     new_phone = user_data['phone']
+    #     first_name = user_data['shipping_address']['first_name']
+    #     last_name = user_data['shipping_address']['last_name']
+    #     user = UserProfile.guest_to_user(user, new_email, first_name, last_name, new_phone)
+    #     return user
 
-            user = self.request.user
-            serializer = self.get_serializer(data=request.data)
-            serializer.is_valid(raise_exception=True)
+    def set_user_in_context(self, serializer):
+        # Set 'self.user_form_email' to user object whose email was entered in the order
+        self.set_user_form_email(self.request.data.get('email', None))
 
-            if user.is_guest:
-                self.guest_to_user(user, serializer.validated_data)
+        if self.request.user.is_guest and self.user_form_email: # if existing user makes order from guest account
+            # existing account assigned to order (to let user see his new order in account)
+            serializer.context['user'] = self.user_form_email
+            # guest_user assigned to guest (to let already logged in guest make a payment)
+            serializer.context['guest'] = self.request.user
+        else:
+            # if it is first order from a new user
+            serializer.context['user'] = self.request.user
 
-        return response
+    def transform_guest_to_user(self, serializer):
+        if self.request.user:
+            return None
+
+        user = self.request.user
+
+        if user.is_guest:
+            self.guest_to_user(user, serializer.validated_data)
+
+            new_email = serializer.validated_data['email']
+            first_name = serializer.validated_data['shipping_address']['first_name']
+            last_name = serializer.validated_data['shipping_address']['last_name']
+            user = UserProfile.guest_to_user(user, new_email, first_name, last_name)
+
+
+
+    #     response = super().post(request, *args, **kwargs)
+    #
+    #     if response.status_code == status.HTTP_201_CREATED:
+    #         user = self.get_user(request.data.get('email', None))
+    #         if user:
+    #             return response
+    #
+    #         user = self.request.user
+    #         serializer = self.get_serializer(data=request.data)
+    #         serializer.is_valid(raise_exception=True)
+    #
+    #         if user.is_guest:
+    #             self.guest_to_user(user, serializer.validated_data)
+    #
+    #     return response
