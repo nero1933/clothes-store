@@ -12,10 +12,18 @@ from ecommerce.serializers.products import ImageSerializer
 
 
 class PaymentSerializer(serializers.ModelSerializer):
+    url = serializers.SerializerMethodField()
 
     class Meta:
         model = Payment
-        fields = ('id', 'payment_bool')
+        fields = ('id', 'payment_bool', 'url')
+
+    def get_url(self, obj):
+        if not obj.payment_bool:
+            return self.context['request'].build_absolute_uri(
+                reverse('payment_checkout',
+                        kwargs={'order_id': obj.order.id}))
+        return None
 
 
 class OrderItemSerializer(serializers.ModelSerializer):
@@ -72,39 +80,30 @@ class OrderItemSerializer(serializers.ModelSerializer):
         return None
 
 
-class OrderSerializer(serializers.ModelSerializer):
+class OrderDetailSerializer(serializers.ModelSerializer):
     email = serializers.EmailField(read_only=True)
     order_item = OrderItemSerializer(many=True, read_only=True)
     payment = PaymentSerializer(read_only=True)
-    payment_url = serializers.SerializerMethodField()
 
     class Meta:
         model = Order
         exclude = ('guest', )
-        # fields = ('id', 'user_id', 'email', 'order_item', 'payment', 'order_price', 'payment_link')
+        # fields = ('id', 'user_id', 'email', 'order_item', 'payment', 'order_price', 'payment_url')
 
-    def get_payment_url(self, obj):
-        if not obj.payment.payment_bool:
-        # if not obj.get('payment__payment_bool', False):
-            return self.context['request'].build_absolute_uri(
-                reverse('payment_checkout', kwargs={'order_id': obj.id}))
 
-        return None
+class OrderListSerializer(serializers.ModelSerializer):
+    payment = PaymentSerializer(read_only=True)
+
+    class Meta:
+        model = Order
+        fields = ('id', 'order_price', 'payment')
 
 
 class OrderCreateSerializer(serializers.ModelSerializer):
     order_price = serializers.IntegerField(read_only=True)
     shipping_method = serializers.ChoiceField(choices=[(x.value, x.name) for x in Order.ShippingMethods])
     payment_method = serializers.ChoiceField(choices=[(x.value, x.name) for x in Order.OrderMethods])
-    payment_link = serializers.SerializerMethodField()
-
-    def get_payment_link(self, obj):
-        if not obj.payment.payment_bool:
-            # Use the reverse function to generate the URL dynamically
-            return self.context['request'].build_absolute_uri(
-                reverse('payment_checkout', kwargs={'order_id': obj.id}))
-
-        return None
+    payment = PaymentSerializer(read_only=True)
 
 
 class OrderUserCreateSerializer(OrderCreateSerializer):
@@ -113,13 +112,12 @@ class OrderUserCreateSerializer(OrderCreateSerializer):
     """
     email = serializers.EmailField(read_only=True)
     user = serializers.HiddenField(default=serializers.CurrentUserDefault())
-    # guest = serializers.PrimaryKeyRelatedField(default=None, allow_null=True, read_only=True)
     shipping_address = serializers.PrimaryKeyRelatedField(queryset=Address.objects.none())
 
     class Meta:
         model = Order
         fields = ['id', 'user', 'email', 'shipping_address', 'shipping_method',
-                  'payment_method', 'order_price', 'payment_link']
+                  'payment_method', 'order_price', 'payment']
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -134,7 +132,7 @@ class OrderUserCreateSerializer(OrderCreateSerializer):
         user = self.context.get('user', None)
         order_price = self.context.get('order_price', None)
         order = Order.objects.create(email=user.email, order_price=order_price, **validated_data)
-        order.payment_link = self.get_payment_link(order)
+        # order.payment_url = self.get_payment_url(order)
         order.save()
         return order
 
@@ -151,8 +149,8 @@ class OrderGuestCreateSerializer(OrderCreateSerializer):
 
     class Meta:
         model = Order
-        fields = ['id', 'email', 'user', 'guest', 'phone', 'shipping_address', 'shipping_method',
-                  'payment_method', 'order_price', 'payment_link', ]
+        fields = ['id', 'email', 'user', 'guest', 'shipping_address', 'shipping_method',
+                  'payment_method', 'order_price', 'payment']
 
 
     def create(self, validated_data):
@@ -171,7 +169,7 @@ class OrderGuestCreateSerializer(OrderCreateSerializer):
             guest=guest,**validated_data
         )
 
-        order.payment_link = self.get_payment_link(order)
+        # order.payment_url = self.get_payment_url(order)
         order.save()
 
         return order

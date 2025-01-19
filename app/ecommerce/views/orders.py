@@ -2,7 +2,7 @@ from django.core.exceptions import ObjectDoesNotExist
 from django.db.models import Prefetch
 
 from rest_framework import status
-from rest_framework.generics import CreateAPIView, RetrieveAPIView
+from rest_framework.generics import CreateAPIView
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.viewsets import ReadOnlyModelViewSet
@@ -10,17 +10,17 @@ from rest_framework.viewsets import ReadOnlyModelViewSet
 from ecommerce.models import UserProfile, Payment, Review, Product, ProductItem, ProductVariation, Image
 from ecommerce.models.orders import Order, OrderItem
 from ecommerce.models.shopping_carts import ShoppingCartItem
-from ecommerce.serializers.orders import OrderGuestCreateSerializer, OrderUserCreateSerializer, OrderSerializer
+from ecommerce.serializers.orders import OrderGuestCreateSerializer, OrderUserCreateSerializer, OrderListSerializer, \
+    OrderDetailSerializer
 
 
 class OrderViewSet(ReadOnlyModelViewSet):
-    serializer_class = OrderSerializer
-    permission_classes = [IsAuthenticated]
+    # serializer_class = OrderSerializer
+    permission_classes = (IsAuthenticated, )
 
     def get_queryset(self):
         queryset = Order.objects \
-            .prefetch_related('order_item',
-                              'payment') \
+            .prefetch_related('payment') \
             .filter(user=self.request.user)
 
         return queryset
@@ -51,6 +51,12 @@ class OrderViewSet(ReadOnlyModelViewSet):
         context = super().get_serializer_context()
         context['action'] = self.action  # Pass the current action to the context
         return context
+
+    def get_serializer_class(self):
+        if self.action == 'retrieve':
+            return OrderDetailSerializer
+        elif self.action == 'list':
+            return OrderListSerializer
 
 class OrderCreateAPIView(CreateAPIView):
     permission_classes = [IsAuthenticated]
@@ -103,7 +109,7 @@ class OrderCreateAPIView(CreateAPIView):
         except ObjectDoesNotExist:
             return None
 
-    def post(self, request, *args, **kwargs):
+    def create(self, request, *args, **kwargs):
         """
         Test
         """
