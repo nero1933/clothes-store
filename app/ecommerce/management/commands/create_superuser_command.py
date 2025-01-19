@@ -12,7 +12,6 @@ class Command(BaseCommand):
                 email='test@test.test',
                 first_name='R',
                 last_name='N',
-                phone=None,
                 password='123456789',
             )
             self.stdout.write(self.style.SUCCESS(f'Successfully created superuser {user.email}'))

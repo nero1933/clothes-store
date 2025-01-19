@@ -22,4 +22,5 @@ class Address(models.Model):
     country = models.CharField(max_length=50, choices=COUNTRY_CHOICES)
     region = models.CharField(max_length=255)
     city = models.CharField(max_length=255)
-    post_code = models.PositiveIntegerField()
+    post_code = models.CharField(max_length=20)
+    phone_number = PhoneNumberField(blank=True)

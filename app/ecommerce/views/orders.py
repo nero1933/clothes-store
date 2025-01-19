@@ -192,18 +192,16 @@ class OrderGuestCreateAPIView(OrderCreateAPIView):
             serializer.context['user'] = self.request.user
 
     def transform_guest_to_user(self, serializer):
-        if self.request.user:
+        if self.user_form_email:
+            # if user with email from order exists
+            # do not transform guest to user
             return None
 
-        user = self.request.user
-
-        if user.is_guest:
-            self.guest_to_user(user, serializer.validated_data)
-
+        if self.request.user.is_guest:
             new_email = serializer.validated_data['email']
             first_name = serializer.validated_data['shipping_address']['first_name']
             last_name = serializer.validated_data['shipping_address']['last_name']
-            user = UserProfile.guest_to_user(user, new_email, first_name, last_name)
+            UserProfile.guest_to_user(self.request.user, new_email, first_name, last_name)
 
 
 

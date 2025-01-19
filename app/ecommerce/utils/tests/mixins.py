@@ -1,3 +1,5 @@
+from datetime import datetime
+
 from django.core.management import call_command
 from django.db.models import QuerySet
 
@@ -24,7 +26,6 @@ class TestAPIEcommerce(APITestCase):
             email=email,
             first_name='test',
             last_name='test',
-            phone='+380951112233',
             password=self.password
         )
 
@@ -62,6 +63,7 @@ class TestAPIEcommerce(APITestCase):
             'region': 'Kyivskaya oblast',
             'city': 'Kyiv',
             'post_code': 55000,
+            'phone_number': '+380993332211'
         }
 
         address = Address.objects.create(**data)
@@ -108,7 +110,6 @@ class TestAPIOrder(TestAPIEcommerce):
         self.jwt_access_token = self.get_jwt_access_token()
         self.address = self.create_address(self.user, is_default=False)
         self.email = 'email@email.email'
-        self.phone = '+380985552288'
         self.address_dict = {
             'first_name': 'test',
             'last_name': 'test',
@@ -118,12 +119,12 @@ class TestAPIOrder(TestAPIEcommerce):
             'region': 'Kyivskaya oblast',
             'city': 'Kyiv',
             'post_code': 55000,
+            'phone_number': '+380993332211'
         }
         self.shipping_method = 1
         self.payment_method = 1
         self.order_data_guest = {
             'email': self.email,
-            'phone': self.phone,
             'shipping_address': self.address_dict,
             'shipping_method': self.shipping_method,
             'payment_method': self.payment_method,

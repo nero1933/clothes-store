@@ -22,7 +22,8 @@ class AddressTestCase(TestAPIEcommerce):
                 'country': 'Ukraine',
                 'region': 'KO',
                 'city': 'Kiev',
-                'post_code': 99123,
+                'post_code': '99123',
+                'phone_number': '+380993332211'
             }
         }
 
@@ -64,7 +65,8 @@ class AddressTestCase(TestAPIEcommerce):
                 'country': 'France',
                 'region': '5',
                 'city': '6',
-                'post_code': 54321,
+                'post_code': '54321',
+                'phone_number': '+380993332210'
             },
         }
 

@@ -34,7 +34,6 @@ class UserTestCase(TestAPIEcommerce):
             "email": "adrenaline.1933@gmail.com",
             "first_name": "tests",
             "last_name": "tests",
-            "phone": '+380956665544',
             "password": '12345678',
             "password_confirmation": '12345678',
         }
@@ -114,7 +113,7 @@ class UserTestCase(TestAPIEcommerce):
 
     def test_user_view_set(self):
 
-        data = {'email': 'test@test.com', 'first_name': 'test', 'last_name': 'test', 'phone': '+380951112233'}
+        data = {'email': 'test@test.com', 'first_name': 'test', 'last_name': 'test'}
         kwargs = {'pk': self.user.pk}
 
         response = self.client.get(
@@ -133,7 +132,7 @@ class UserTestCase(TestAPIEcommerce):
         self.assertEqual(response.data, data, f'data must be {data}')
 
         new_particular_data = {'first_name': 'John', 'last_name': 'Doe'}
-        new_data = {'email': 'test@test.com', 'first_name': 'John', 'last_name': 'Doe', 'phone': '+380951112233'}
+        new_data = {'email': 'test@test.com', 'first_name': 'John', 'last_name': 'Doe'}
 
         response = self.client.patch(
             reverse('users-detail', kwargs=kwargs),
