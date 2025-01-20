@@ -87,8 +87,8 @@ class OrderDetailSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Order
-        exclude = ('guest', )
-        # fields = ('id', 'user_id', 'email', 'order_item', 'payment', 'order_price', 'payment_url')
+        # exclude = ('guest', )
+        fields = ('id', 'user_id', 'email', 'payment', 'order_price', 'order_item')
 
 
 class OrderListSerializer(serializers.ModelSerializer):
@@ -110,13 +110,13 @@ class OrderUserCreateSerializer(OrderCreateSerializer):
     """
     User have to choose shipping address from existing ones
     """
-    email = serializers.EmailField(read_only=True)
+    # email = serializers.EmailField(read_only=True)
     user = serializers.HiddenField(default=serializers.CurrentUserDefault())
     shipping_address = serializers.PrimaryKeyRelatedField(queryset=Address.objects.none())
 
     class Meta:
         model = Order
-        fields = ['id', 'user', 'email', 'shipping_address', 'shipping_method',
+        fields = ['id', 'user', 'shipping_address', 'shipping_method',
                   'payment_method', 'order_price', 'payment']
 
     def __init__(self, *args, **kwargs):
@@ -131,7 +131,8 @@ class OrderUserCreateSerializer(OrderCreateSerializer):
     def create(self, validated_data):
         user = self.context.get('user', None)
         order_price = self.context.get('order_price', None)
-        order = Order.objects.create(email=user.email, order_price=order_price, **validated_data)
+        # order = Order.objects.create(email=user.email, order_price=order_price, **validated_data)
+        order = Order.objects.create(order_price=order_price, **validated_data)
         order.save()
         return order
 
@@ -140,18 +141,22 @@ class OrderGuestCreateSerializer(OrderCreateSerializer):
     """
     Guest have to enter new shipping address
     """
-    email = serializers.EmailField()
+    email = serializers.EmailField(write_only=True)
     shipping_address = AddressSerializer()
     user = serializers.PrimaryKeyRelatedField(read_only=True)
     guest = serializers.PrimaryKeyRelatedField(read_only=True)
 
     class Meta:
         model = Order
-        fields = ['id', 'email', 'user', 'guest', 'shipping_address', 'shipping_method',
-                  'payment_method', 'order_price', 'payment']
+        # fields = ['id', 'user', 'guest', 'shipping_address', 'shipping_method',
+        #           'payment_method', 'order_price', 'payment']
+        fields = ['id', 'user', 'guest', 'shipping_address', 'shipping_method',
+                  'payment_method', 'order_price', 'payment', 'email']
 
 
     def create(self, validated_data):
+        validated_data.pop('email', None)
+
         user = self.context.get('user', None)
         guest = self.context.get('guest', None)
         order_price = self.context.get('order_price', None)
@@ -163,8 +168,10 @@ class OrderGuestCreateSerializer(OrderCreateSerializer):
 
         order = Order.objects.create(
             shipping_address=shipping_address,
-            order_price=order_price,user=user,
-            guest=guest,**validated_data
+            order_price=order_price,
+            user=user,
+            guest=guest,
+            **validated_data
         )
 
         order.save()

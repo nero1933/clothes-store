@@ -107,14 +107,14 @@ class OrderCreateAPIView(CreateAPIView):
     def set_user_in_context(self, serializer):
         serializer.context['user'] = self.request.user
 
-    def transform_guest_to_user(self, serializer):
+    def transform_guest_to_user(self, email, validated_data):
         pass
 
     def create(self, request, *args, **kwargs):
         """
         Test
         """
-        # user = request.user
+
         serializer = self.get_serializer(data=request.data)
 
         order_items = self.prepare_order_items()
@@ -127,16 +127,11 @@ class OrderCreateAPIView(CreateAPIView):
 
         self.set_user_in_context(serializer)
 
-        # user_exists = self.get_user(request.data.get('email', None))
-        # if user.is_guest and user_exists: # if existing user makes order from guest account
-        #     # existing account assigned to order (to let user see his new order in account)
-        #     serializer.context['user'] = user_exists
-        #     # guest_user assigned to guest (to let logged in guest make a payment)
-        #     serializer.context['guest'] = user
-        # else:
-        #     serializer.context['user'] = user
-
         serializer.is_valid(raise_exception=True)
+
+        email = None
+        if 'email' in serializer.validated_data:
+            email = serializer.validated_data.pop('email', None)
 
         self.perform_create(serializer)
         headers = self.get_success_headers(serializer.data)
@@ -146,7 +141,8 @@ class OrderCreateAPIView(CreateAPIView):
 
         self.empty_shopping_cart()
 
-        self.transform_guest_to_user(serializer)
+        if email:
+            self.transform_guest_to_user(email, serializer.data) # or serializer.validated_data
 
         return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
 
@@ -170,14 +166,6 @@ class OrderGuestCreateAPIView(OrderCreateAPIView):
         except ObjectDoesNotExist:
             self.user_form_email = None
 
-    # def guest_to_user(self, user, user_data):
-    #     new_email = user_data['email']
-    #     new_phone = user_data['phone']
-    #     first_name = user_data['shipping_address']['first_name']
-    #     last_name = user_data['shipping_address']['last_name']
-    #     user = UserProfile.guest_to_user(user, new_email, first_name, last_name, new_phone)
-    #     return user
-
     def set_user_in_context(self, serializer):
         # Set 'self.user_form_email' to user object whose email was entered in the order
         self.set_user_form_email(self.request.data.get('email', None))
@@ -191,32 +179,14 @@ class OrderGuestCreateAPIView(OrderCreateAPIView):
             # if it is first order from a new user
             serializer.context['user'] = self.request.user
 
-    def transform_guest_to_user(self, serializer):
+    def transform_guest_to_user(self, email, validated_data):
         if self.user_form_email:
             # if user with email from order exists
             # do not transform guest to user
             return None
 
         if self.request.user.is_guest:
-            new_email = serializer.validated_data['email']
-            first_name = serializer.validated_data['shipping_address']['first_name']
-            last_name = serializer.validated_data['shipping_address']['last_name']
+            new_email = email
+            first_name = validated_data['shipping_address']['first_name']
+            last_name = validated_data['shipping_address']['last_name']
             UserProfile.guest_to_user(self.request.user, new_email, first_name, last_name)
-
-
-
-    #     response = super().post(request, *args, **kwargs)
-    #
-    #     if response.status_code == status.HTTP_201_CREATED:
-    #         user = self.get_user(request.data.get('email', None))
-    #         if user:
-    #             return response
-    #
-    #         user = self.request.user
-    #         serializer = self.get_serializer(data=request.data)
-    #         serializer.is_valid(raise_exception=True)
-    #
-    #         if user.is_guest:
-    #             self.guest_to_user(user, serializer.validated_data)
-    #
-    #     return response
