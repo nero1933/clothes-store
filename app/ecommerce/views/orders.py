@@ -5,7 +5,7 @@ from django.core.exceptions import ObjectDoesNotExist
 from django.db.models import Prefetch
 
 from rest_framework import status
-from rest_framework.generics import CreateAPIView
+from rest_framework.generics import CreateAPIView, get_object_or_404
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.viewsets import ReadOnlyModelViewSet
@@ -30,6 +30,10 @@ class OrderViewSet(ReadOnlyModelViewSet):
         return queryset
 
     def get_object(self):
+        user_filter = {'user': self.request.user} \
+            if not self.request.user.is_guest \
+            else {'guest': self.request.user}
+
         payment_queryset = Payment.objects.only('id', 'order_id', 'payment_bool')  # Only fetch necessary fields
         review_queryset = Review.objects.only('id', 'order_item_id', )
         product_variation_queryset = ProductVariation.objects.only('id', 'product_item_id')
@@ -46,10 +50,9 @@ class OrderViewSet(ReadOnlyModelViewSet):
                 Prefetch('order_item__product_variation__product_item__image', queryset=image_queryset),
                 Prefetch('order_item__product_variation__product_item__product', queryset=product_queryset)
             ) \
-            .defer('guest') \
-            .get(user=self.request.user, pk=self.kwargs['pk'])
+            .defer('guest')
 
-        return obj
+        return get_object_or_404(obj, **user_filter, pk=self.kwargs['pk'])
 
     def get_serializer_context(self):
         context = super().get_serializer_context()

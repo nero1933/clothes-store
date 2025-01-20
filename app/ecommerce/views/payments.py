@@ -58,7 +58,8 @@ class CreateCheckoutSessionAPIView(APIView):
         if not line_items:
             raise BadRequest('No order items available')
 
-        success_link = self.request.build_absolute_uri(reverse('orders-detail', kwargs={'pk': order_id}))
+        # success_link = self.request.build_absolute_uri(reverse('orders-detail', kwargs={'pk': order_id}))
+        success_link = 'https://google.com'
         cancel_url = 'https://google.com'
 
         checkout_session = stripe.checkout.Session.create(
@@ -159,6 +160,7 @@ class StripeWebhookView(APIView):
         user_email = context.pop('email', None)
 
         send_order_details_email.delay(user_email, context)  # Celery task
+        print('LAUNCH TASK')
 
     def handle_expired_session(self, session):
         payment = get_object_or_404(Payment, stripe_session_id=session.id)
@@ -183,6 +185,7 @@ class StripeWebhookView(APIView):
             'price': order_obj.order_price / 100,
         }
         shipping_address_obj = order_obj.shipping_address
+
         shipping_address = {
             'first_name': shipping_address_obj.first_name,
             'last_name': shipping_address_obj.last_name,
@@ -191,7 +194,9 @@ class StripeWebhookView(APIView):
             'unit_number': shipping_address_obj.unit_number,
             'city': shipping_address_obj.city,
             'country': shipping_address_obj.country,
+            'phone_number': str(shipping_address_obj.phone_number),
         }
+
         order_items = [[x.product_variation.product_item.product.name, x.quantity, x.price / 100] for x in queryset]
         email = order_obj.user.email
 

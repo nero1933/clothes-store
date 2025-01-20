@@ -1,6 +1,6 @@
 from rest_framework import serializers
 
-from ..models import Address, UserAddress, UserProfile
+from ecommerce.models import Address, UserAddress
 
 
 class AddressSerializer(serializers.ModelSerializer):
@@ -44,6 +44,7 @@ class UserAddressSerializer(serializers.ModelSerializer):
         address.city = address_data.get('city', address.city)
         address.post_code = address_data.get('post_code', address.post_code)
         address.country = address_data.get('country', address.country)
+        address.phone_number = address_data.get('phone_number', address.phone_number)
         address.save()
 
         return instance
