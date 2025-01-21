@@ -22,7 +22,9 @@ Link which allows to add a review must be reachable through order-detail for eac
 Also
 Link must be reachable though product-detail if order is payed and only if user is logged in
 
-Change order status to 2 (PAYED) in hande_checkout_session
+Change order status to 2 (PAYED) in hande_checkout_session (DONE)
+
+QS in payments (StripeWebhookView)
 
 Add tests for reviews
 

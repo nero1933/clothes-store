@@ -47,5 +47,3 @@ def send_order_details_email(user_email, context):
     )
     message.attach_alternative(html_body, "text/html")
     message.send(fail_silently=False)
-
-    print('OK 5')

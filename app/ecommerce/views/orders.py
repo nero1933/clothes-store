@@ -1,6 +1,3 @@
-from abc import abstractmethod
-
-from django.core.cache import cache
 from django.core.exceptions import ObjectDoesNotExist
 from django.db.models import Prefetch
 
@@ -10,8 +7,7 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.viewsets import ReadOnlyModelViewSet
 
-from app import settings
-from ecommerce.models import UserProfile, Payment, Review, Product, ProductItem, ProductVariation, Image, Address
+from ecommerce.models import UserProfile, Payment, Review, Product, ProductItem, ProductVariation, Image, Discount
 from ecommerce.models.orders import Order, OrderItem
 from ecommerce.models.shopping_carts import ShoppingCartItem
 from ecommerce.serializers.orders import OrderGuestCreateSerializer, OrderUserCreateSerializer, OrderListSerializer, \
@@ -19,7 +15,6 @@ from ecommerce.serializers.orders import OrderGuestCreateSerializer, OrderUserCr
 
 
 class OrderViewSet(ReadOnlyModelViewSet):
-    # serializer_class = OrderSerializer
     permission_classes = (IsAuthenticated, )
 
     def get_queryset(self):
@@ -34,17 +29,19 @@ class OrderViewSet(ReadOnlyModelViewSet):
             if not self.request.user.is_guest \
             else {'guest': self.request.user}
 
-        payment_queryset = Payment.objects.only('id', 'order_id', 'payment_bool')  # Only fetch necessary fields
+        payment_queryset = Payment.objects.only('id', 'order_id', 'payment_bool')
         review_queryset = Review.objects.only('id', 'order_item_id', )
-        product_variation_queryset = ProductVariation.objects.only('id', 'product_item_id')
-        product_item_queryset = ProductItem.objects.only('id', 'product_id')
-        product_queryset = Product.objects.only('id', 'slug')
+        product_variation_queryset = ProductVariation.objects \
+            .select_related('size') \
+            .only('id', 'product_item_id', 'size_id', 'size__name')
+        product_item_queryset = ProductItem.objects.only('id', 'product_id', 'product_code', 'price')
         image_queryset = Image.objects.filter(is_main=True)
+        product_queryset = Product.objects.only('id', 'slug', 'name', 'gender')
 
         obj = Order.objects \
             .prefetch_related(
-                Prefetch('order_item__review', queryset=review_queryset),
                 Prefetch('payment', queryset=payment_queryset),
+                Prefetch('order_item__review', queryset=review_queryset),
                 Prefetch('order_item__product_variation', queryset=product_variation_queryset),
                 Prefetch('order_item__product_variation__product_item', queryset=product_item_queryset),
                 Prefetch('order_item__product_variation__product_item__image', queryset=image_queryset),
@@ -69,19 +66,22 @@ class OrderCreateAPIView(CreateAPIView):
     permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
+        discount_queryset = Discount.objects.only('id', 'discount_rate')
+
         queryset = ShoppingCartItem.objects \
-            .select_related('cart__user',
-                            'product_variation',
-                            'product_variation__product_item') \
-            .prefetch_related('product_variation__product_item__discount') \
+            .select_related(
+                'cart__user',
+                'product_variation__product_item'
+            ) \
+            .prefetch_related(
+                Prefetch('product_variation__product_item__discount', discount_queryset),
+            ) \
             .filter(cart__user=self.request.user)
 
         return queryset
 
     def prepare_order_items(self) -> list[OrderItem]:
-        cart_items = ShoppingCartItem.objects \
-            .prefetch_related('product_variation__product_item__discount') \
-            .filter(cart__user=self.request.user)
+        cart_items = self.get_queryset()
 
         bulk_list = []
 
@@ -144,8 +144,11 @@ class OrderCreateAPIView(CreateAPIView):
 
         self.empty_shopping_cart()
 
+        # If email exists that means that the guest created and order.
+        # If user (not guest) creates order email will be automatically pulled from his UserProfile
+        #    in serializer bypassing this step.
         if email:
-            self.transform_guest_to_user(email, serializer.data) # or serializer.validated_data
+            self.transform_guest_to_user(email, serializer.data)
 
         return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
 
@@ -161,7 +164,7 @@ class OrderGuestCreateAPIView(OrderCreateAPIView):
         """
         Try to find the user with the given email address.
         Set 'self.user_form_email' to UserProfile if there is such user.
-        If there is no user set None.
+        If there is no such user set None.
         """
 
         try:
@@ -171,7 +174,8 @@ class OrderGuestCreateAPIView(OrderCreateAPIView):
 
     def set_user_in_context(self, serializer):
         # Set 'self.user_form_email' to user object whose email was entered in the order
-        self.set_user_form_email(self.request.data.get('email', None))
+        user_form_email = self.request.data.get('email', None)
+        self.set_user_form_email(user_form_email)
 
         if self.request.user.is_guest and self.user_form_email: # if existing user makes order from guest account
             # existing account assigned to order (to let user see his new order in account)

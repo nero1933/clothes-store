@@ -24,8 +24,6 @@ class TestPayments(TestAPIOrder):
         product_item_1.save()
         product_item_2.save()
 
-
-
     @patch('stripe.checkout.Session.create')  # Mocking the Stripe API
     def test_create_checkout_session_success(self, mock_stripe_session_create):
 

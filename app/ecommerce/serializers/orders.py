@@ -1,5 +1,4 @@
 from django.core.exceptions import ObjectDoesNotExist
-from phonenumber_field.serializerfields import PhoneNumberField
 
 from rest_framework import serializers
 from rest_framework.reverse import reverse
@@ -27,6 +26,12 @@ class PaymentSerializer(serializers.ModelSerializer):
 
 
 class OrderItemSerializer(serializers.ModelSerializer):
+    product_name = serializers.SerializerMethodField()
+    product_code = serializers.SerializerMethodField()
+    product_gender = serializers.SerializerMethodField()
+    product_size = serializers.SerializerMethodField()
+    product_price = serializers.SerializerMethodField()
+
     product_url = serializers.SerializerMethodField()
     review_url = serializers.SerializerMethodField()
     review_id = serializers.SerializerMethodField()
@@ -34,8 +39,35 @@ class OrderItemSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = OrderItem
-        # fields = '__all__'
-        fields = ['id', 'product_variation', 'quantity', 'price', 'review_id', 'review_url', 'product_url', 'main_image']
+        fields = [
+            'id', 'product_variation', 'product_name', 'product_code', 'product_gender', 'product_size',
+            'product_price', 'quantity', 'price', 'review_id', 'review_url', 'product_url', 'main_image'
+        ]
+
+    def get_product_name(self, obj):
+        action = self.context.get('action')
+        if action == 'retrieve':
+            return obj.product_variation.product_item.product.name
+
+    def get_product_code(self, obj):
+        action = self.context.get('action')
+        if action == 'retrieve':
+            return obj.product_variation.product_item.product_code
+
+    def get_product_gender(self, obj):
+        action = self.context.get('action')
+        if action == 'retrieve':
+            return obj.product_variation.product_item.product.gender
+
+    def get_product_size(self, obj):
+        action = self.context.get('action')
+        if action == 'retrieve':
+            return obj.product_variation.size.name
+
+    def get_product_price(self, obj):
+        action = self.context.get('action')
+        if action == 'retrieve':
+            return obj.product_variation.product_item.price
 
     def get_review_id(self, obj):
         action = self.context.get('action')
@@ -77,6 +109,8 @@ class OrderItemSerializer(serializers.ModelSerializer):
             if main_image:
                 return ImageSerializer(main_image).data
 
+            # or just return qs[0]
+
         return None
 
 
@@ -87,7 +121,6 @@ class OrderDetailSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Order
-        # exclude = ('guest', )
         fields = ('id', 'user_id', 'email', 'payment', 'order_price', 'order_item')
 
 
@@ -96,7 +129,7 @@ class OrderListSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Order
-        fields = ('id', 'order_price', 'payment')
+        fields = ('id', 'order_price', 'order_status', 'payment', 'date_created')
 
 
 class OrderCreateSerializer(serializers.ModelSerializer):
@@ -110,14 +143,15 @@ class OrderUserCreateSerializer(OrderCreateSerializer):
     """
     User have to choose shipping address from existing ones
     """
-    # email = serializers.EmailField(read_only=True)
     user = serializers.HiddenField(default=serializers.CurrentUserDefault())
     shipping_address = serializers.PrimaryKeyRelatedField(queryset=Address.objects.none())
 
     class Meta:
         model = Order
-        fields = ['id', 'user', 'shipping_address', 'shipping_method',
-                  'payment_method', 'order_price', 'payment']
+        fields = [
+            'id', 'user', 'shipping_address', 'shipping_method',
+            'payment_method', 'order_price', 'payment'
+        ]
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -129,9 +163,7 @@ class OrderUserCreateSerializer(OrderCreateSerializer):
                     .filter(address__user=request.user))
 
     def create(self, validated_data):
-        user = self.context.get('user', None)
         order_price = self.context.get('order_price', None)
-        # order = Order.objects.create(email=user.email, order_price=order_price, **validated_data)
         order = Order.objects.create(order_price=order_price, **validated_data)
         order.save()
         return order
@@ -148,10 +180,10 @@ class OrderGuestCreateSerializer(OrderCreateSerializer):
 
     class Meta:
         model = Order
-        # fields = ['id', 'user', 'guest', 'shipping_address', 'shipping_method',
-        #           'payment_method', 'order_price', 'payment']
-        fields = ['id', 'user', 'guest', 'shipping_address', 'shipping_method',
-                  'payment_method', 'order_price', 'payment', 'email']
+        fields = [
+            'id', 'user', 'guest', 'shipping_address', 'shipping_method',
+            'payment_method', 'order_price', 'payment', 'email'
+        ]
 
 
     def create(self, validated_data):
