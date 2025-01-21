@@ -106,9 +106,17 @@ class StripeWebhookView(APIView):
 
     def get_queryset(self, order_id):
         queryset = OrderItem.objects \
+            .select_related(
+                'product_variation__product_item__product',
+                'order__shipping_address'
+            ) \
             .filter(order_id=order_id) \
-            .select_related('product_variation__product_item__product',
-                            'order__shipping_address')
+            .only(
+                'id', 'order_id', 'product_variation_id', 'quantity', 'price',
+                'order__date_created', 'order__order_price', 'order__user_id', 'order__shipping_address',
+                'product_variation__product_item_id', 'product_variation__product_item__product_id',
+                'product_variation__product_item__price', 'product_variation__product_item__product__name',
+            )
 
         return queryset
 
@@ -141,10 +149,10 @@ class StripeWebhookView(APIView):
         return Response(status=status.HTTP_204_NO_CONTENT)
 
     def handle_checkout_session(self, session):
-        # payment = get_object_or_404(Payment, stripe_session_id=session.id)
 
         payment = get_object_or_404(
-            Payment.objects.select_related('order'),
+            Payment.objects.select_related('order') \
+                .only('id', 'order_id', 'payment_bool', 'stripe_session_id', 'order__order_status'),
             stripe_session_id=session.id
         )
 
