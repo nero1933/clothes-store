@@ -80,6 +80,7 @@ class SendOrderDetailsEmailTest(TestCase):
                 "unit_number": "Unit 4B",
                 "city": "Somewhere",
                 "country": "Country",
+                "phone_number": "380995557799",
             },
             "email": self.user_email,
         }
@@ -95,22 +96,6 @@ class SendOrderDetailsEmailTest(TestCase):
 
         # Get confirmation link from message
         message = mail.outbox[0]
-
-        # """
-        # Test that the `send_order_details_email` task sends an email with the correct details.
-        # """
-        # # Run the task synchronously
-        # result = send_order_details_email.apply(args=(self.user_email, self.context))
-        #
-        # # Assert that the task completed successfully
-        # self.assertIsInstance(result, EagerResult)
-        # self.assertEqual(result.status, "SUCCESS")
-        #
-        # # Check if the email was sent
-        # mock_send.assert_called_once()
-        #
-        # # Check the email content
-        # message_instance = mock_send.call_args[0][0]
 
         self.assertIn(f"Order №{self.context['order']['id']}", message.subject)
         self.assertIn(f"Order №{self.context['order']['id']}", message.body)

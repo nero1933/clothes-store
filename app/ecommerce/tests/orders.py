@@ -28,9 +28,15 @@ class TestOrders(TestAPIOrder):
 
         # Create order as a guest but with credentials of already registered user
         response = self.create_guest_order()
+        order_id = response.data.get('id')
         self.assertEqual(response.status_code, 201, 'Order must be created successfully')
         self.assertEqual(response.data.get('order_price'), self.order_price,
                          f'Order price must be: {self.order_price}')
+
+        # Guest (which is user, but creates order while not logged in) must view his order details
+        response = self.client.get(reverse(self.url_order_detail, kwargs={'pk': order_id}), format='json')
+        self.assertEqual(response.status_code, 200,
+                         'Order details must be displayed to guest account (of existing user) successfully')
 
         # Now try to log in as user and check created orders. There have to be two orders for the user
 
@@ -50,6 +56,11 @@ class TestOrders(TestAPIOrder):
 
         response = self.client.get(reverse(self.url_order_list), data)
         self.assertEqual(len(response.data), 2, 'User must have 2 orders')
+
+        response = self.client.get(reverse(self.url_order_detail, kwargs={'pk': order_id}), format='json')
+        self.assertEqual(response.status_code, 200,
+                         'Order details (of order made by user when he was logged in '
+                         'as guest) must be displayed to user account successfully')
         
         # Try to create third order as logged-in user 
         
@@ -67,65 +78,19 @@ class TestOrders(TestAPIOrder):
         }
 
         response = self.client.post(reverse(self.url_order_user), order_data_user, format='json')
+        order_id = response.data.get('id')
         self.assertEqual(response.status_code, 201, 'Order must be created successfully')
 
         response = self.client.get(reverse(self.url_order_list), data)
         self.assertEqual(len(response.data), 3, 'User must have 3 orders')
 
-    # def test_order_details_email(self):
-    #
-    #     def get_c():
-    #         order_obj = 1
-    #         order = {
-    #             'id': 1,
-    #             'date_created': 1,
-    #             'price': 1,
-    #         }
-    #         shipping_address_obj = 1
-    #         shipping_address = {
-    #             'first_name': 1,
-    #             'last_name': 1,
-    #             'region': 1,
-    #             'street': 1,
-    #             'unit_number': 1,
-    #             'city': 1,
-    #             'country': 1,
-    #         }
-    #         order_items = [1, 1, 1]
-    #         email = 'email@email.email'
-    #
-    #         context = dict(
-    #             order=order,
-    #             order_items=order_items,
-    #             shipping_address=shipping_address,
-    #             email=email,
-    #         )
-    #
-    #         return context
-    #
-    #     email = 'email@email.email'
-    #     phone = '+380985552288'
-    #
-    #     self.log_in_as_guest()
-    #
-    #     self.fill_in_shopping_cart()
-    #
-    #     order_data_guest = {
-    #         'email': email,
-    #         'phone': phone,
-    #         'shipping_address': self.address_dict,
-    #         'shipping_method': self.shipping_method,
-    #         'payment_method': self.payment_method,
-    #     }
-    #
-    #     response = self.client.post(reverse(self.url_order_guest), order_data_guest, format='json')
-    #     context = get_c()
-    #     send_order_email.apply(args=[email, context])
-    #     sent_email = mail.outbox[0]
-    #
-    #     # Check that the email was sent
-    #     self.assertEqual(len(mail.outbox), 1, 'email with must be sent')
-    #
-    #
-    #     print(sent_email.alternatives[0][0])
-    #     print(sent_email.alternatives[0][1])
+        response = self.client.get(reverse(self.url_order_detail, kwargs={'pk': order_id}), format='json')
+        self.assertEqual(response.status_code, 200,
+                         'Order details must be displayed to user account successfully')
+
+        order_item = response.data.get('order_item')
+        res = ['id', 'product_variation', 'product_name', 'product_code', 'product_gender', 'product_size',
+               'product_price', 'quantity', 'price', 'review_id', 'review_url', 'product_url', 'main_image']
+
+        self.assertEqual(list(order_item[0].keys()), res,
+                         f'Order item must contain every key from this list {res}')

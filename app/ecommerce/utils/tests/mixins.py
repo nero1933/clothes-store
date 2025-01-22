@@ -99,6 +99,19 @@ class TestAPIEcommerce(APITestCase):
 
         return product_qs
 
+    def create_image(self, product_item) -> Image:
+        url = 'https://{domain}.com'
+        domain = uuid.uuid4().hex
+
+        image = Image.objects.create(
+            product_item=product_item,
+            name='image',
+            url=url.format(domain=domain),
+            is_main=True,
+        )
+
+        return image
+
 
 class TestAPIOrder(TestAPIEcommerce):
 
@@ -118,7 +131,7 @@ class TestAPIOrder(TestAPIEcommerce):
             'country': 'Ukraine',
             'region': 'Kyivskaya oblast',
             'city': 'Kyiv',
-            'post_code': 55000,
+            'post_code': '55000',
             'phone_number': '+380993332211'
         }
         self.shipping_method = 1
@@ -138,6 +151,9 @@ class TestAPIOrder(TestAPIEcommerce):
             .select_related('product_item') \
             .prefetch_related('product_item__discount') \
             .last()
+
+        self.create_image(self.product_variation_1.product_item)
+        self.create_image(self.product_variation_2.product_item)
 
         discount_1 = self.create_discount(name='discount 1', discount_rate=10)
         discount_2 = self.create_discount(name='discount 2', discount_rate=20)
