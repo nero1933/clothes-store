@@ -49,7 +49,7 @@ class OrderViewSet(ReadOnlyModelViewSet):
             ) \
             .defer('guest')
 
-        return get_object_or_404(obj, **user_filter, pk=self.kwargs['pk'])
+        return get_object_or_404(obj, pk=self.kwargs['pk'], **user_filter)
 
     def get_serializer_context(self):
         context = super().get_serializer_context()

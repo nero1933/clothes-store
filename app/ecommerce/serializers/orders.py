@@ -150,7 +150,7 @@ class OrderUserCreateSerializer(OrderCreateSerializer):
         model = Order
         fields = [
             'id', 'user', 'shipping_address', 'shipping_method',
-            'payment_method', 'order_price', 'payment'
+            'payment_method', 'order_price', 'payment',
         ]
 
     def __init__(self, *args, **kwargs):

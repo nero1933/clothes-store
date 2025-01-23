@@ -1,4 +1,5 @@
 from datetime import datetime
+from urllib.parse import urlparse
 
 from django.core.management import call_command
 from django.db.models import QuerySet
@@ -153,7 +154,7 @@ class TestAPIOrder(TestAPIEcommerce):
             .last()
 
         self.create_image(self.product_variation_1.product_item)
-        self.create_image(self.product_variation_2.product_item)
+        # self.create_image(self.product_variation_2.product_item) # leave 2-nd product item without main image
 
         discount_1 = self.create_discount(name='discount 1', discount_rate=10)
         discount_2 = self.create_discount(name='discount 2', discount_rate=20)
@@ -185,6 +186,15 @@ class TestAPIOrder(TestAPIEcommerce):
         self.url_register_guest = 'register_guest'
         self.url_token = 'token_obtain_pair'
 
+    def login_as_user(self):
+        data = {'email': self.email, 'password': '123456789'}
+
+        response = self.client.post(reverse(self.url_token), data)
+        self.assertEqual(response.status_code, 200, 'User must be able to log in')
+
+        user_jwt = response.data.get('access')
+        self.client.credentials(HTTP_AUTHORIZATION='Bearer ' + user_jwt)
+
     def log_in_as_guest(self):
         response = self.client.post(reverse(self.url_register_guest), format='json')
         self.assertEqual(response.status_code, 201, 'Guest user must be register')
@@ -204,3 +214,10 @@ class TestAPIOrder(TestAPIEcommerce):
 
         response = self.client.post(reverse(self.url_order_guest), self.order_data_guest, format='json')
         return response
+
+    def is_valid_url(self, url):
+        try:
+            result = urlparse(url)
+            return all([result.scheme, result.netloc])
+        except ValueError:
+            return False
