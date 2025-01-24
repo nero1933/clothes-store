@@ -1,12 +1,8 @@
 from django.db import IntegrityError
-from django.db.models import Model
 
-from rest_framework import viewsets, mixins, serializers, status
-from rest_framework.decorators import action
+from rest_framework import mixins, serializers
 from rest_framework.exceptions import PermissionDenied
-from rest_framework.generics import CreateAPIView
 from rest_framework.permissions import IsAuthenticated
-from rest_framework.response import Response
 from rest_framework.viewsets import GenericViewSet
 
 from ecommerce.models import OrderItem, Product, Payment
@@ -51,7 +47,7 @@ class ReviewViewSet(mixins.RetrieveModelMixin,
         except Product.DoesNotExist:
             raise serializers.ValidationError({"Error": "Invalid product slug"})
 
-        payment = Payment.objects.only('payment_bool').get(order=order_item.order_id)
+        payment = Payment.objects.only('payment_bool', 'order_id').get(order_id=order_item.order_id)
         if not payment.payment_bool:
             raise PermissionDenied()
 
