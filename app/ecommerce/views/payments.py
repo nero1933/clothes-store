@@ -142,6 +142,7 @@ class StripeWebhookView(APIView):
         if event['type'] == 'checkout.session.expired':
             session = event['data']['object']
             self.handle_expired_session(session)
+            return Response('Checkout session is expired. Create a new one', status=status.HTTP_400_BAD_REQUEST)
         # if event['type'] == 'payment_intent.succeeded':
         #     session = event['data']['object']
         #     self.handle_payment_intent(session)
@@ -168,9 +169,9 @@ class StripeWebhookView(APIView):
 
     def handle_expired_session(self, session):
         payment = get_object_or_404(Payment, stripe_session_id=session.id)
-        payment.stripe_session_id = None
-        payment.save()
 
+        payment.stripe_session_id = ''
+        payment.save()
 
     def get_order_email_context(self, order_id) -> (str, list):
         """

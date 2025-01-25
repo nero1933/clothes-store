@@ -131,7 +131,6 @@ class TestPayments(TestAPIOrder):
         payment = Payment.objects.get(order_id=order_id)
 
         payment.stripe_session_id='cs_test_session'
-        # payment.payment_bool = False
         payment.save()
 
         payment = Payment.objects.get(order_id=order_id)
@@ -145,7 +144,6 @@ class TestPayments(TestAPIOrder):
 
         # Check that the response status code is 204
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT, 'Payment must be processed successfully')
-        # Ensure the webhook event was processed
 
         payment = Payment.objects.get(order_id=order_id)
         self.assertEqual(payment.payment_bool, True,
@@ -162,3 +160,30 @@ class TestPayments(TestAPIOrder):
         response = self.client.get(reverse(self.url_payment_checkout, args=[order_id]))
         self.assertEqual(response.status_code, 400,
                          "You can not get checkout session if order is paid")
+
+        # Test expired session
+        mock_obj = MagicMock()
+        mock_obj.id = 'cs_test_o2Q2hF23s'
+
+        mock_stripe.return_value = {
+            'type': 'checkout.session.expired',
+            'data': {
+                'object': mock_obj
+            }
+        }
+
+        # Create new order
+        response = self.create_guest_order()
+        order_id = response.data.get('id', None)
+
+        payment = Payment.objects.get(order_id=order_id)
+
+        payment.stripe_session_id='cs_test_o2Q2hF23s'
+        payment.save()
+
+        # Make a POST request to the webhook endpoint
+        response = self.client.post(reverse(self.url_stripe_payment))
+
+        # Try to receive a webhook with expired stripe session
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST,
+                         'Can not create a checkout session if stripe session is expired')
