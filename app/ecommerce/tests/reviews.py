@@ -86,12 +86,16 @@ class TestReviews(TestAPIOrder):
         # After order was paid user can create a review
 
         response = self.client.post(review_url_1, data=data)
-        self.assertEqual(response.status_code, 201, 'Review must be created successfully')
-
-        # After review was left 'review_id' must change to int
-
+        self.assertEqual(response.status_code, 201,
+                         'Review must be created successfully')
         review_id = response.data.get('id', None)
 
+        # Try to create two reviews
+        response = self.client.post(review_url_1, data=data)
+        self.assertEqual(response.status_code, 400,
+                         'User can not review twice same product (same order item)')
+
+        # After review was left 'review_id' must change to int
         response = self.client.get(reverse(self.url_order_detail, kwargs={'pk': order_id}))
         self.assertEqual(response.status_code, 200, 'Guest must see his order details')
         order_items = response.data.get('order_item', {})
