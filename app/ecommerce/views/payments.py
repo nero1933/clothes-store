@@ -138,7 +138,7 @@ class StripeWebhookView(APIView):
         # Handle the event
         if event['type'] == 'checkout.session.completed':
             session = event['data']['object']
-            self.handle_checkout_session(session)
+            self.handle_completed_session(session)
         if event['type'] == 'checkout.session.expired':
             session = event['data']['object']
             self.handle_expired_session(session)
@@ -148,7 +148,7 @@ class StripeWebhookView(APIView):
 
         return Response(status=status.HTTP_204_NO_CONTENT)
 
-    def handle_checkout_session(self, session):
+    def handle_completed_session(self, session):
 
         payment = get_object_or_404(
             Payment.objects.select_related('order') \
