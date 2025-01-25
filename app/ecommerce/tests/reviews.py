@@ -179,7 +179,7 @@ class TestReviews(TestAPIOrder):
         # After other user was created try to get access to reviews
 
         response = self.client.post(review_url_2, data=data)
-        self.assertEqual(response.status_code, 400, 'User cant create review for other user')
+        self.assertEqual(response.status_code, 404, 'User cant create review for other user')
 
         response = self.client.get(review_url_detail_1)
         self.assertEqual(response.status_code, 404, 'User cant get review for other user')

@@ -2,6 +2,7 @@ from django.db import IntegrityError
 
 from rest_framework import mixins, serializers
 from rest_framework.exceptions import PermissionDenied
+from rest_framework.generics import get_object_or_404
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.viewsets import GenericViewSet
 
@@ -30,22 +31,32 @@ class ReviewViewSet(mixins.RetrieveModelMixin,
     def perform_create(self, serializer):
         order_item_id = self.kwargs.get('order_item_id')
         product_slug = self.kwargs.get('product_slug')
-        try:
-            order_item = OrderItem.objects \
-                .only('pk', 'order_id', 'order__user__email') \
+
+        order_item = get_object_or_404(
+            OrderItem.objects \
                 .select_related('order__user') \
-                .get(id=order_item_id, order__user=self.request.user)
+                .only('pk', 'order_id', 'order__user__email'),
+            id=order_item_id, order__user=self.request.user
+        )
 
-            product = Product.objects \
-                .only('pk', 'slug') \
-                .get(slug=product_slug)
+        product = get_object_or_404(Product.objects.only('pk', 'slug'), slug=product_slug)
 
-            if order_item.order.user != self.request.user:
-                raise PermissionDenied()
-        except OrderItem.DoesNotExist:
-            raise serializers.ValidationError({"Error": "Invalid order item ID"})
-        except Product.DoesNotExist:
-            raise serializers.ValidationError({"Error": "Invalid product slug"})
+        # try:
+        #     order_item = OrderItem.objects \
+        #         .only('pk', 'order_id', 'order__user__email') \
+        #         .select_related('order__user') \
+        #         .get(id=order_item_id, order__user=self.request.user)
+        #
+        #     product = Product.objects \
+        #         .only('pk', 'slug') \
+        #         .get(slug=product_slug)
+
+        #     if order_item.order.user != self.request.user:
+        #         raise PermissionDenied()
+        # except OrderItem.DoesNotExist:
+        #     raise serializers.ValidationError({"Error": "Invalid order item ID"})
+        # except Product.DoesNotExist:
+        #     raise serializers.ValidationError({"Error": "Invalid product slug"})
 
         payment = Payment.objects.only('payment_bool', 'order_id').get(order_id=order_item.order_id)
         if not payment.payment_bool:
