@@ -24,16 +24,19 @@ class TestPayments(TestAPIOrder):
         product_item_1.save()
         product_item_2.save()
 
+    @patch('stripe.checkout.Session.retrieve')
     @patch('stripe.checkout.Session.create')  # Mocking the Stripe API
-    def test_create_checkout_session_and_webhook(self, mock_stripe_session_create):
+    def test_create_checkout_session_and_webhook(self, mock_stripe_session_create, mock_stripe_session_retrieve):
 
         # Arrange: Create a mock session object
         mock_session = MagicMock()
         mock_session.id = 'cs_test_a11YYufWQzNY63zpQ6QSNRQhkUpVph4WRmzW0zWJO2znZKdVujZ0N0S22u'
         mock_session.url = 'https://checkout.stripe.com/pay/cs_test_12345'
+        mock_session.status = 'completed'
 
         # Set the mock to return the session object
         mock_stripe_session_create.return_value = mock_session
+        mock_stripe_session_retrieve.return_value = mock_session
 
         # Create a test order and payment
         response = self.create_guest_order()
@@ -42,45 +45,40 @@ class TestPayments(TestAPIOrder):
         # Ensure that order_id is valid
         self.assertIsNotNone(order_id)
 
+        # Try to get checkout session before it was created
+        response = self.client.get(reverse(self.url_payment_checkout, args=[order_id]))
+        self.assertEqual(response.status_code, 400,
+                         "You can not get checkout session before it was crated")
+
         response = self.client.post(reverse(self.url_payment_checkout, args=[order_id]))
 
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertEqual(response.data['checkout_session_id'], 'cs_test_a11YYufWQzNY63zpQ6QSNRQhkUpVph4WRmzW0zWJO2znZKdVujZ0N0S22u')
         self.assertEqual(response.data['checkout_session_url'], 'https://checkout.stripe.com/pay/cs_test_12345')
 
+        # Try to get a checkout session after it was created and if it is not paid and not expired
+        response = self.client.get(reverse(self.url_payment_checkout, args=[order_id]))
+        self.assertEqual(response.status_code, 200,
+                         'You can get checkout session if it is not paid and not expired')
+        self.assertEqual(response.data['checkout_session_id'], 'cs_test_a11YYufWQzNY63zpQ6QSNRQhkUpVph4WRmzW0zWJO2znZKdVujZ0N0S22u')
+        self.assertEqual(response.data['checkout_session_url'], 'https://checkout.stripe.com/pay/cs_test_12345')
+
+        # Try to set session if it is expired
+        mock_session.status = 'expired'
+        response = self.client.get(reverse(self.url_payment_checkout, args=[order_id]))
+        self.assertEqual(response.status_code, 400,
+                         'You can not get checkout session if it is expired')
+        mock_session.status = 'completed'
+
         # Try to create a checkout session after checkout_session_id was created and not expired
         response = self.client.post(reverse(self.url_payment_checkout, args=[order_id]))
         self.assertEqual(response.status_code, 400,
                          'You can not create a checkout session if checkout_session_id already exists')
 
-        # Create an instance of the view
-        view = StripeWebhookView()
-
-        # Manually attach a request with the user to the view instance
-        self.client.force_authenticate(user=self.user)
-        request = self.client.request().wsgi_request
-        request.user = self.user
-        view.request = request
-
-        payment = Payment.objects.get(order_id=order_id)
-        self.assertEqual(payment.payment_bool, False,
-                         'Before handle_completed_session() was called payment must be unpaid')
-        self.assertEqual(payment.order.order_status, 1,
-                         'After handle_completed_session() was called order status must 1 (NEW)')
-
-        # Test Stripe webhook handle_completed_session()
-        view.handle_completed_session(mock_session)
-
-        payment = Payment.objects.get(order_id=order_id)
-        self.assertEqual(payment.payment_bool, True,
-                         'After handle_completed_session() was called payment must be paid')
-        self.assertEqual(payment.order.order_status, 2,
-                         'After handle_completed_session() was called order status must 2 (PAID)')
-
-        # Test get checkout session after it was paid
-        response = self.client.post(reverse(self.url_payment_checkout, args=[order_id]))
-        self.assertEqual(response.status_code, 400,
-                         'You can not create a checkout session if order is paid')
+        # # Test create checkout session after it was paid
+        # response = self.client.post(reverse(self.url_payment_checkout, args=[order_id]))
+        # self.assertEqual(response.status_code, 400,
+        #                  'You can not create a checkout session if order is paid')
 
 
     def test_get_line_items(self):
@@ -127,29 +125,40 @@ class TestPayments(TestAPIOrder):
             }
         }
 
+        response = self.create_guest_order()
+        order_id = response.data.get('id', None)
 
+        payment = Payment.objects.get(order_id=order_id)
 
-        # response = self.create_guest_order()
-        # order_id = response.data.get('id', None)
-        #
-        # payment = Payment.objects.get(order_id=order_id)
-        #
-        # payment.stripe_session_id='cs_test_session'
+        payment.stripe_session_id='cs_test_session'
         # payment.payment_bool = False
-        # payment.save()
-        #
-        # # Make a POST request to the webhook endpoint
-        # response = self.client.post(reverse(self.url_stripe_payment))
-        #
-        # # Check that the response status code is 204
-        # self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
-        # # Ensure the webhook event was processed
-        #
-        # # Check that the payment object was updated
-        # payment.refresh_from_db()
-        # self.assertTrue(payment.payment_bool)
+        payment.save()
 
-        # # Try to create a checkout session after order was paid (payment.payment_bool is True)
-        # response = self.client.post(reverse(self.url_payment_checkout, args=[order_id]))
-        # self.assertEqual(response.status_code, 400,
-        #                  'You can not create a checkout session if order is already paid')
+        payment = Payment.objects.get(order_id=order_id)
+        self.assertEqual(payment.payment_bool, False,
+                         'Before handle_completed_session() was called payment must be unpaid')
+        self.assertEqual(payment.order.order_status, 1,
+                         'After handle_completed_session() was called order status must 1 (NEW)')
+
+        # Make a POST request to the webhook endpoint
+        response = self.client.post(reverse(self.url_stripe_payment))
+
+        # Check that the response status code is 204
+        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT, 'Payment must be processed successfully')
+        # Ensure the webhook event was processed
+
+        payment = Payment.objects.get(order_id=order_id)
+        self.assertEqual(payment.payment_bool, True,
+                         'After handle_completed_session() was called payment must be paid')
+        self.assertEqual(payment.order.order_status, 2,
+                         'After handle_completed_session() was called order status must 2 (PAID)')
+
+        # Try to create a checkout session after order was paid (payment.payment_bool is True)
+        response = self.client.post(reverse(self.url_payment_checkout, args=[order_id]))
+        self.assertEqual(response.status_code, 400,
+                         'You can not create a checkout session if order is already paid')
+
+        # Try to get checkout session after order was paid
+        response = self.client.get(reverse(self.url_payment_checkout, args=[order_id]))
+        self.assertEqual(response.status_code, 400,
+                         "You can not get checkout session if order is paid")
