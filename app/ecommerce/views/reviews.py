@@ -50,4 +50,4 @@ class ReviewViewSet(mixins.RetrieveModelMixin,
             with transaction.atomic():
                 serializer.save(order_item=order_item, product=product)
         except IntegrityError:
-            raise ValidationError({"detail": "You have already reviewed this item in this order."})
+            raise ValidationError({"detail": "You have already reviewed this item in this order"})

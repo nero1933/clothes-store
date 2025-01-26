@@ -83,11 +83,20 @@ class ProductSerializer(serializers.ModelSerializer):
     category = serializers.SlugRelatedField(slug_field='name', read_only=True)
     attribute_options = AttributeOptionSerializer(many=True, read_only=True, source='attribute_option')
     product_items = ProductItemSerializer(many=True, read_only=True, source='product_item')
+    product_rating = serializers.SerializerMethodField()
+    # rating = serializers.FloatField()
 
     class Meta:
         model = Product
         fields = ['id', 'name', 'slug', 'description', 'brand', 'category',
-                  'gender', 'attribute_options', 'product_items',]
+                  'gender', 'attribute_options', 'product_items', 'product_rating', ]
+
+    def get_product_rating(self, obj):
+        if obj.product_rating:
+            return round(obj.product_rating, 1)
+
+        return None
+
 
 
 class ProductDetailSerializer(ProductSerializer):
@@ -102,3 +111,14 @@ class ProductDetailSerializer(ProductSerializer):
         model = Product
         fields = ['id', 'name', 'slug', 'description', 'brand', 'category',
                   'gender', 'attribute_options', 'product_items', 'reviews']
+
+    # def get_reviews(self, obj):
+    #     reviews = []
+    #     for product_item in obj.product_item.all():
+    #         for product_variation in product_item.product_variation.all():
+    #             for order_item in product_variation.order_item.all():
+    #                 # Check if the order_item has a related review, otherwise continue
+    #                 if hasattr(order_item, 'review') and order_item.review:
+    #                     reviews.append(order_item.review)
+    #
+    #     return ReviewSerializer(reviews, many=True).data

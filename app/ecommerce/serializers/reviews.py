@@ -1,11 +1,12 @@
 from django.core.validators import MinValueValidator, MaxValueValidator
 from rest_framework import serializers
 
-from ecommerce.models import Review, Product, OrderItem
+from ecommerce.models import Review, OrderItem
 
 
 class ReviewSerializer(serializers.ModelSerializer):
     user = serializers.HiddenField(default=serializers.CurrentUserDefault())
+    owner = serializers.SerializerMethodField()
     product = serializers.PrimaryKeyRelatedField(read_only=True)
     order_item = serializers.PrimaryKeyRelatedField(read_only=True)
     comment = serializers.CharField(max_length=255)
@@ -24,6 +25,9 @@ class ReviewSerializer(serializers.ModelSerializer):
     class Meta:
         model = Review
         fields = '__all__'
+
+    def get_owner(self, obj):
+        return str(obj.user.first_name) + ' ' + str(obj.user.last_name)
 
     # def validate(self, data):
     #     user = data['user']

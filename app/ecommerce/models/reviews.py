@@ -5,7 +5,7 @@ from ecommerce.models import UserProfile, Product, OrderItem
 
 
 class Review(models.Model):
-    user = models.ForeignKey(UserProfile, on_delete=models.CASCADE)
+    user = models.ForeignKey(UserProfile, on_delete=models.CASCADE, related_name='reviews')
     order_item = models.OneToOneField(OrderItem, on_delete=models.CASCADE, related_name='review')
     product = models.ForeignKey(Product, on_delete=models.CASCADE, related_name='review')
     comment = models.TextField(max_length=255, blank=True)
@@ -13,4 +13,4 @@ class Review(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
-        return f'User: {self.user}, Product: {self.product}, Rating: {self.rating}'
+        return f'User: {self.user}, Product: {self.order_item.product_variation.product_item.product.name}, Rating: {self.rating}'

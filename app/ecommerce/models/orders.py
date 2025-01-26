@@ -45,3 +45,6 @@ class OrderItem(models.Model):
     quantity = models.PositiveIntegerField(validators=[MinValueValidator(1), ])
     price = models.PositiveIntegerField()
     date_created = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"{self.order.user}'s order / Product: {self.product_variation.product_item.product.name}"
