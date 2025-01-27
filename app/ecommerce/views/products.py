@@ -2,7 +2,6 @@ from django.db.models import Prefetch, Avg
 
 from rest_framework import viewsets
 from rest_framework.generics import get_object_or_404
-from rest_framework.response import Response
 
 from ecommerce.models import Product, ProductVariation, Review, Image, OrderItem, UserProfile
 from ecommerce.serializers.products import ProductSerializer, ProductDetailSerializer
@@ -18,7 +17,10 @@ class ProductViewSet(viewsets.ReadOnlyModelViewSet):
         image_queryset = Image.objects.filter(is_main=True)
 
         queryset = Product.objects \
-            .select_related('category', 'brand') \
+            .select_related(
+                'category',
+                'brand'
+            ) \
             .prefetch_related(
                 'product_item',
                 'product_item__color',
