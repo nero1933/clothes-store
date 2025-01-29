@@ -15,7 +15,7 @@ django-celery-beat>=2.7,<2.8
 flower>=2.0,<2.1
 stripe>=10.8,<10.9
 sendgrid>=6.11,<6.12
-
+django-nested-admin>=4.1,<4.2
 
 
 
