@@ -3,9 +3,7 @@ import nested_admin
 from django import forms
 from django.contrib import admin
 from django.db.models import Prefetch, Avg
-from django.shortcuts import get_object_or_404
 
-from ecommerce.models import Review
 from ecommerce.models.products import *
 
 
@@ -14,35 +12,44 @@ class ProductVariationInline(admin.StackedInline):
     extra = 1
 
 
+class ChoicesFormSet(forms.BaseInlineFormSet):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        color_choices = list(Color.objects.values_list('pk', 'name'))
+        discount_choices = list(Discount.objects.values_list('pk', 'name'))
+        self.form_kwargs['color_choices'] = color_choices
+        self.form_kwargs['discount_choices'] = discount_choices
+
+
 class ProductItemForm(forms.ModelForm):
     """ ProductItem Model Form """
 
-    discounts_choices = []
-    for item in Discount.objects.values('pk', 'name', 'discount_rate'):
-        discounts_choices.append(
-         (item['pk'], f"{item['name']} - {item['discount_rate']}%")
-        )
-    discount = forms.MultipleChoiceField(
-        required=True,
-        choices=discounts_choices
-    )
+    class Meta:
+        model = ProductItem
+        exclude = ()
 
-    colors_choices = [('', '---------')]
-    colors_choices.extend(Color.objects.values_list('pk', 'name'))
-    color = forms.ChoiceField(
-        required=False,
-        choices=colors_choices
-    )
+    def __init__(self, *args, **kwargs):
+        color_choices = kwargs.pop('color_choices', [((), ())])
+        discount_choices = kwargs.pop('discount_choices', [((), ())])
+
+        super().__init__(*args, **kwargs)
+
+        self.fields['color'].choices = [('-', '---')] + color_choices
+        self.fields['color'].initial = self.fields['color'].choices[0][0]
+        self.fields['color'].empty_values = (self.fields['color'].choices[0][0],)
+
+        self.fields['discount'].choices = discount_choices
 
     class Media:
         css = {
-            'all': ('css/admin_styles.css',)  # Load custom CSS
+            'all': ('css/admin_styles.css', )  # Load custom CSS
         }
 
 
 class ProductItemInline(admin.StackedInline):
     model = ProductItem
     form = ProductItemForm
+    formset = ChoicesFormSet
     extra = 1
 
     def get_queryset(self, request):
@@ -59,24 +66,28 @@ class ProductItemInline(admin.StackedInline):
 class ProductAdmin(admin.ModelAdmin):
     search_fields = ('product',)
     list_select_related = True
-    # list_display = ('id', 'name', 'category', 'brand', 'gender', 'total_reviews')
-    # list_display_links = ('name', )
+    list_display = ('id', 'name', 'category', 'brand', 'gender', 'product_rating')
+    list_display_links = ('name', )
     inlines = [ProductItemInline]
     # inlines = [ReviewInline]
 
-    # def total_reviews(self, obj):
-    #     if obj.product_rating:
-    #         return round(obj.product_rating, 1)
-    #     else:
-    #         return 0
-    #
-    # total_reviews.short_description = 'Reviews'
+    def product_rating(self, obj):
+        if obj.product_rating:
+            return round(obj.product_rating, 1)
+        else:
+            return 0
+
+    product_rating.short_description = 'Rating'
 
     def get_queryset(self, request):
 
         queryset = Product.objects.select_related(
             'category',
             'brand'
+        ).prefetch_related(
+            'review'
+        ).annotate(
+            product_rating=Avg('review__rating')
         )
 
         return queryset

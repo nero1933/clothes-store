@@ -5,7 +5,7 @@ from ecommerce.models import UserProfile, Product, OrderItem
 
 
 class Review(models.Model):
-    user = models.ForeignKey(UserProfile, on_delete=models.CASCADE, related_name='reviews')
+    user = models.ForeignKey(UserProfile, on_delete=models.CASCADE, related_name='review')
     order_item = models.OneToOneField(OrderItem, on_delete=models.CASCADE, related_name='review')
     product = models.ForeignKey(Product, on_delete=models.CASCADE, related_name='review')
     comment = models.TextField(max_length=255, blank=True)
