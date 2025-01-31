@@ -1,5 +1,3 @@
-import nested_admin
-
 from django import forms
 from django.contrib import admin
 from django.db.models import Prefetch, Avg
@@ -7,9 +5,6 @@ from django.db.models import Prefetch, Avg
 from ecommerce.models.products import *
 
 
-class ProductVariationInline(admin.StackedInline):
-    model = ProductVariation
-    extra = 1
 
 
 class ChoicesFormSet(forms.BaseInlineFormSet):
