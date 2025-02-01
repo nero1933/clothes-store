@@ -54,7 +54,6 @@ INSTALLED_APPS = [
     'django_filters',
     'phonenumber_field',
     'django_celery_beat',
-    'nested_admin',
 
     # apps
     'ecommerce.apps.EcommerceConfig',
