@@ -5,8 +5,6 @@ from django.db.models import Prefetch, Avg
 from ecommerce.models.products import *
 
 
-
-
 class ChoicesFormSet(forms.BaseInlineFormSet):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -60,7 +58,6 @@ class ProductItemInline(admin.StackedInline):
 
 class ProductAdmin(admin.ModelAdmin):
     search_fields = ('product',)
-    list_select_related = True
     list_display = ('id', 'name', 'category', 'brand', 'gender', 'product_rating')
     list_display_links = ('name', )
     inlines = [ProductItemInline]
@@ -87,9 +84,78 @@ class ProductAdmin(admin.ModelAdmin):
 
         return queryset
 
-# @admin.register(ProductItem)
-# class ProductItemAdmin(admin.ModelAdmin):
-#     search_fields = ('product_code', )
+
+# ----------------------------------------------------------------------------------------------------------------------
+
+
+class ProductVariationChoicesFormSet(forms.BaseInlineFormSet):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        product_pk = ProductItem.objects.get(pk=self.instance.pk).product.pk
+
+        size_category_pk = Product.objects.select_related(
+            'category__size_category'
+        ).get(
+            pk=product_pk
+        ).category.size_category.pk
+
+        size_choices = list(ProductSize.objects.filter(size_category=size_category_pk).values_list('pk', 'name'))
+        self.form_kwargs['size_choices'] = size_choices
+
+
+class ProductVariationForm(forms.ModelForm):
+    """ ProductItem Model Form """
+
+    class Meta:
+        model = ProductVariation
+        exclude = ()
+
+    def __init__(self, *args, **kwargs):
+        size_choices = kwargs.pop('size_choices', [((), ())])
+
+        super().__init__(*args, **kwargs)
+
+        self.fields['size'].choices = [('-', '---')] + size_choices
+        self.fields['size'].initial = self.fields['size'].choices[0][0]
+        self.fields['size'].empty_values = (self.fields['size'].choices[0][0],)
+
+
+class ProductVariationInline(admin.TabularInline):
+    model = ProductVariation
+    form = ProductVariationForm
+    formset = ProductVariationChoicesFormSet
+    extra = 1
+
+    def get_queryset(self, request):
+        queryset = ProductVariation.objects.select_related(
+            'product_item__product__category__size_category', # used by ProductVariationChoicesFormSet
+            'product_item__color', # used by __str__ in ProductVariationModel
+            'size', # used by __str__ in ProductVariationModel
+        )
+
+        return queryset
+
+
+class ProductItemAdmin(admin.ModelAdmin):
+    search_fields = ('product_code', 'product__name', 'color__name')
+    list_display = ('id', 'product_item_name', 'product_code')
+    list_display_links = ('product_item_name', )
+    inlines = [ProductVariationInline]
+
+    def product_item_name(self, obj):
+        return f'{obj.product.name.capitalize()} / Color: {obj.color} '
+
+    def get_queryset(self, request):
+
+        queryset = ProductItem.objects.select_related(
+            'product',
+            'color',
+        ).prefetch_related(
+            Prefetch('discount', queryset=Discount.objects.all()),
+        )
+
+        return queryset
 
 
 admin.site.register(Product, ProductAdmin)
@@ -99,7 +165,7 @@ admin.site.register(Brand)
 admin.site.register(ProductCategory)
 admin.site.register(ProductSize)
 admin.site.register(SizeCategory)
-admin.site.register(ProductItem)
+admin.site.register(ProductItem, ProductItemAdmin)
 admin.site.register(Color)
 admin.site.register(Image)
 admin.site.register(ProductVariation)

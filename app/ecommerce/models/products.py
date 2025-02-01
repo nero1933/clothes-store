@@ -86,7 +86,7 @@ class ProductItem(models.Model):
     stripe_price_id = models.CharField(max_length=255, blank=True, null=True)
 
     def __str__(self):
-        return self.product.name + ' ' + self.color.name
+        return f'{self.product.name} / Color: {self.color.name}'
 
     def get_discount_price(self):
         # !
