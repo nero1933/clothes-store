@@ -23,4 +23,4 @@ class Address(models.Model):
     region = models.CharField(max_length=255)
     city = models.CharField(max_length=255)
     post_code = models.CharField(max_length=20)
-    phone_number = PhoneNumberField(blank=True)
+    phone_number = PhoneNumberField(blank=False)
