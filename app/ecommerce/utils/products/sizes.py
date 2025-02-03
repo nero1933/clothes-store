@@ -6,7 +6,7 @@ shoes_sizes_stop = 50 # min size
 shoes_sizes_step = 1 # can be 0.5.
 
 # Size names for each of categories.
-shoes_sizes = [(str(i), str(i)) for i in range(shoes_sizes_start, shoes_sizes_stop, shoes_sizes_step)]
+shoes_sizes = [(str(i), 'EU ' + str(i)) for i in range(shoes_sizes_start, shoes_sizes_stop, shoes_sizes_step)]
 
 clothes_sizes = [
     ('XS', 'Extra Small'),

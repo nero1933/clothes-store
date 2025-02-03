@@ -5,51 +5,50 @@ from ecommerce.models import Address
 from ecommerce.models.orders import Order, OrderItem
 
 
-# class OrderItemFormSet(forms.BaseInlineFormSet):
-#
-#     def __init__(self, *args, **kwargs):
-#         super().__init__(*args, **kwargs)
-#
-#
-#
-# class OrderItemForm(forms.ModelForm):
-#     class Meta:
-#         model = OrderItem
-#         exclude = ()
-
-
 class OrderItemInline(admin.StackedInline):
     model = OrderItem
-    # form = OrderItemForm
-    # formset = OrderItemFormSet
+    readonly_fields = ('pk', 'product_variation', 'quantity', 'item_price')
+    exclude = ('price', )
     can_delete = False
     can_add_related = False
     extra = 0
-
-    def get_queryset(self, request):
-        return OrderItem.objects.select_related(
-            'order',
-            'product_variation__product_item__product',
-        )
 
     def has_add_permission(self, request, obj=None):
         return False
 
     def has_change_permission(self, request, obj=None):
-        return False  # Prevents editing
+        return False
+
+    def get_queryset(self, request):
+        return OrderItem.objects.select_related(
+            'order__user',
+            'product_variation__product_item__product',
+            'product_variation__product_item__color',
+            'product_variation__size',
+        )
+
+    def item_price(self, obj):
+        if obj.price:
+            return obj.price / 100
+
+        return None
 
 
 class OrderAdmin(admin.ModelAdmin):
     readonly_fields = (
+        'pk',
         'user',
         'guest',
         'price',
         'payment_method',
         'shipping_method',
         'order_address',
+        'date_created',
     )
     exclude = ('shipping_address', 'order_price')
+    search_fields = ('pk', 'user__email', 'shipping_address__phone_number', )
     inlines = [OrderItemInline]
+
 
     def get_queryset(self, request):
         return Order.objects.select_related(
@@ -60,6 +59,8 @@ class OrderAdmin(admin.ModelAdmin):
     def price(self, obj):
         if obj:
             return obj.order_price / 100
+
+        return None
 
 
     def order_address(self, obj):

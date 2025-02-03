@@ -3,6 +3,8 @@ from django.core.validators import MinValueValidator
 
 import enum
 
+from django.utils import formats
+
 
 class Order(models.Model):
 
@@ -27,7 +29,6 @@ class Order(models.Model):
 
     user = models.ForeignKey('UserProfile', on_delete=models.PROTECT, related_name='user_orders')
     guest = models.ForeignKey('UserProfile', on_delete=models.PROTECT, blank=True, null=True, related_name='guest_orders')
-    # email = models.EmailField(max_length=255, blank=False, null=False)
     payment_method = models.PositiveSmallIntegerField(choices=[(x.value, x.name) for x in OrderMethods], default=1)
     shipping_address = models.ForeignKey('Address', on_delete=models.PROTECT)
     shipping_method = models.PositiveSmallIntegerField(choices=[(x.value, x.name) for x in ShippingMethods], default=1)
@@ -36,7 +37,8 @@ class Order(models.Model):
     date_created = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
-        return f"{self.user}'s order / {self.date_created}"
+        dt = formats.date_format(self.date_created, 'j N, Y, H:i')
+        return f"№{self.pk}, {self.user.email.lower()}, {dt}"
 
 
 class OrderItem(models.Model):
@@ -47,4 +49,4 @@ class OrderItem(models.Model):
     date_created = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
-        return f"{self.order.user}'s order / Product: {self.product_variation.product_item.product.name}"
+        return f"№{self.pk} / Order: {self.order} -> {self.product_variation}"

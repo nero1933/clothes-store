@@ -27,7 +27,7 @@ class Product(models.Model):
     date_created = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
-        return self.name
+        return self.name.capitalize()
 
     def get_absolute_url(self):
         return reverse('products', kwargs={'slug': self.slug})
@@ -86,7 +86,7 @@ class ProductItem(models.Model):
     stripe_price_id = models.CharField(max_length=255, blank=True, null=True)
 
     def __str__(self):
-        return f'{self.product.name} / Color: {self.color.name}'
+        return f'{self.product}, {self.color.name.capitalize()}'
 
     def get_discount_price(self):
         # !
@@ -130,8 +130,10 @@ class ProductVariation(models.Model):
     size = models.ForeignKey('ProductSize', on_delete=models.CASCADE)
     qty_in_stock = models.PositiveIntegerField()
 
+    # def __str__(self):
+    #     return f'{self.product_item.product.name.capitalize()}, {self.product_item.color.name.capitalize()}, {self.size.name}'
     def __str__(self):
-        return self.product_item.product.name + ' ' + self.product_item.color.name + ' ' + self.size.name
+        return f'{self.product_item}, {self.size.name}'
 
 
 class Discount(models.Model):
