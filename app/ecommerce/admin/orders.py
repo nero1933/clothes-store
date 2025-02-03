@@ -34,7 +34,6 @@ class OrderItemInline(admin.StackedInline):
 
 
 class OrderAdmin(admin.ModelAdmin):
-
     fieldsets = (
         ('Order Information', {
             'fields': ('pk', 'user', 'guest', 'price', 'created', )
@@ -46,7 +45,6 @@ class OrderAdmin(admin.ModelAdmin):
             'fields': ('shipping_method', 'order_address', ),
         }),
     )
-
     readonly_fields = (
         'pk',
         'user',

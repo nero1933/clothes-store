@@ -33,16 +33,28 @@ class ProductItemForm(forms.ModelForm):
 
         self.fields['discount'].choices = discount_choices
 
-    class Media:
-        css = {
-            'all': ('css/admin_styles.css', )  # Load custom CSS
-        }
+    # class Media:
+    #     css = {
+    #         'all': ('css/admin_styles.css', )  # Load custom CSS
+    #     }
 
 
 class ProductItemInline(admin.StackedInline):
     model = ProductItem
     form = ProductItemForm
     formset = ChoicesFormSet
+    fields = (
+        'pk',
+        'product',
+        'color',
+        'price',
+        'product_code',
+        'discount',
+        'stripe_product_id',
+        'stripe_price_id',
+        'is_active',
+    )
+    readonly_fields = ('pk',)
     extra = 1
 
     def get_queryset(self, request):
@@ -57,11 +69,26 @@ class ProductItemInline(admin.StackedInline):
 
 
 class ProductAdmin(admin.ModelAdmin):
-    search_fields = ('product',)
     list_display = ('id', 'name', 'category', 'brand', 'gender', 'product_rating')
     list_display_links = ('name', )
+    fieldsets = (
+        ('Product Information', {
+            'fields': (
+                'pk',
+                'name',
+                'slug',
+                'description',
+                'gender',
+                'category',
+                'brand',
+                'attribute_option',
+                'is_active',
+            )
+        }),
+    )
+    readonly_fields = ('pk', )
+    search_fields = ('name', 'category__name', 'brand__name', )
     inlines = [ProductItemInline]
-    # inlines = [ReviewInline]
 
     def product_rating(self, obj):
         if obj.product_rating:
@@ -138,9 +165,46 @@ class ProductVariationInline(admin.TabularInline):
 
 
 class ProductItemAdmin(admin.ModelAdmin):
-    search_fields = ('product_code', 'product__name', 'color__name')
-    list_display = ('id', 'product_item_name', 'product_code')
+    list_display = ('id', 'product_item_name', 'product_code', )
     list_display_links = ('product_item_name', )
+    fieldsets = (
+        ('Product Information', {
+            'fields': (
+                'name',
+                'slug',
+                'description',
+                'gender',
+                'category',
+                'brand',
+                'attribute_option',
+                'product_is_active',
+            )
+        }),
+        ('Product Item Information', {
+            'fields': (
+                'product',
+                'color',
+                'price',
+                'product_code',
+                'discount',
+                'stripe_product_id',
+                'stripe_price_id',
+                'is_active',
+            ),
+        }),
+    )
+    readonly_fields = (
+        'name',
+        'slug',
+        'description',
+        'gender',
+        'category',
+        'brand',
+        'attribute_option',
+        'product_is_active',
+    )
+    search_fields = ('product_code', 'product__name', 'color__name')
+    exclude = ()
     inlines = [ProductVariationInline]
 
     def product_item_name(self, obj):
@@ -149,7 +213,8 @@ class ProductItemAdmin(admin.ModelAdmin):
     def get_queryset(self, request):
 
         queryset = ProductItem.objects.select_related(
-            'product',
+            'product__category',
+            'product__brand',
             'color',
         ).prefetch_related(
             Prefetch('discount', queryset=Discount.objects.all()),
@@ -157,6 +222,53 @@ class ProductItemAdmin(admin.ModelAdmin):
 
         return queryset
 
+    def name(self, obj):
+        if obj.product.name:
+            return obj.product.name.capitalize()
+
+        return None
+
+    def slug(self, obj):
+        if obj.product.slug:
+            return obj.product.slug
+
+        return None
+
+    def description(self, obj):
+        if obj.product.description:
+            return obj.product.description.capitalize()
+
+        return None
+
+    def gender(self, obj):
+        if obj.product.gender:
+            return obj.product.gender_display()
+
+        return None
+
+    def category(self, obj):
+        if obj.product.category:
+            return obj.product.category
+
+        return None
+
+    def brand(self, obj):
+        if obj.product.brand:
+            return obj.product.brand
+
+        return None
+
+    def attribute_option(self, obj):
+        if obj.product.attribute_option:
+            return ', '.join([option.name.capitalize() for option in obj.product.attribute_option.all()])
+
+        return None
+
+    def product_is_active(self, obj):
+        if obj.product.is_active:
+            return obj.product.is_active
+
+        return None
 
 admin.site.register(Product, ProductAdmin)
 admin.site.register(AttributeOption)

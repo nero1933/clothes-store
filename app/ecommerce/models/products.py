@@ -30,6 +30,14 @@ class Product(models.Model):
     def __str__(self):
         return self.name.capitalize()
 
+    def gender_display(self):
+        if self.gender == 'M':
+            return "Man"
+        elif self.gender == 'W':
+            return "Woman"
+
+        return None
+
     def get_absolute_url(self):
         return reverse('products', kwargs={'slug': self.slug})
 
@@ -51,7 +59,7 @@ class ProductCategory(models.Model):
     parent_category = models.ForeignKey('ProductCategory', on_delete=models.CASCADE, blank=True, null=True)
 
     def __str__(self):
-        return self.name
+        return self.name.capitalize()
 
 
 class ProductSize(models.Model):
@@ -158,7 +166,7 @@ class SimpleModel(models.Model):
         abstract = True
 
     def __str__(self):
-        return self.name
+        return self.name.capitalize()
 
     def get_absolute_url(self):
         return reverse('products', kwargs={'slug': self.slug})
