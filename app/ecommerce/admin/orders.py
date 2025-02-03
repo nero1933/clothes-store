@@ -1,7 +1,6 @@
-from django import forms
 from django.contrib import admin
+from django.utils import formats
 
-from ecommerce.models import Address
 from ecommerce.models.orders import Order, OrderItem
 
 
@@ -35,6 +34,19 @@ class OrderItemInline(admin.StackedInline):
 
 
 class OrderAdmin(admin.ModelAdmin):
+
+    fieldsets = (
+        ('Order Information', {
+            'fields': ('pk', 'user', 'guest', 'price', 'created', )
+        }),
+        ('Payment Information', {
+            'fields': ('order_status', 'payment_method', ),
+        }),
+        ('Shipping Details', {
+            'fields': ('shipping_method', 'order_address', ),
+        }),
+    )
+
     readonly_fields = (
         'pk',
         'user',
@@ -43,12 +55,11 @@ class OrderAdmin(admin.ModelAdmin):
         'payment_method',
         'shipping_method',
         'order_address',
-        'date_created',
+        'created',
     )
     exclude = ('shipping_address', 'order_price')
     search_fields = ('pk', 'user__email', 'shipping_address__phone_number', )
     inlines = [OrderItemInline]
-
 
     def get_queryset(self, request):
         return Order.objects.select_related(
@@ -61,7 +72,6 @@ class OrderAdmin(admin.ModelAdmin):
             return obj.order_price / 100
 
         return None
-
 
     def order_address(self, obj):
         if obj.shipping_address:
@@ -79,15 +89,10 @@ class OrderAdmin(admin.ModelAdmin):
 
         return None
 
-
-
-
-
-
-
-
-
-
+    def created(self, obj):
+        if obj.date_created:
+            dt = formats.date_format(obj.date_created, 'j N Y, H:i')
+            return dt
 
 
 admin.site.register(Order, OrderAdmin)

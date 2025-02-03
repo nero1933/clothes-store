@@ -37,8 +37,9 @@ class Order(models.Model):
     date_created = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
-        dt = formats.date_format(self.date_created, 'j N, Y, H:i')
-        return f"№{self.pk}, {self.user.email.lower()}, {dt}"
+        dt = formats.date_format(self.date_created, 'j N Y, H:i')
+        status_name = Order.OrderStatus(self.order_status).name
+        return f"№{self.pk}, {self.user.email.lower()}, {dt} / Status: {status_name}"
 
 
 class OrderItem(models.Model):
