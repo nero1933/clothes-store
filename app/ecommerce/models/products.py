@@ -25,6 +25,7 @@ class Product(models.Model):
     brand = models.ForeignKey('Brand', on_delete=models.CASCADE)
     attribute_option = models.ManyToManyField('AttributeOption')
     date_created = models.DateTimeField(auto_now_add=True)
+    is_active = models.BooleanField(default=True)
 
     def __str__(self):
         return self.name.capitalize()
@@ -84,6 +85,7 @@ class ProductItem(models.Model):
     created = models.DateTimeField(auto_now_add=True)
     stripe_product_id = models.CharField(max_length=255, blank=True, null=True)
     stripe_price_id = models.CharField(max_length=255, blank=True, null=True)
+    is_active = models.BooleanField(default=True)
 
     def __str__(self):
         return f'{self.product}, {self.color.name.capitalize()}'
@@ -129,9 +131,8 @@ class ProductVariation(models.Model):
     product_item = models.ForeignKey('ProductItem', related_name='product_variation', on_delete=models.CASCADE)
     size = models.ForeignKey('ProductSize', on_delete=models.CASCADE)
     qty_in_stock = models.PositiveIntegerField()
+    is_active = models.BooleanField(default=True)
 
-    # def __str__(self):
-    #     return f'{self.product_item.product.name.capitalize()}, {self.product_item.color.name.capitalize()}, {self.size.name}'
     def __str__(self):
         return f'{self.product_item}, {self.size.name}'
 
