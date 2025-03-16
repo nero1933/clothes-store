@@ -86,7 +86,7 @@ services:
   stripe-cli:
     container_name: stripe-cli
     image: stripe/stripe-cli
-    network_mode: host
+    network_mode: bridge
     environment:
         - STRIPE_API_KEY=${STRIPE_SECRET_KEY}
         - STRIPE_DEVICE_NAME=${STRIPE_DEVICE_NAME}
@@ -112,9 +112,9 @@ services:
       - DB_PASS=${DB_PASS}
       - SENDGRID_API_KEY=${SENDGRID_API_KEY}
       - DEFAULT_FROM_EMAIL=${DEFAULT_FROM_EMAIL}
-    links:
-      - redis
-      - db
+#    links:
+#      - redis
+#      - db
     depends_on:
       db:
         condition: service_healthy
@@ -122,6 +122,8 @@ services:
         condition: service_healthy
       app:
         condition: service_started
+    networks:
+      - mynetwork
 
   celery-beat:
     container_name: celery-beat
@@ -142,9 +144,9 @@ services:
       - DB_PASS=${DB_PASS}
       - SENDGRID_API_KEY=${SENDGRID_API_KEY}
       - DEFAULT_FROM_EMAIL=${DEFAULT_FROM_EMAIL}
-    links:
-      - redis
-      - db
+#    links:
+#      - redis
+#      - db
     depends_on:
       db:
         condition: service_healthy
@@ -152,6 +154,8 @@ services:
         condition: service_healthy
       app:
         condition: service_started
+    networks:
+      - mynetwork
 
   flower:
     container_name: flower
@@ -168,15 +172,17 @@ services:
       - DEBUG=${DEBUG}
       - SECRET_KEY=${SECRET_KEY}
       - ALLOWED_HOSTS=${ALLOWED_HOSTS}
-    links:
-      - redis
-      - celery-worker
-      - celery-beat
+#    links:
+#      - redis
+#      - celery-worker
+#      - celery-beat
     depends_on:
       celery-worker:
         condition: service_started
       celery-beat:
         condition: service_started
+    networks:
+      - mynetwork
 
 networks:
   mynetwork:
