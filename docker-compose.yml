@@ -1,4 +1,23 @@
 services:
+  ui:
+    container_name: ui
+    build:
+      context: ./ui
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./ui:/ui
+      - ./ui/node_modules:/ui/node_modules
+    environment:
+      - NODE_ENV=development
+      - NODE_OPTIONS=--openssl-legacy-provider  # Add this line
+    stdin_open: true
+    tty: true
+    command: npm start
+    depends_on:
+      - app
+    networks:
+      - mynetwork
   app:
     container_name: app
     build:
@@ -34,6 +53,8 @@ services:
         condition: service_healthy
       redis:
         condition: service_healthy
+    networks:
+      - mynetwork
 
   db:
     container_name: db
@@ -49,6 +70,8 @@ services:
       interval: 3s
       timeout: 3s
       retries: 3
+    networks:
+      - mynetwork
 
   redis:
     container_name: redis
@@ -154,3 +177,7 @@ services:
         condition: service_started
       celery-beat:
         condition: service_started
+
+networks:
+  mynetwork:
+    driver: bridge

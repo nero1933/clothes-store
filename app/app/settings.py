@@ -54,12 +54,17 @@ INSTALLED_APPS = [
     'django_filters',
     'phonenumber_field',
     'django_celery_beat',
+    'corsheaders',
 
     # apps
     'ecommerce.apps.EcommerceConfig',
 ]
 
 MIDDLEWARE = [
+    # libs
+    'debug_toolbar.middleware.DebugToolbarMiddleware',
+    'corsheaders.middleware.CorsMiddleware',
+
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -68,8 +73,6 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 
-    # libs
-    'debug_toolbar.middleware.DebugToolbarMiddleware',
 ]
 
 ROOT_URLCONF = 'app.urls'
@@ -268,6 +271,19 @@ CELERY_TIMEZONE = 'Europe/Kyiv'
 CELERY_TASK_TRACK_STARTED = True
 CELERY_TASK_TIME_LIMIT = 30 * 60
 CELERY_BROKER_CONNECTION_RETRY_ON_STARTUP = True
+
+# CORS
+
+# CORS_ALLOW_ALL_ORIGINS = True
+
+CORS_ALLOWED_ORIGINS = [
+    "http://localhost:3000",  # Адрес вашего фронтенда
+    # "http://localhost:8000",  # Адрес вашего API
+]
+
+# CORS_ORIGIN_WHITELIST = [
+#      'http://localhost:3000'
+# ]
 
 # Logging
 
