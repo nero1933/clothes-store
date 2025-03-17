@@ -25,6 +25,7 @@ router2.register(
 
 urlpatterns = [
     path('api/v1/login/', LoginView.as_view(), name='login'),
+    path('api/v1/logout/', LogoutView.as_view(), name='logout'),
     path('api/v1/token/', TokenObtainPairView.as_view(), name='token_obtain_pair'), # delete & change create guest
     path('api/v1/token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
 

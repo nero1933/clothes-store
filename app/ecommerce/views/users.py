@@ -58,6 +58,23 @@ class LoginView(APIView):
         return response
 
 
+class LogoutView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request):
+        refresh_token = request.COOKIES.get('refresh_token')
+        if refresh_token:
+            try:
+                token = RefreshToken(refresh_token)
+                token.blacklist()
+            except Exception:
+                pass
+
+        response = Response({'detail': 'Successfully logged out'}, status=status.HTTP_200_OK)
+        response.delete_cookie('refresh_token')
+        return response
+
+
 class TokenRefreshView(APIView):
     """
     Update access token using refresh token from HttpOnly cookie.
