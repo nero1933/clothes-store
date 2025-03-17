@@ -16,12 +16,12 @@ from rest_framework.viewsets import GenericViewSet
 from rest_framework_simplejwt.exceptions import TokenError
 from rest_framework_simplejwt.tokens import RefreshToken
 
-from app.app import settings
-from app.ecommerce.models import UserProfile, UserProfileManager
-from app.ecommerce.serializers import RegisterUserSerializer, PasswordResetSerializer, PasswordSerializer, \
+from app import settings
+from ecommerce.models import UserProfile, UserProfileManager
+from ecommerce.serializers import RegisterUserSerializer, PasswordResetSerializer, PasswordSerializer, \
     UserProfileSerializer, RegisterGuestSerializer
-from app.ecommerce.utils.email.senders import RegistrationEmail, PasswordResetEmail
-from app.ecommerce.utils.keys_managers.keys_encoders import KeyEncoder
+from ecommerce.utils.email.senders import RegistrationEmail, PasswordResetEmail
+from ecommerce.utils.keys_managers.keys_encoders import KeyEncoder
 
 
 class LoginView(APIView):
@@ -30,10 +30,10 @@ class LoginView(APIView):
     """
 
     def post(self, request):
-        username = request.data.get("username")
+        email = request.data.get("email")
         password = request.data.get("password")
 
-        user = authenticate(request, username=username, password=password)
+        user = authenticate(request, email=email, password=password)
         if not user:
             return Response({"detail": "Invalid credentials"}, status=status.HTTP_401_UNAUTHORIZED)
 
@@ -50,7 +50,7 @@ class LoginView(APIView):
             'refresh_token', str(refresh),
             httponly=True,
             # secure=settings.SECURE_SSL_REDIRECT, # use in production
-            max_age=7 * 24 * 60 * 60,
+            # max_age=7 * 24 * 60 * 60,
             expires=expires,
             samesite='Strict',
         )
