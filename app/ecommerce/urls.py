@@ -2,10 +2,10 @@ from django.urls import path, include
 
 from rest_framework.routers import SimpleRouter
 
-from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
+from rest_framework_simplejwt.views import TokenObtainPairView
 
 from .views import *
-from .views.payments import CreateCheckoutSessionAPIView, StripeWebhookView #, TempPaymentClass
+from .views.payments import CreateCheckoutSessionAPIView, StripeWebhookView
 from .views.reviews import ReviewViewSet
 from .views.shopping_carts import ShoppingCartItemViewSet
 
@@ -25,7 +25,7 @@ router2.register(
 
 urlpatterns = [
     path('api/v1/login/', LoginView.as_view(), name='login'),
-    path('api/v1/token/', TokenObtainPairView.as_view(), name='token_obtain_pair'),
+    path('api/v1/token/', TokenObtainPairView.as_view(), name='token_obtain_pair'), # delete & change create guest
     path('api/v1/token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
 
     path('api/v1/register/user/', RegisterUserAPIView.as_view(), name='register_user'),
