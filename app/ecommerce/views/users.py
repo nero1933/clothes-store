@@ -1,6 +1,10 @@
+from datetime import timedelta
+
+from django.contrib.auth import authenticate
 from django.core.cache import cache
 from django.db import IntegrityError
 from django.http import Http404
+from django.utils import timezone
 
 from rest_framework import status, mixins
 from rest_framework.decorators import api_view, action
@@ -9,14 +13,70 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework.viewsets import GenericViewSet
+from rest_framework_simplejwt.exceptions import TokenError
 from rest_framework_simplejwt.tokens import RefreshToken
 
-from app import settings
-from ecommerce.models import UserProfile, UserProfileManager, Order, OrderItem
-from ecommerce.serializers import RegisterUserSerializer, PasswordResetSerializer, PasswordSerializer, \
+from app.app import settings
+from app.ecommerce.models import UserProfile, UserProfileManager
+from app.ecommerce.serializers import RegisterUserSerializer, PasswordResetSerializer, PasswordSerializer, \
     UserProfileSerializer, RegisterGuestSerializer
-from ecommerce.utils.email.senders import RegistrationEmail, PasswordResetEmail
-from ecommerce.utils.keys_managers.keys_encoders import KeyEncoder
+from app.ecommerce.utils.email.senders import RegistrationEmail, PasswordResetEmail
+from app.ecommerce.utils.keys_managers.keys_encoders import KeyEncoder
+
+
+class LoginView(APIView):
+    """
+    User authentication. Generation of JWT token и setting refresh token into HttpOnly cookie.
+    """
+
+    def post(self, request):
+        username = request.data.get("username")
+        password = request.data.get("password")
+
+        user = authenticate(request, username=username, password=password)
+        if not user:
+            return Response({"detail": "Invalid credentials"}, status=status.HTTP_401_UNAUTHORIZED)
+
+        refresh = RefreshToken.for_user(user)
+        access_token = str(refresh.access_token)
+
+        response = Response({
+            "access_token": access_token
+        })
+
+        expires = timezone.now() + timedelta(days=7)
+
+        response.set_cookie(
+            'refresh_token', str(refresh),
+            httponly=True,
+            # secure=settings.SECURE_SSL_REDIRECT, # use in production
+            max_age=7 * 24 * 60 * 60,
+            expires=expires,
+            samesite='Strict',
+        )
+
+        return response
+
+
+class TokenRefreshView(APIView):
+    """
+    Update access token using refresh token from HttpOnly cookie.
+    """
+
+    def post(self, request):
+        refresh_token = request.COOKIES.get('refresh_token')
+
+        if not refresh_token:
+            return Response({'detail': 'Refresh token not found in cookies'}, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            refresh = RefreshToken(refresh_token)
+            access_token = str(refresh.access_token)
+            return Response({
+                'access_token': access_token
+            })
+        except TokenError:
+            return Response({'detail': 'Invalid refresh token'}, status=status.HTTP_400_BAD_REQUEST)
 
 
 @api_view(['PATCH'])
