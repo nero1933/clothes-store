@@ -45,7 +45,7 @@ class TestAPIEcommerce(APITestCase):
         data = {'email': email, 'password': self.password}
 
         response = self.client.post(reverse('token_obtain_pair'), data)
-        return response.data.get('access')
+        return response.data.get('access_token')
 
     def create_address(self, user, is_default) -> Address:
         """
@@ -192,14 +192,14 @@ class TestAPIOrder(TestAPIEcommerce):
         response = self.client.post(reverse(self.url_token), data)
         self.assertEqual(response.status_code, 200, 'User must be able to log in')
 
-        user_jwt = response.data.get('access')
+        user_jwt = response.data.get('access_token')
         self.client.credentials(HTTP_AUTHORIZATION='Bearer ' + user_jwt)
 
     def log_in_as_guest(self):
         response = self.client.post(reverse(self.url_register_guest), format='json')
         self.assertEqual(response.status_code, 201, 'Guest user must be register')
 
-        jwt = response.data['access']
+        jwt = response.data['access_token']
         self.client.credentials(HTTP_AUTHORIZATION='Bearer ' + jwt)
 
     def fill_in_shopping_cart(self):
