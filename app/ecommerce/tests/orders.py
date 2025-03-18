@@ -33,7 +33,7 @@ class TestOrders(TestAPIOrder):
             r = self.client.post(reverse(self.url_token), test_data)
             self.assertEqual(r.status_code, 200, 'User must be able to log in')
 
-            test_user_jwt = r.data.get('access')
+            test_user_jwt = r.data.get('access_token')
             auth = {'HTTP_AUTHORIZATION': 'Bearer ' + test_user_jwt}
 
             # User can't have access to order which he didn't create
@@ -43,7 +43,7 @@ class TestOrders(TestAPIOrder):
 
             # Guest can't have access to order which he didn't create
             r = self.client.post(reverse(self.url_register_guest), format='json')
-            test_guest_jwt = r.data['access']
+            test_guest_jwt = r.data['access_token']
             auth = {'HTTP_AUTHORIZATION': 'Bearer ' + test_guest_jwt}
 
             r = self.client.get(reverse(self.url_order_detail, kwargs={'pk': order_pk}), format='json', **auth)

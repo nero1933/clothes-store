@@ -178,7 +178,7 @@ class TestReviews(TestAPIOrder):
         r = self.client.post(reverse(self.url_token), test_data)
         self.assertEqual(r.status_code, 200, 'User must be able to log in')
 
-        self.client.credentials(HTTP_AUTHORIZATION='Bearer ' + r.data.get('access'))
+        self.client.credentials(HTTP_AUTHORIZATION='Bearer ' + r.data.get('access_token'))
 
         # After other user was created try to get access to reviews
 

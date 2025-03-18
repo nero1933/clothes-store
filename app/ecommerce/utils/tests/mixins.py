@@ -44,7 +44,7 @@ class TestAPIEcommerce(APITestCase):
         """
         data = {'email': email, 'password': self.password}
 
-        response = self.client.post(reverse('token_obtain_pair'), data)
+        response = self.client.post(reverse('login'), data)
         return response.data.get('access_token')
 
     def create_address(self, user, is_default) -> Address:
@@ -184,7 +184,7 @@ class TestAPIOrder(TestAPIEcommerce):
         self.url_order_list = 'orders-list'
         self.url_order_detail = 'orders-detail'
         self.url_register_guest = 'register_guest'
-        self.url_token = 'token_obtain_pair'
+        self.url_token = 'login'
 
     def login_as_user(self):
         data = {'email': self.email, 'password': '123456789'}
