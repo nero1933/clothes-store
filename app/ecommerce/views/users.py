@@ -26,23 +26,29 @@ from ecommerce.utils.keys_managers.keys_encoders import KeyEncoder
 
 class LoginView(APIView):
     """
-    User authentication. Generation of JWT token и setting refresh token into HttpOnly cookie.
+    User authentication.
+
+    Generation of JWT token and setting refresh token into HttpOnly cookie.
     """
 
     def post(self, request):
-        email = request.data.get("email")
-        password = request.data.get("password")
+        email = request.data.get('email')
+        password = request.data.get('password')
 
         user = authenticate(request, email=email, password=password)
         if not user:
-            return Response({"detail": "Invalid credentials"}, status=status.HTTP_401_UNAUTHORIZED)
+            return Response(
+                {'detail': 'Invalid credentials'},
+                status=status.HTTP_401_UNAUTHORIZED
+            )
 
         refresh = RefreshToken.for_user(user)
         access_token = str(refresh.access_token)
 
-        response = Response({
-            "access_token": access_token
-        })
+        response = Response(
+            {'access_token': access_token},
+            status=status.HTTP_200_OK,
+        )
 
         expires = timezone.now() + timedelta(days=7)
 
@@ -50,7 +56,6 @@ class LoginView(APIView):
             'refresh_token', str(refresh),
             httponly=True,
             # secure=settings.SECURE_SSL_REDIRECT, # use in production
-            # max_age=7 * 24 * 60 * 60,
             expires=expires,
             samesite='Strict',
         )
@@ -59,6 +64,11 @@ class LoginView(APIView):
 
 
 class LogoutView(APIView):
+    """
+    Logout user.
+
+    Delete refresh token from HttpOnly cookie.
+    """
     permission_classes = [IsAuthenticated]
 
     def post(self, request):
@@ -70,36 +80,48 @@ class LogoutView(APIView):
             except Exception:
                 pass
 
-        response = Response({'detail': 'Successfully logged out'}, status=status.HTTP_200_OK)
+        response = Response(
+            {'detail': 'Successfully logged out'},
+            status=status.HTTP_200_OK
+        )
         response.delete_cookie('refresh_token')
         return response
 
 
 class TokenRefreshView(APIView):
     """
-    Update access token using refresh token from HttpOnly cookie.
+    Update access token.
+
+    Use refresh token from HttpOnly cookie to generate new access token.
     """
 
     def post(self, request):
         refresh_token = request.COOKIES.get('refresh_token')
 
         if not refresh_token:
-            return Response({'detail': 'Refresh token not found in cookies'}, status=status.HTTP_400_BAD_REQUEST)
+            return Response(
+                {'detail': 'Refresh token not found in cookies'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
 
         try:
             refresh = RefreshToken(refresh_token)
             access_token = str(refresh.access_token)
-            return Response({
-                'access_token': access_token
-            })
+            return Response(
+                {'access_token': access_token},
+                status=status.HTTP_204_NO_CONTENT
+            )
         except TokenError:
-            return Response({'detail': 'Invalid refresh token'}, status=status.HTTP_400_BAD_REQUEST)
+            return Response(
+                {'detail': 'Invalid refresh token'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
 
 
 @api_view(['PATCH'])
 def register_user_confirmation(request, *args, **kwargs):
     """
-    tests.
+    Confirm registration of a user with a confirmation email.
     """
     confirmation_key = settings.USER_CONFIRMATION_KEY.format(token=kwargs['token'])
     user = cache.get(confirmation_key) or {}
@@ -109,7 +131,10 @@ def register_user_confirmation(request, *args, **kwargs):
         user.is_active = True
         user.save(update_fields=['is_active'])
         cache.delete(confirmation_key)
-        return Response({'message': 'User is registered successfully!'}, status=status.HTTP_204_NO_CONTENT)
+        return Response(
+            {'message': 'User is registered successfully!'},
+            status=status.HTTP_204_NO_CONTENT
+        )
     else:
         return Response(status=status.HTTP_400_BAD_REQUEST)
 
@@ -118,7 +143,7 @@ class RegisterUserAPIView(CreateAPIView,
                           RegistrationEmail,
                           KeyEncoder):
     """
-    View for registration.
+    View for user registration.
     """
     serializer_class = RegisterUserSerializer
 
@@ -129,8 +154,10 @@ class RegisterUserAPIView(CreateAPIView,
         try:
             response = self.create(request, *args, **kwargs)
         except IntegrityError:
-            return Response("Email already exists.",
-                            status=status.HTTP_406_NOT_ACCEPTABLE)
+            return Response(
+                'Email already exists.',
+                status=status.HTTP_406_NOT_ACCEPTABLE
+            )
 
         user_id = response.data.get('id', None)
         user_email = response.data.get('email', None)
@@ -143,27 +170,43 @@ class RegisterUserAPIView(CreateAPIView,
 
 
 class RegisterGuestAPIView(CreateAPIView):
+    """
+    View for guest registration.
+    """
     serializer_class = RegisterGuestSerializer
 
     def post(self, request, *args, **kwargs):
         user_profile_manager = UserProfileManager()
         user = user_profile_manager.create_guest()
 
-        if user:
-            # Generate JWT tokens
-            refresh = RefreshToken.for_user(user)
-            access_token = str(refresh.access_token)
-            refresh_token = str(refresh)
+        if not user:
+            return Response(
+                {'detail': 'Could not create guest user'},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
 
-            response_data = {
-                'refresh': refresh_token,
-                'access': access_token,
+        refresh = RefreshToken.for_user(user)
+        access_token = str(refresh.access_token)
+
+        response = Response(
+            {
+                'access_token': access_token,
                 'email': user.email,
-            }
+            },
+            status=status.HTTP_201_CREATED
+        )
 
-            return Response(response_data, status=status.HTTP_201_CREATED)
-        else:
-            return Response({'detail': 'Could not create guest user'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        expires = timezone.now() + timedelta(days=7)
+
+        response.set_cookie(
+            'refresh_token', str(refresh),
+            httponly=True,
+            # secure=settings.SECURE_SSL_REDIRECT, # use in production
+            expires=expires,
+            samesite='Strict',
+        )
+
+        return response
 
 
 class PasswordResetAPIView(APIView,
@@ -172,7 +215,7 @@ class PasswordResetAPIView(APIView,
     """
     View for password reset.
 
-    Takes 'email' from serializer and sends a mail with a link to proceed password reset.
+    Takes 'email' from serializer and sends an email with a link to proceed password reset.
     """
     confirmation_key = settings.PASSWORD_RESET_KEY # const from KeyEncoder
     timeout = settings.PASSWORD_RESET_TIMEOUT # const from KeyEncoder
@@ -187,13 +230,16 @@ class PasswordResetAPIView(APIView,
         cache.set(confirmation_key, {'user_id': user_id}, timeout=self.timeout) # set key to cache
         self.send_password_reset_link(request, user_email, token) # method from RegistrationEmail
 
-        return Response({'message': 'Email sent. Check your mailbox!'}, status=status.HTTP_204_NO_CONTENT)
+        return Response(
+            {'message': 'Email sent. Check your mailbox!'},
+            status=status.HTTP_204_NO_CONTENT
+        )
 
 
 class PasswordResetNewPasswordAPIView(mixins.UpdateModelMixin,
                                       GenericAPIView):
     """
-    test.
+    View for password reset.
     """
     serializer_class = PasswordSerializer
 
@@ -209,18 +255,22 @@ class PasswordResetNewPasswordAPIView(mixins.UpdateModelMixin,
     def patch(self, request, *args, **kwargs):
         try:
             self.partial_update(request, *args, **kwargs)
-            return Response({'message': 'Password was changed successfully!'},
-                            status=status.HTTP_204_NO_CONTENT)
+            return Response(
+                {'message': 'Password was changed successfully!'},
+                status=status.HTTP_204_NO_CONTENT
+            )
         except TimeoutError:
-            return Response("Link is expired.",
-                            status=status.HTTP_400_BAD_REQUEST)
+            return Response(
+                'Link is expired.',
+                status=status.HTTP_400_BAD_REQUEST
+            )
 
 
 class UserProfileViewSet(mixins.RetrieveModelMixin,
                          mixins.UpdateModelMixin,
                          GenericViewSet):
     """
-    test.
+    ViewSet for user profile.
     """
     serializer_class = UserProfileSerializer
     permission_classes = [IsAuthenticated]
@@ -243,7 +293,7 @@ class UserProfileViewSet(mixins.RetrieveModelMixin,
             user.save()
             return Response({'status': 'password set'})
         else:
-            return Response(serializer.errors,
-                            status=status.HTTP_400_BAD_REQUEST)
-
-
+            return Response(
+                serializer.errors,
+                status=status.HTTP_400_BAD_REQUEST
+            )
