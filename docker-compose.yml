@@ -1,4 +1,5 @@
 services:
+
   ui:
     container_name: ui
     build:
@@ -7,21 +8,21 @@ services:
       - "3000:3000"
     volumes:
       - ./ui:/ui
-      - ./ui/node_modules:/ui/node_modules
+      - /ui/node_modules
     environment:
-      - NODE_ENV=development
-      - NODE_OPTIONS=--openssl-legacy-provider  # Add this line
-    stdin_open: true
-    tty: true
-    command: npm start
+      - VITE_APP_BACKEND_ADDRESS=http://localhost/api/v1
+#    stdin_open: true
+#    tty: true
+#    command: npm start
     depends_on:
       - app
     networks:
       - mynetwork
+
   app:
     container_name: app
     build:
-      context: .
+      context: ./app
     command: >
       sh -c "python manage.py migrate &&
              python manage.py migrate django_celery_beat &&
@@ -88,17 +89,18 @@ services:
   stripe-cli:
     container_name: stripe-cli
     image: stripe/stripe-cli
-    network_mode: bridge
     environment:
         - STRIPE_API_KEY=${STRIPE_SECRET_KEY}
         - STRIPE_DEVICE_NAME=${STRIPE_DEVICE_NAME}
 #        - STRIPE_WEBHOOK_SECRET=${STRIPE_WEBHOOK_SECRET}
     command: listen --forward-to 0.0.0.0:8000/api/v1/stripe_webhook/
+    networks:
+      - mynetwork
 
   celery-worker:
     container_name: celery-worker
     build:
-      context: .
+      context: ./app
     hostname: celery-worker
     entrypoint: celery
     command: -A app worker --loglevel=INFO
@@ -130,7 +132,7 @@ services:
   celery-beat:
     container_name: celery-beat
     build:
-      context: .
+      context: ./app
     hostname: celery-beat
     entrypoint: celery
     command: -A app beat --loglevel=INFO
@@ -162,7 +164,7 @@ services:
   flower:
     container_name: flower
     build:
-      context: .
+      context: ./app
     hostname: flower
     entrypoint: celery
     command: -A app flower --loglevel=INFO

@@ -1,10 +1,10 @@
 FROM python:3.11-alpine3.21
 LABEL maintainer="nero"
 
-ENV PYTHONUNBUFFERED 1
+ENV PYTHONUNBUFFERED=1
 
 COPY ./requirements.txt /requirements.txt
-COPY ./app /app
+COPY . /app
 
 WORKDIR /app
 EXPOSE 8000
