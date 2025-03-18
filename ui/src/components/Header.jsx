@@ -1,9 +1,12 @@
+import { Link } from "react-router-dom";
+
+
 const Header = () => {
     return(
-        <header className="App-header">
-            <nav className="navbar navbar-expand-lg navbar-dark bg-dark">
-                <div className="container">1</div>
-                <div className="container">2</div>
+        <header>
+            <nav>
+                <Link to="/signin">Sign in</Link>
+                <Link to="/login">Login</Link>
             </nav>
         </header>
     )
