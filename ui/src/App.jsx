@@ -1,31 +1,27 @@
-import React, { useEffect, useState } from 'react';
-import axios from 'axios';
+import React from 'react';
+import useProducts from './hooks/useProducts';
+import ProductList from './components/ProductList';
+import Header from "./components/Header.jsx";
+import Footer from "./components/Footer.jsx";
+import DropdownMenu from "./components/DropdownMenu.jsx";
 
 const App = () => {
-  const [data, setData] = useState(null);
+    const { products, loading, error } = useProducts();
 
-  useEffect(() => {
-    axios.get('http://localhost:8000/api/v1/products/')
-      .then((response) => {
-        setData(response.data);
-      })
-      .catch((error) => {
-        console.error('Error while fetching data', error);
-      });
-  }, []);
+    if (loading) return <p>Loading...</p>;
+    if (error) return <p>Error: {error.message}</p>;
 
-  return (
-    <div>
-
-      <h1>Data from API:</h1>
-
-      {data ? (
-        <pre>{JSON.stringify(data, null, 2)}</pre>
-      ) : (
-        <p>Loading...</p>
-      )}
-    </div>
-  );
+    return (
+        <>
+            <Header/>
+            <DropdownMenu/>
+            <div>
+                <h1>Products</h1>
+                <ProductList products={products}/>
+            </div>
+            <Footer/>
+        </>
+    );
 };
 
 export default App;

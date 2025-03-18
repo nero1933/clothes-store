@@ -91,7 +91,7 @@ class TestAPIEcommerce(APITestCase):
         """
         Creates products
 
-        :return: Products queryset
+        :return: ProductItem queryset
         """
         call_command('create_sizes_command', silence=True)
         call_command('create_products_command', silence=True)
