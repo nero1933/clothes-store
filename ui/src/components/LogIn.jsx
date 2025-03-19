@@ -1,11 +1,16 @@
 import { useState } from "react";
+import { useAuth } from "../context/AuthContext";
+import { useNavigate } from "react-router-dom";
 import axios from "axios";
+import { jwtDecode } from "jwt-decode";
 
 
-const Authorization = () => {
+const LogIn = () => {
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
     const [error, setError] = useState("");
+    const navigate = useNavigate();
+    const { setAuth } = useAuth();
 
     const handleSubmit = async (e) => {
         e.preventDefault();
@@ -21,20 +26,24 @@ const Authorization = () => {
                 password
             });
 
-            const accessToken = response.data.access_token;
-            localStorage.setItem("access_token", accessToken);
+            const access_token = response.data.access_token;
+            localStorage.setItem("access_token", access_token);
+            console.log("Successful authorization!", access_token);
 
-            console.log("Successful authorization!", accessToken);
-            setError("");
+            const decoded = jwtDecode(access_token);
+            setAuth({ user_id: decoded.user_id, is_guest: false });
+
+            navigate("/");
+
         } catch (error) {
-            console.error("Authorization error:", error);
             setError("Wrong email or password");
+            console.error("LogIn error:", error);
         }
     };
 
     return (
         <div>
-            <h2>Авторизация</h2>
+            <h2>Authorization</h2>
 
             {error && <p>{error}</p>}
 
@@ -52,7 +61,7 @@ const Authorization = () => {
                     onChange={(e) => setPassword(e.target.value)}
                 />
                 <button type="submit">
-                    Войти
+                    Login
                 </button>
             </form>
 
@@ -60,4 +69,4 @@ const Authorization = () => {
     );
 };
 
-export default Authorization;
+export default LogIn;

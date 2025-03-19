@@ -1,12 +1,12 @@
 import { useState } from "react";
-import Authorization from "../components/Authorization";
+import LogIn from "../components/LogIn.jsx";
 
 const LoginPage = () => {
 
     return (
         <div>
             <h1>Hello!</h1>
-            <Authorization />
+            <LogIn />
         </div>
     );
 };
