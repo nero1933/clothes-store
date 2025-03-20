@@ -10,7 +10,7 @@ services:
       - ./ui:/ui
       - /ui/node_modules
     environment:
-      - VITE_APP_BACKEND_ADDRESS=http://localhost/api/v1
+      - VITE_APP_BACKEND_ADDRESS=http://localhost:8000/api/v1
 #    stdin_open: true
 #    tty: true
 #    command: npm start
