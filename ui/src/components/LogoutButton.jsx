@@ -4,19 +4,14 @@ import api from "../api/api.js";
 
 const LogoutButton = () => {
     const navigate = useNavigate();
-    const { setAuth } = useAuth();
+    const { logout } = useAuth()
 
     const handleLogout = async () => {
         try {
-            await api.post('/logout/');
-
-            localStorage.removeItem("access_token");
-
-            setAuth({ user_id: null, is_guest: true });
-
+            await logout()
             navigate("/");
-        } catch (err) {
-            console.log(err);
+        } catch (error) {
+            console.log(error);
         }
     };
 

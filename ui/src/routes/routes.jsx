@@ -6,13 +6,11 @@ import {AuthProvider} from "../context/AuthContext.jsx";
 
 const AppRoutes = () => {
     return (
-        <AuthProvider>
-            <Routes>
-                <Route path="/" element={<Home />} />
-                <Route path="/signin" element={<SignIn />} />
-                <Route path="/login" element={<Login />} />
-            </Routes>
-        </AuthProvider>
+        <Routes>
+            <Route path="/" element={<Home />} />
+            <Route path="/signin" element={<SignIn />} />
+            <Route path="/login" element={<Login />} />
+        </Routes>
     );
 };
 

@@ -44,10 +44,15 @@ class LoginView(APIView):
 
         refresh = RefreshToken.for_user(user)
         access_token = refresh.access_token
-        access_token['is_guest'] = user.is_guest
+        # access_token['is_guest'] = user.is_guest
 
         response = Response(
-            {'access_token': str(access_token)},
+            {
+                'access_token': str(access_token),
+                'id': user.id,
+                'name': user.first_name,
+                'is_guest': user.is_guest,
+            },
             status=status.HTTP_200_OK,
         )
 
