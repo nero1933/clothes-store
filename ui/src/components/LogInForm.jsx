@@ -2,12 +2,12 @@ import { useState } from "react";
 import { useAuth } from "../context/AuthContext";
 import { useNavigate } from "react-router-dom";
 
-const LogIn = () => {
+const LogInForm = ({ onSwitch, onLogin }) => {
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
     const [error, setError] = useState("");
 
-    const { logIn } = useAuth()
+    // const { logIn } = useAuth()
     const navigate = useNavigate();
 
     const handleSubmit = async (e) => {
@@ -19,7 +19,7 @@ const LogIn = () => {
         }
 
         try {
-            await logIn(email, password);
+            await onLogin(email, password);
             navigate("/");
         } catch (error) {
             setError("Wrong email or password");
@@ -51,8 +51,10 @@ const LogIn = () => {
                 </button>
             </form>
 
+            <button onClick={onSwitch}>Forgot Password?</button>
+
         </div>
     );
 };
 
-export default LogIn;
+export default LogInForm;

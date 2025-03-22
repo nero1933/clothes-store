@@ -1,6 +1,7 @@
 import { createContext, useContext, useState, useEffect } from "react";
 import { logInUser } from "../services/logInUserService.js";
 import { logoutUser } from "../services/logoutUserService.js";
+import resetPasswordService from "../services/resetPasswordService.js";
 
 const AuthContext = createContext();
 
@@ -11,7 +12,8 @@ export const AuthProvider = ({ children }) => {
     });
 
     useEffect(() => {
-        console.log("Auth state updated:", auth);
+        // console.log("Auth state updated:", auth);
+
         localStorage.setItem("auth", JSON.stringify(auth));
     }, [auth]);
 
@@ -38,8 +40,18 @@ export const AuthProvider = ({ children }) => {
         }
     };
 
+    const resetPassword = async (email) => {
+        try {
+            await resetPasswordService(email)
+        } catch (error) {
+            console.error("Password reset failed:", error);
+        }
+
+        console.log("Sending reset email to:", email);
+    };
+
     return (
-        <AuthContext.Provider value={{ ...auth, logIn, logout }}>
+        <AuthContext.Provider value={{ ...auth, logIn, logout, resetPassword }}>
             {children}
         </AuthContext.Provider>
     );
