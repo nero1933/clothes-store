@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import axios from 'axios';
+import { fetchProducts } from '../services/productsService';
 
 const useProducts = () => {
     const [products, setProducts] = useState([]);
@@ -7,17 +7,18 @@ const useProducts = () => {
     const [error, setError] = useState(null);
 
     useEffect(() => {
-    axios.get('http://localhost:8000/api/v1/products/')
-        .then((response) => {
-            setProducts(response.data);
-        })
-        .catch((error) => {
-            console.error('Error while fetching data', error);
-            setError(error);
-        })
-        .finally(() => {
-            setLoading(false);
-        });
+        const loadProducts = async () => {
+            try {
+                const data = await fetchProducts();
+                setProducts(data);
+            } catch (err) {
+                setError(err);
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        loadProducts().catch(console.error);
     }, []);
 
     return { products, loading, error };
