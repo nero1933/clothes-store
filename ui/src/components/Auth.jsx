@@ -1,7 +1,7 @@
 import { useState } from "react";
-import { useAuth } from "../context/AuthContext";
 import { useNavigate } from "react-router-dom";
-import LoginForm from "./LoginForm";
+import { useAuth } from "../context/AuthContext";
+import LoginForm from "./LoginForm.jsx";
 import ResetPasswordForm from "./ResetPasswordForm.jsx";
 
 const Auth = () => {
@@ -16,7 +16,6 @@ const Auth = () => {
 
     const handleReset = async (email) => {
         await resetPassword(email);
-        navigate("/login");
     };
 
     return isReset ? (

@@ -8,6 +8,7 @@ const AppRoutes = () => {
         <Routes>
             <Route path="/" element={<Home />} />
             <Route path="/signin" element={<SignIn />} />
+            <Route path="/signin/activate/:token" element={<ActivateAccount />} />
             <Route path="/login" element={<LogInPage />} />
         </Routes>
     );
