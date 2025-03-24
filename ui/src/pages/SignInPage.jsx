@@ -1,6 +1,6 @@
 import SignInForm from "../components/SignInForm.jsx";
 
-const SignIn = () => {
+const SignInPage = () => {
     return (
         <>
             <h1>SignIn</h1>
@@ -9,4 +9,4 @@ const SignIn = () => {
     );
 };
 
-export default SignIn;
+export default SignInPage;

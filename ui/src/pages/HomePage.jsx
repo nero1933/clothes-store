@@ -4,7 +4,7 @@ import ProductList from "../components/ProductList.jsx";
 import Footer from "../components/Footer.jsx";
 import useProducts from "../hooks/useProducts.js";
 
-const Home = () => {
+const HomePage = () => {
     const { products, loading, error } = useProducts();
 
     if (loading) return <p>Loading...</p>;
@@ -23,4 +23,4 @@ const Home = () => {
   );
 };
 
-export default Home;
+export default HomePage;

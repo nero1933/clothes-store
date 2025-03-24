@@ -35,16 +35,22 @@ class LoginView(APIView):
         email = request.data.get('email')
         password = request.data.get('password')
 
-        user = authenticate(request, email=email, password=password)
-        if not user:
+        user = UserProfile.objects.filter(email=email).first()
+
+        if not user or not user.check_password(password):
             return Response(
                 {'detail': 'Invalid credentials'},
                 status=status.HTTP_401_UNAUTHORIZED
             )
 
+        if not user.is_active:
+            return Response(
+                {'detail': 'Your account is not activated. Please check your email.'},
+                status=status.HTTP_403_FORBIDDEN
+            )
+
         refresh = RefreshToken.for_user(user)
         access_token = refresh.access_token
-        # access_token['is_guest'] = user.is_guest
 
         response = Response(
             {
@@ -73,8 +79,9 @@ class LogoutView(APIView):
     """
     Logout user.
 
-    Delete refresh token from HttpOnly cookie.
+    Deletes refresh token from HttpOnly cookie.
     """
+
     permission_classes = [IsAuthenticated]
 
     def post(self, request):
@@ -83,8 +90,11 @@ class LogoutView(APIView):
             try:
                 token = RefreshToken(refresh_token)
                 token.blacklist()
-            except Exception:
-                pass
+            except Exception as e:
+                return Response(
+                    {'error': str(e)},
+                    status=status.HTTP_500_INTERNAL_SERVER_ERROR
+                )
 
         response = Response(
             {'detail': 'Successfully logged out'},
@@ -98,7 +108,7 @@ class TokenRefreshView(APIView):
     """
     Update access token.
 
-    Use refresh token from HttpOnly cookie to generate new access token.
+    Uses refresh token from HttpOnly cookie to generate new access token.
     """
 
     def post(self, request):
@@ -124,7 +134,7 @@ class TokenRefreshView(APIView):
             )
 
 
-@api_view(['PATCH'])
+@api_view(['POST'])
 def register_user_confirmation(request, *args, **kwargs):
     """
     Confirm registration of a user with a confirmation email.

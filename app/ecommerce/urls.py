@@ -31,16 +31,16 @@ urlpatterns = [
 
     path('api/v1/register/user/', RegisterUserAPIView.as_view(), name='register_user'),
     path('api/v1/register/guest/', RegisterGuestAPIView.as_view(), name='register_guest'),
-    path('api/v1/register/confirmation/<str:token>', register_user_confirmation, name='register_user_confirmation'),
+    path('api/v1/register/confirmation/<str:token>/', register_user_confirmation, name='register_user_confirmation'),
 
     path('api/v1/password-reset/', PasswordResetAPIView.as_view(), name='password_reset'),
     path('api/v1/password-reset/new-password/<str:token>/', PasswordResetNewPasswordAPIView.as_view(),
          name='password_reset_new_password'),
 
-    path('api/v1/create-order/user', OrderUserCreateAPIView.as_view(), name='create_order_user'),
-    path('api/v1/create-order/guest', OrderGuestCreateAPIView.as_view(), name='create_order_guest'),
+    path('api/v1/create-order/user/', OrderUserCreateAPIView.as_view(), name='create_order_user'),
+    path('api/v1/create-order/guest/', OrderGuestCreateAPIView.as_view(), name='create_order_guest'),
     #
-    path('api/v1/payment/<int:order_id>/checkout', CreateCheckoutSessionAPIView.as_view(), name='payment_checkout'),
+    path('api/v1/payment/<int:order_id>/checkout/', CreateCheckoutSessionAPIView.as_view(), name='payment_checkout'),
     # path('api/v1/payment/<int:?>/successful/', '#', name='payment_successful'),
     # path('api/v1/payment/<int:?>/cancelled/', '#', name='payment_cancelled'),
     path('api/v1/stripe_webhook/', StripeWebhookView.as_view(), name='stripe_webhook'),

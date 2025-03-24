@@ -1,5 +1,4 @@
 import { useState } from "react";
-import { useAuth } from "../context/AuthContext";
 import { useNavigate } from "react-router-dom";
 
 const LogInForm = ({ onSwitch, onLogin }) => {
@@ -7,7 +6,6 @@ const LogInForm = ({ onSwitch, onLogin }) => {
     const [password, setPassword] = useState("");
     const [error, setError] = useState("");
 
-    // const { logIn } = useAuth()
     const navigate = useNavigate();
 
     const handleSubmit = async (e) => {
@@ -21,9 +19,9 @@ const LogInForm = ({ onSwitch, onLogin }) => {
         try {
             await onLogin(email, password);
             navigate("/");
-        } catch (error) {
-            setError("Wrong email or password");
-            console.error("Log in error:", error);
+        } catch (err) {
+            setError(err.message);
+            console.error("Log in (Form) error:", err);
         }
     };
 

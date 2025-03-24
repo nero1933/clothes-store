@@ -23,16 +23,21 @@ export const AuthProvider = ({ children }) => {
 
             localStorage.setItem("access_token", access_token);
             setAuth({ id, name, is_guest });
-        } catch (error) {
-            console.error("Logout error:", error);
+        } catch (err) {
+                console.error("Log in (Context) error:", err);
+            if (err.response && err.response.status === 401) {
+                throw new Error("Invalid email or password.");
+            } else if (err.response && err.response.status === 403) {
+                throw new Error("Your account is not activated. Please check your email.");
+            }
         }
     };
 
     const logout = async () => {
         try {
             await logoutUser();
-        } catch (error) {
-            console.error("Logout failed:", error);
+        } catch (err) {
+            console.error("Logout (Context) Error):", err);
         } finally {
             localStorage.removeItem("access_token");
             localStorage.removeItem("auth");
@@ -43,11 +48,17 @@ export const AuthProvider = ({ children }) => {
     const resetPassword = async (email) => {
         try {
             await resetPasswordService(email)
-        } catch (error) {
-            console.error("Password reset failed:", error);
+            return "If this email is registered, you will receive a password reset link."
+        } catch (err) {
+            // Do not show user that the email does not exist in db for security reasons.
+            if (err.response?.status === 404) {
+                console.log("Reset Password (Form) Error:", 404);
+                return "If this email is registered, you will receive a password reset link.";
+            } else {
+                console.error("Reset Password (Form) Error:", err);
+                return "Something went wrong. Please try again later.";
+            }
         }
-
-        console.log("Sending reset email to:", email);
     };
 
     return (

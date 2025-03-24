@@ -21,9 +21,12 @@ class ConfirmationEmail:
         """
         tests.
         """
-        confirmation_link = request.build_absolute_uri(
-            reverse(reverse_name, kwargs={'token': token})
-        )
+        # confirmation_link = request.build_absolute_uri(
+        #     reverse(reverse_name, kwargs={'token': token})
+        # )
+
+        """ TEMP !!! """
+        confirmation_link = f'http://localhost:3000/activate/{token}'
 
         context = {
             'confirmation_link': confirmation_link,

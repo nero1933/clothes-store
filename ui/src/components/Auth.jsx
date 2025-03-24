@@ -15,7 +15,8 @@ const Auth = () => {
     };
 
     const handleReset = async (email) => {
-        await resetPassword(email);
+        // Returns a message which will bw displayed after form will be submitted.
+        return await resetPassword(email);
     };
 
     return isReset ? (

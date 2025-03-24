@@ -15,12 +15,8 @@ const ResetPasswordForm = ({ onSwitch, onReset }) => {
             return;
         }
 
-        try {
-            await onReset(email);
-            setMessage("Check your email for reset instructions.");
-        } catch {
-            setError("Failed to reset password.");
-        }
+        const responseMessage = await onReset(email);
+        setMessage(responseMessage);
     };
 
     return (

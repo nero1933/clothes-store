@@ -26,6 +26,7 @@ services:
     command: >
       sh -c "python manage.py migrate &&
              python manage.py migrate django_celery_beat &&
+             python manage.py spectacular --file schema.yml &&
              python manage.py runserver 0.0.0.0:8000"
 #             coverage run --source='.' manage.py test ecommerce &&
 #             coverage html &&
