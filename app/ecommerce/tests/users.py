@@ -11,11 +11,18 @@ from ecommerce.models import UserProfile
 from ecommerce.utils.tests.mixins import TestAPIEcommerce
 
 
-def get_link_from_message(message):
+def get_link_from_message(message) -> str:
     regex = r"(?P<url>https?://[^\s]+)"
     match = re.search(regex, message)
     link = match.group("url")
     return link
+
+
+def extract_token_form_url(url) -> str:
+    regex = r'/(activate|password-reset)/([\w\d]+)$'
+    match = re.search(regex, url)
+    token = match.group(2)
+    return token
 
 
 class UserTestCase(TestAPIEcommerce):
@@ -23,6 +30,7 @@ class UserTestCase(TestAPIEcommerce):
     def setUp(self):
         self.user = self.create_user()
         self.jwt_access_token = self.get_jwt_access_token()
+
 
     @override_settings(EMAIL_BACKEND='django.core.mail.backends.locmem.EmailBackend')
     def test_register_user(self):
@@ -57,8 +65,14 @@ class UserTestCase(TestAPIEcommerce):
         message = mail.outbox[0].body
         link = get_link_from_message(message)
 
-        # Follow the confirmation link
-        response = self.client.patch(link, format='json')
+        # Extract token
+        token = extract_token_form_url(link)
+
+        # Create link to API endpoint with token
+        link = reverse('register_user_confirmation', kwargs={'token': token})
+
+        # Follow the link to API
+        response = self.client.post(link, format='json')
         user = get_object_or_404(UserProfile, pk=user_id)
 
         # Check that the response has a success status code
@@ -94,9 +108,15 @@ class UserTestCase(TestAPIEcommerce):
         message = mail.outbox[0].body
         link = get_link_from_message(message)
 
+        # Extract token
+        token = extract_token_form_url(link)
+
+        # Create link to API endpoint with token
+        link = reverse('password_reset_new_password', kwargs={'token': token})
+
         data = {'password': '87654321', 'password_confirmation': '87654321'}
 
-        # Follow the confirmation link
+        # Follow the link to API
         response = self.client.patch(link, data, format='json')
 
         # Check that the response has a success status code
