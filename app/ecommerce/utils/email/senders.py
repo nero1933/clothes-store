@@ -24,9 +24,15 @@ class ConfirmationEmail:
         # confirmation_link = request.build_absolute_uri(
         #     reverse(reverse_name, kwargs={'token': token})
         # )
+        path = ''
+
+        if reverse_name == 'register_user_confirmation':
+            path = 'activate'
+        elif reverse_name == 'password_reset_new_password':
+            path = 'password-reset'
 
         """ TEMP !!! """
-        confirmation_link = f'http://localhost:3000/activate/{token}'
+        confirmation_link = f'http://localhost:3000/{path}/{token}'
 
         context = {
             'confirmation_link': confirmation_link,

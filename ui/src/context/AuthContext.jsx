@@ -1,7 +1,7 @@
 import { createContext, useContext, useState, useEffect } from "react";
 import { logInUser } from "../services/logInUserService.js";
 import { logoutUser } from "../services/logoutUserService.js";
-import resetPasswordService from "../services/resetPasswordService.js";
+import forgotPasswordService from "../services/forgotPasswordService.js";
 
 const AuthContext = createContext();
 
@@ -45,9 +45,9 @@ export const AuthProvider = ({ children }) => {
         }
     };
 
-    const resetPassword = async (email) => {
+    const forgotPassword = async (email) => {
         try {
-            await resetPasswordService(email)
+            await forgotPasswordService(email)
             return "If this email is registered, you will receive a password reset link."
         } catch (err) {
             // Do not show user that the email does not exist in db for security reasons.
@@ -62,7 +62,7 @@ export const AuthProvider = ({ children }) => {
     };
 
     return (
-        <AuthContext.Provider value={{ ...auth, logIn, logout, resetPassword }}>
+        <AuthContext.Provider value={{ ...auth, logIn, logout, forgotPassword }}>
             {children}
         </AuthContext.Provider>
     );

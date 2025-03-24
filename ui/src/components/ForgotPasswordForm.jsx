@@ -1,6 +1,6 @@
 import { useState } from "react";
 
-const ResetPasswordForm = ({ onSwitch, onReset }) => {
+const ForgotPasswordForm = ({ onSwitch, onReset }) => {
     const [email, setEmail] = useState("");
     const [message, setMessage] = useState("");
     const [error, setError] = useState("");
@@ -21,7 +21,7 @@ const ResetPasswordForm = ({ onSwitch, onReset }) => {
 
     return (
         <div>
-            <h2>Reset Password</h2>
+            <h2>Forgot Password</h2>
             {error && <p>{error}</p>}
             {message && <p>{message}</p>}
 
@@ -40,4 +40,4 @@ const ResetPasswordForm = ({ onSwitch, onReset }) => {
     );
 };
 
-export default ResetPasswordForm;
+export default ForgotPasswordForm;
