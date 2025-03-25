@@ -23,6 +23,11 @@ function SignInForm() {
             return;
         }
 
+        if (password !== confirmPassword) {
+            setError("Passwords do not match!");
+            return;
+        }
+
         try {
             await signInService(
                 email, firstName, lastName, password, confirmPassword);

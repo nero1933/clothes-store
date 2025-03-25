@@ -62,6 +62,7 @@ class PasswordSerializer(serializers.ModelSerializer):
     def validate(self, attrs):
         password = attrs.get('password')
         password_confirmation = attrs.pop('password_confirmation', None)
+
         if not password:
             raise serializers.ValidationError("Enter new password.")
 
@@ -69,7 +70,8 @@ class PasswordSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError("Passwords must be at lest 8 characters.")
 
         if password != password_confirmation:
-            raise serializers.ValidationError("Passwords do not match.")
+
+            raise serializers.ValidationError(f"Passwords do not match. P1:{password} P2:{password_confirmation}")
 
         return attrs
 
