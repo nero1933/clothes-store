@@ -1,7 +1,5 @@
 from django.core.mail import EmailMultiAlternatives
 from django.template.loader import render_to_string
-from rest_framework.reverse import reverse
-
 from app import settings
 
 
@@ -63,7 +61,7 @@ class RegistrationEmail(ConfirmationEmail):
             user_email,
             token,
             'register_user_confirmation',
-            'ecommerce/register_user_confirmation.html',
+            'ecommerce/confirm_registration.html',
             'Confirm registration',
         )
 
@@ -81,6 +79,6 @@ class PasswordResetEmail(ConfirmationEmail):
             user_email,
             token,
             'reset_password',
-            'ecommerce/password_reset.html',
+            'ecommerce/reset_password.html',
             'Password reset',
         )

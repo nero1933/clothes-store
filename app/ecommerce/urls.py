@@ -31,10 +31,10 @@ urlpatterns = [
 
     path('api/v1/register/user/', RegisterUserAPIView.as_view(), name='register_user'),
     path('api/v1/register/guest/', RegisterGuestAPIView.as_view(), name='register_guest'),
-    path('api/v1/register/confirmation/<str:token>/', activate_user, name='activate_user'),
+    path('api/v1/register/confirmation/<str:conf_token>/', activate_user, name='activate_user'),
 
     path('api/v1/forgot-password/', ForgotPasswordAPIView.as_view(), name='forgot_password'),
-    path('api/v1/reset-password/<str:token>/', ResetPasswordAPIView.as_view(),
+    path('api/v1/reset-password/<str:conf_token>/', ResetPasswordAPIView.as_view(),
          name='reset_password'),
 
     path('api/v1/create-order/user/', OrderUserCreateAPIView.as_view(), name='create_order_user'),

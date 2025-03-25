@@ -11,8 +11,13 @@ class ConfirmationManager:
     """
 
     def __init__(self):
-        super().__init__()
         self._conf_token = None
+        #
+        # УБРАТЬ ЭТИ ПАРАМЕТРЫ, Я ИХ ИСПОЛЬЗУЮ 1 РАЗ, ДЕЛАТЬ ВОЗВРАТ ФУНКЦИИ
+        # ОСТАВИТЬ ТОЛЬКО _conf_token Я ЕГО ИСПОЛЬЗУЮ В ПОСТОЕНИИ URL'A!
+        #
+        # self._confirmation_key = None
+        # self._confirmation_flag = None
 
     @property
     def conf_token(self) -> str:
@@ -22,7 +27,25 @@ class ConfirmationManager:
 
         return self._conf_token
 
-    def create_confirmation_key(self, confirmation_key_template: str) -> str:
+    @property
+    def confirmation_key(self) -> str:
+        return self._confirmation_key
+
+    @confirmation_key.setter
+    def confirmation_key(self, confirmation_key: str) -> None:
+        if confirmation_key is None:
+            self._confirmation_key = confirmation_key
+
+    @property
+    def confirmation_flag(self) -> str:
+        return self._confirmation_flag
+
+    @confirmation_flag.setter
+    def confirmation_flag(self, confirmation_flag: str) -> None:
+        if confirmation_flag is None:
+            self._confirmation_flag = confirmation_flag
+
+    def set_confirmation_key(self, template: str) -> None:
         """
         Generate a confirmation key using the provided template.
 
@@ -30,10 +53,13 @@ class ConfirmationManager:
         'conf_token' can be used as a public key
         and the rest of the template should be private.
         """
-        return confirmation_key_template.format(conf_token=self.conf_token)
+        try:
+            self.confirmation_key = template.format(conf_token=self.conf_token)
+            # return self.confirmation_key
+        except Exception as e:
+            raise Exception(f"Failed create confirmation key: {e}")
 
-    @staticmethod
-    def create_confirmation_flag(confirmation_flag_template: str, user_id: int) -> str:
+    def set_confirmation_flag(self, template: str, user_id: int) -> None:
         """
         Generate a confirmation flag using the provided template.
 
@@ -44,7 +70,11 @@ class ConfirmationManager:
         'confirmation_key' doesn't contain 'user_id'
         so it is impossible to find it by 'user_id'
         """
-        return confirmation_flag_template.format(user_id=user_id)
+        try:
+            self.confirmation_flag = template.format(user_id=user_id)
+            # return template.format(user_id=user_id)
+        except Exception as e:
+            raise Exception(f"Failed create confirmation flag: {e}")
 
 
 class ConfirmationCacheManager(ConfirmationManager):
@@ -64,14 +94,13 @@ class ConfirmationCacheManager(ConfirmationManager):
         Inherits methods and properties from `ConfirmationManager`.
     """
 
-    def __init__(self):
-        # Initialize parent classes explicitly
-        super().__init__()
-        ConfirmationManager.__init__(self)
+    # def __init__(self): # Do I need it here? I Inherit only from one class
+    #     # Initialize parent classes explicitly
+    #     super().__init__()
 
     def cache_confirmation_key(
             self,
-            confirmation_key_template: str,
+            template: str,
             user_id: int,
             timeout: int,
     ) -> None:
@@ -83,14 +112,14 @@ class ConfirmationCacheManager(ConfirmationManager):
         """
 
         try:
-            confirmation_key = self.create_confirmation_key(confirmation_key_template)
-            cache.set(confirmation_key, {'user_id': user_id}, timeout=timeout)
+            self.set_confirmation_key(template)
+            cache.set(self.confirmation_key, {'user_id': user_id}, timeout=timeout)
         except Exception as e:
             raise Exception(f"Failed to set confirmation key in cache: {e}")
 
     def cache_confirmation_flag(
             self,
-            confirmation_flag_template: str,
+            template: str,
             user_id: int,
             timeout: int,
     ) -> None:
@@ -102,16 +131,15 @@ class ConfirmationCacheManager(ConfirmationManager):
         """
 
         try:
-            confirmation_flag = self.create_confirmation_flag(
-                confirmation_flag_template, user_id)
-            cache.set(confirmation_flag, True, timeout=timeout)
+            self.set_confirmation_flag(template, user_id)
+            cache.set(self.confirmation_flag, True, timeout=timeout)
         except Exception as e:
             raise Exception(f"Failed to set confirmation key in cache: {e}")
 
     def cache_confirmation_data(
             self,
             confirmation_key_template: str,
-            confirmation_flag_template: str,
+            confirmation_flag_template: str | None,
             user_id: int,
             timeout: int,
             store_flag: bool = False,

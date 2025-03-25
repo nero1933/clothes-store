@@ -19,11 +19,12 @@ from app import settings
 from ecommerce.models import UserProfile, UserProfileManager
 from ecommerce.serializers import RegisterUserSerializer, \
     UserProfileSerializer, RegisterGuestSerializer, ForgotPasswordSerializer, ResetPasswordSerializer
+from ecommerce.utils.email.send_email import ActivationEmail
 from ecommerce.utils.email.senders import RegistrationEmail, PasswordResetEmail
 from ecommerce.utils.confirmation_managers.confirmation_managers import ConfirmationManager, ConfirmationCacheManager
 
 
-class LoginView(APIView):
+class LoginView(APIView, RegistrationEmail):
     """
     User authentication.
 
@@ -31,9 +32,21 @@ class LoginView(APIView):
     """
 
     def handle_inactive_user(self, user):
+        confirmation_flag_template = settings.USER_CONFIRMATION_FLAG_TEMPLATE
+        confirmation_flag_template.format(user_id=user.id)
+        confirmation_flag = cache.get(confirmation_flag_template)
 
+        error = ''
+        if confirmation_flag:
+            error = 'Activate your account by opening link from email!'
+        else:
+            error = 'Activate your account, new email was send!'
+            self.send_registration_link()
 
-        return Response(status=status.HTTP_200_OK)
+        return Response(
+            {'error': error},
+            status=status.HTTP_403_FORBIDDEN
+        )
 
     def post(self, request):
         email = request.data.get('email')
@@ -145,13 +158,14 @@ def activate_user(request, *args, **kwargs):
     """
     Confirm registration of a user with a confirmation email.
     """
-    confirmation_key = settings.USER_CONFIRMATION_KEY.format(token=kwargs['token'])
-    user = cache.get(confirmation_key) or {}
+    confirmation_key = settings.USER_CONFIRMATION_KEY_TEMPLATE.format(
+        conf_token=kwargs['conf_token']
+    )
+    user = cache.get(confirmation_key, {})
 
     if user_id := user.get('user_id'):
         user = get_object_or_404(UserProfile, pk=user_id)
-        user.is_active = True
-        user.save(update_fields=['is_active'])
+        user.activate()
         cache.delete(confirmation_key)
         return Response(
             {'message': 'User is registered successfully!'},
@@ -162,21 +176,20 @@ def activate_user(request, *args, **kwargs):
 
 
 class RegisterUserAPIView(CreateAPIView,
-                          RegistrationEmail,
-                          ConfirmationCacheManager):
+                          ActivationEmail):
     """
     View for user registration.
     """
     serializer_class = RegisterUserSerializer
 
-    confirmation_key_template = settings.USER_CONFIRMATION_KEY_TEMPLATE
-    confirmation_flag_template = settings.USER_CONFIRMATION_FLAG_TEMPLATE
-    timeout = settings.USER_CONFIRMATION_TIMEOUT
+    # confirmation_key_template = settings.USER_CONFIRMATION_KEY_TEMPLATE
+    # confirmation_flag_template = settings.USER_CONFIRMATION_FLAG_TEMPLATE
+    # timeout = settings.USER_CONFIRMATION_TIMEOUT
 
     def __init__(self, *args, **kwargs):
         # Initialize parent classes explicitly
         super().__init__(*args, **kwargs)
-        ConfirmationCacheManager.__init__(self)
+        ConfirmationManager.__init__(self)
 
     def post(self, request, *args, **kwargs):
         try:
@@ -185,8 +198,11 @@ class RegisterUserAPIView(CreateAPIView,
 
                 user_id = response.data.get('id', None)
                 user_email = response.data.get('email', None)
-                conf_token = self.conf_token  # property of ConfirmationManager (public key)
 
+
+
+                # conf_token = self.conf_token  # property of ConfirmationManager (public key)
+                #
                 # Function form ConfirmationCacheManager
                 # Creates confirmation_key and confirmation_flag
                 # Sets them to cache.
@@ -205,7 +221,7 @@ class RegisterUserAPIView(CreateAPIView,
                 )
 
                 # Sends an email to users email with url to account activation page.
-                self.send_registration_link(request, user_email, conf_token)
+                self.send_activation_email(user_email)
 
                 return response
 
