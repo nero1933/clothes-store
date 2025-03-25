@@ -20,7 +20,7 @@ from ecommerce.models import UserProfile, UserProfileManager
 from ecommerce.serializers import RegisterUserSerializer, \
     UserProfileSerializer, RegisterGuestSerializer, ForgotPasswordSerializer, ResetPasswordSerializer
 from ecommerce.utils.email.senders import RegistrationEmail, PasswordResetEmail
-from ecommerce.utils.confirmation_managers.confirmation_managers import ConfirmationManager
+from ecommerce.utils.confirmation_managers.confirmation_managers import ConfirmationManager, ConfirmationCacheManager
 
 
 class LoginView(APIView):
@@ -163,7 +163,7 @@ def activate_user(request, *args, **kwargs):
 
 class RegisterUserAPIView(CreateAPIView,
                           RegistrationEmail,
-                          ConfirmationManager):
+                          ConfirmationCacheManager):
     """
     View for user registration.
     """
@@ -176,7 +176,7 @@ class RegisterUserAPIView(CreateAPIView,
     def __init__(self, *args, **kwargs):
         # Initialize parent classes explicitly
         super().__init__(*args, **kwargs)
-        ConfirmationManager.__init__(self)
+        ConfirmationCacheManager.__init__(self)
 
     def post(self, request, *args, **kwargs):
         try:
@@ -187,7 +187,7 @@ class RegisterUserAPIView(CreateAPIView,
                 user_email = response.data.get('email', None)
                 conf_token = self.conf_token  # property of ConfirmationManager (public key)
 
-                # Function form ConfirmationManager
+                # Function form ConfirmationCacheManager
                 # Creates confirmation_key and confirmation_flag
                 # Sets them to cache.
                 # Key contains token which would be sent
@@ -196,11 +196,12 @@ class RegisterUserAPIView(CreateAPIView,
                 # Flag is used to monitor if key is still in cache.
                 # Value of key is {'user_id': user_id} (dict)
                 # Value of flag is True (bool)
-                self.set_to_cache_confirmation_key_with_flag(
+                self.cache_confirmation_data(
                     self.confirmation_key_template,
                     self.confirmation_flag_template,
                     user_id,
                     self.timeout,
+                    store_flag=True,
                 )
 
                 # Sends an email to users email with url to account activation page.
