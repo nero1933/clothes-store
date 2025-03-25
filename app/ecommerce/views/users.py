@@ -18,8 +18,8 @@ from rest_framework_simplejwt.tokens import RefreshToken
 
 from app import settings
 from ecommerce.models import UserProfile, UserProfileManager
-from ecommerce.serializers import RegisterUserSerializer, PasswordResetSerializer, PasswordSerializer, \
-    UserProfileSerializer, RegisterGuestSerializer
+from ecommerce.serializers import RegisterUserSerializer, \
+    UserProfileSerializer, RegisterGuestSerializer, ForgotPasswordSerializer, ResetPasswordSerializer
 from ecommerce.utils.email.senders import RegistrationEmail, PasswordResetEmail
 from ecommerce.utils.keys_managers.keys_encoders import KeyEncoder
 
@@ -225,7 +225,7 @@ class RegisterGuestAPIView(CreateAPIView):
         return response
 
 
-class PasswordResetAPIView(APIView,
+class ForgotPasswordAPIView(APIView,
                            PasswordResetEmail,
                            KeyEncoder):
     """
@@ -237,7 +237,7 @@ class PasswordResetAPIView(APIView,
     timeout = settings.PASSWORD_RESET_TIMEOUT # const from KeyEncoder
 
     def post(self, request, *args, **kwargs):
-        serializer = PasswordResetSerializer(context={'request': request}, data=request.data)
+        serializer = ForgotPasswordSerializer(context={'request': request}, data=request.data)
         serializer.is_valid(raise_exception=True)
         user_email = serializer.validated_data['email']
         user_id = get_object_or_404(UserProfile, email=user_email).pk
@@ -252,32 +252,52 @@ class PasswordResetAPIView(APIView,
         )
 
 
-class PasswordResetNewPasswordAPIView(mixins.UpdateModelMixin,
-                                      GenericAPIView):
+class ResetPasswordAPIView(mixins.UpdateModelMixin,
+                           GenericAPIView):
     """
     View for password reset.
     """
-    serializer_class = PasswordSerializer
+    serializer_class = ResetPasswordSerializer
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self._object = None
 
     def get_object(self):
-        confirmation_key = settings.PASSWORD_RESET_KEY.format(token=self.kwargs['token'])
-        data = cache.get(confirmation_key) or {}
+        if self._object is None:
+            confirmation_key = settings.PASSWORD_RESET_KEY.format(token=self.kwargs['token'])
+            data = cache.get(confirmation_key, {})
 
-        if user_id := data.get('user_id'):
-            user = get_object_or_404(UserProfile, pk=user_id)
-            cache.delete(confirmation_key)
-            return user
+            # If there is no link in cache it was expired (or did not exist).
+            # Raise TimeoutError anyway.
+            if not data:
+                raise TimeoutError
+
+            if user_id := data.get('user_id'):
+                user = get_object_or_404(UserProfile, pk=user_id)
+
+                # Set user in view cache to avoid multiple sql querying.
+                setattr(self, '_object', user)
+
+        return self._object
+
+    def get_serializer_context(self):
+        context = super().get_serializer_context()
+        context.update({'user': self.get_object()})
+        return context
 
     def patch(self, request, *args, **kwargs):
         try:
             self.partial_update(request, *args, **kwargs)
+            confirmation_key = settings.PASSWORD_RESET_KEY.format(token=self.kwargs['token'])
+            cache.delete(confirmation_key)
             return Response(
                 {'message': 'Password was changed successfully!'},
                 status=status.HTTP_204_NO_CONTENT
             )
         except TimeoutError:
             return Response(
-                'Link is expired.',
+                 {'error': 'Link is expired.'},
                 status=status.HTTP_400_BAD_REQUEST
             )
 
@@ -300,16 +320,16 @@ class UserProfileViewSet(mixins.RetrieveModelMixin,
 
         return user
 
-    @action(detail=True, methods=['patch'], url_path='set-password')
-    def set_password(self, request, pk=None):
-        user = self.get_object()
-        serializer = PasswordSerializer(data=request.data)
-        if serializer.is_valid():
-            user.set_password(serializer.validated_data['password'])
-            user.save()
-            return Response({'status': 'password set'})
-        else:
-            return Response(
-                serializer.errors,
-                status=status.HTTP_400_BAD_REQUEST
-            )
+    # @action(detail=True, methods=['patch'], url_path='set-password')
+    # def set_password(self, request, pk=None):
+    #     user = self.get_object()
+    #     serializer = PasswordSerializer(data=request.data)
+    #     if serializer.is_valid():
+    #         user.set_password(serializer.validated_data['password'])
+    #         user.save()
+    #         return Response({'status': 'password set'})
+    #     else:
+    #         return Response(
+    #             serializer.errors,
+    #             status=status.HTTP_400_BAD_REQUEST
+    #         )

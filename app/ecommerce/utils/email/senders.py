@@ -28,8 +28,8 @@ class ConfirmationEmail:
 
         if reverse_name == 'register_user_confirmation':
             path = 'activate'
-        elif reverse_name == 'password_reset_new_password':
-            path = 'password-reset'
+        elif reverse_name == 'reset_password':
+            path = 'reset-password'
 
         """ TEMP !!! """
         confirmation_link = f'http://localhost:3000/{path}/{token}'
@@ -73,11 +73,14 @@ class PasswordResetEmail(ConfirmationEmail):
     tests.
     """
     def send_password_reset_link(self, request, user_email, token):
+        """
+        tests.
+        """
         self._send_confirmation_link(
             request,
             user_email,
             token,
-            'password_reset_new_password',
+            'reset_password',
             'ecommerce/password_reset.html',
             'Password reset',
         )

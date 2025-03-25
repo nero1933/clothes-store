@@ -33,9 +33,9 @@ urlpatterns = [
     path('api/v1/register/guest/', RegisterGuestAPIView.as_view(), name='register_guest'),
     path('api/v1/register/confirmation/<str:token>/', register_user_confirmation, name='register_user_confirmation'),
 
-    path('api/v1/password-reset/', PasswordResetAPIView.as_view(), name='password_reset'),
-    path('api/v1/password-reset/new-password/<str:token>/', PasswordResetNewPasswordAPIView.as_view(),
-         name='password_reset_new_password'),
+    path('api/v1/forgot-password/', ForgotPasswordAPIView.as_view(), name='forgot_password'),
+    path('api/v1/reset-password/<str:token>/', ResetPasswordAPIView.as_view(),
+         name='reset_password'),
 
     path('api/v1/create-order/user/', OrderUserCreateAPIView.as_view(), name='create_order_user'),
     path('api/v1/create-order/guest/', OrderGuestCreateAPIView.as_view(), name='create_order_guest'),

@@ -12,7 +12,7 @@ const AppRoutes = () => {
             <Route path="/signin" element={<SignInPage />} />
             <Route path="/login" element={<LogInPage />} />
             <Route path="/activate/:token" element={<ActivateAccountPage />} />
-            <Route path="/password-reset/:token" element={<ResetPasswordPage />} />
+            <Route path="/reset-password/:token" element={<ResetPasswordPage />} />
         </Routes>
     );
 };

@@ -4,6 +4,7 @@ const ForgotPasswordForm = ({ onSwitch, onReset }) => {
     const [email, setEmail] = useState("");
     const [message, setMessage] = useState("");
     const [error, setError] = useState("");
+    const [loading, setLoading] = useState(false);
 
     const handleSubmit = async (e) => {
         e.preventDefault();
@@ -14,6 +15,8 @@ const ForgotPasswordForm = ({ onSwitch, onReset }) => {
             setError("Enter your email!");
             return;
         }
+
+        setLoading(true);
 
         const responseMessage = await onReset(email);
         setMessage(responseMessage);
@@ -32,7 +35,9 @@ const ForgotPasswordForm = ({ onSwitch, onReset }) => {
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                 />
-                <button type="submit">Send Reset Link</button>
+                <button type="submit" disabled={loading}>
+                    {loading ? "Processing..." : "Send Reset Link"}
+                </button>
             </form>
 
             <button onClick={onSwitch}>Back to Login</button>

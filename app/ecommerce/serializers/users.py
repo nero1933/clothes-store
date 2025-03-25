@@ -1,3 +1,4 @@
+from django.contrib.auth.hashers import check_password
 from rest_framework import serializers
 
 from ecommerce.models import UserProfile
@@ -42,11 +43,11 @@ class RegisterGuestSerializer(serializers.ModelSerializer):
         fields = ('email', 'access', 'refresh')
 
 
-class PasswordResetSerializer(serializers.Serializer):
+class ForgotPasswordSerializer(serializers.Serializer):
     email = serializers.EmailField(write_only=True)
 
 
-class PasswordSerializer(serializers.ModelSerializer):
+class ResetPasswordSerializer(serializers.ModelSerializer):
     """
     tests.
     """
@@ -62,6 +63,7 @@ class PasswordSerializer(serializers.ModelSerializer):
     def validate(self, attrs):
         password = attrs.get('password')
         password_confirmation = attrs.pop('password_confirmation', None)
+        user = self.context["user"]
 
         if not password:
             raise serializers.ValidationError("Enter new password.")
@@ -70,8 +72,10 @@ class PasswordSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError("Passwords must be at lest 8 characters.")
 
         if password != password_confirmation:
+            raise serializers.ValidationError(f"Passwords do not match.")
 
-            raise serializers.ValidationError(f"Passwords do not match. P1:{password} P2:{password_confirmation}")
+        if check_password(password, user.password):
+            raise serializers.ValidationError({"The new password must not match the current one."})
 
         return attrs
 
