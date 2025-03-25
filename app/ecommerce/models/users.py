@@ -113,6 +113,11 @@ class UserProfile(AbstractBaseUser, PermissionsMixin):
 
         return self.email
 
+    def activate(self):
+        """ Activates a user account. """
+        self.is_active = True
+        self.save(update_fields=['is_active'])
+
     def guest_to_user(self, new_email, first_name, last_name):
         if self.is_guest:
             new_password = ''.join(secrets.choice(string.ascii_letters + string.digits) for _ in range(8))
