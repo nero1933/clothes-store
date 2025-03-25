@@ -27,25 +27,25 @@ class ConfirmationManager:
 
         return self._conf_token
 
-    @property
-    def confirmation_key(self) -> str:
-        return self._confirmation_key
+    # @property
+    # def confirmation_key(self) -> str:
+    #     return self._confirmation_key
+    #
+    # @confirmation_key.setter
+    # def confirmation_key(self, confirmation_key: str) -> None:
+    #     if confirmation_key is None:
+    #         self._confirmation_key = confirmation_key
+    #
+    # @property
+    # def confirmation_flag(self) -> str:
+    #     return self._confirmation_flag
+    #
+    # @confirmation_flag.setter
+    # def confirmation_flag(self, confirmation_flag: str) -> None:
+    #     if confirmation_flag is None:
+    #         self._confirmation_flag = confirmation_flag
 
-    @confirmation_key.setter
-    def confirmation_key(self, confirmation_key: str) -> None:
-        if confirmation_key is None:
-            self._confirmation_key = confirmation_key
-
-    @property
-    def confirmation_flag(self) -> str:
-        return self._confirmation_flag
-
-    @confirmation_flag.setter
-    def confirmation_flag(self, confirmation_flag: str) -> None:
-        if confirmation_flag is None:
-            self._confirmation_flag = confirmation_flag
-
-    def set_confirmation_key(self, template: str) -> None:
+    def create_confirmation_key(self, template: str) -> str:
         """
         Generate a confirmation key using the provided template.
 
@@ -54,12 +54,13 @@ class ConfirmationManager:
         and the rest of the template should be private.
         """
         try:
-            self.confirmation_key = template.format(conf_token=self.conf_token)
-            # return self.confirmation_key
+            return template.format(conf_token=self.conf_token)
         except Exception as e:
             raise Exception(f"Failed create confirmation key: {e}")
 
-    def set_confirmation_flag(self, template: str, user_id: int) -> None:
+
+    @staticmethod
+    def create_confirmation_flag(template: str, user_id: int) -> str:
         """
         Generate a confirmation flag using the provided template.
 
@@ -71,8 +72,7 @@ class ConfirmationManager:
         so it is impossible to find it by 'user_id'
         """
         try:
-            self.confirmation_flag = template.format(user_id=user_id)
-            # return template.format(user_id=user_id)
+            return template.format(user_id=user_id)
         except Exception as e:
             raise Exception(f"Failed create confirmation flag: {e}")
 
@@ -112,8 +112,8 @@ class ConfirmationCacheManager(ConfirmationManager):
         """
 
         try:
-            self.set_confirmation_key(template)
-            cache.set(self.confirmation_key, {'user_id': user_id}, timeout=timeout)
+            confirmation_key = self.create_confirmation_key(template)
+            cache.set(confirmation_key, {'user_id': user_id}, timeout=timeout)
         except Exception as e:
             raise Exception(f"Failed to set confirmation key in cache: {e}")
 
@@ -131,8 +131,8 @@ class ConfirmationCacheManager(ConfirmationManager):
         """
 
         try:
-            self.set_confirmation_flag(template, user_id)
-            cache.set(self.confirmation_flag, True, timeout=timeout)
+            confirmation_flag = self.create_confirmation_flag(template, user_id)
+            cache.set(confirmation_flag, True, timeout=timeout)
         except Exception as e:
             raise Exception(f"Failed to set confirmation key in cache: {e}")
 

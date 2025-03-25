@@ -199,29 +199,7 @@ class RegisterUserAPIView(CreateAPIView,
                 user_id = response.data.get('id', None)
                 user_email = response.data.get('email', None)
 
-
-
-                # conf_token = self.conf_token  # property of ConfirmationManager (public key)
-                #
-                # Function form ConfirmationCacheManager
-                # Creates confirmation_key and confirmation_flag
-                # Sets them to cache.
-                # Key contains token which would be sent
-                # to user in email as a part of url.
-                # Url leads to account activation page.
-                # Flag is used to monitor if key is still in cache.
-                # Value of key is {'user_id': user_id} (dict)
-                # Value of flag is True (bool)
-                self.cache_confirmation_data(
-                    self.confirmation_key_template,
-                    self.confirmation_flag_template,
-                    user_id,
-                    self.timeout,
-                    store_flag=True,
-                )
-
-                # Sends an email to users email with url to account activation page.
-                self.send_activation_email(user_email)
+                self.prepare_and_send_confirmation_email(user_email, user_id)
 
                 return response
 

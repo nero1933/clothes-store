@@ -47,7 +47,7 @@ class ConfirmationEmail(SendEmail, ConfirmationCacheManager):
     subject: str
     text_template: str
     html_template: str
-    frontend_path: str
+    path: str
     confirmation_key_template: str
     confirmation_flag_template: str
     timeout: int
@@ -122,7 +122,7 @@ class ConfirmationEmail(SendEmail, ConfirmationCacheManager):
         )
 
         # Step 2: Send the email
-        confirmation_url = self.create_confirmation_url()
+        confirmation_url = self.create_confirmation_url(self.path)
         text_context = html_context = {'confirmation_url': confirmation_url}
 
         self.send_email(
@@ -142,7 +142,7 @@ class ActivationEmail(ConfirmationEmail):
     subject = "Activate your account"
     text_template = "ecommerce/confirm_registration.txt"
     html_template = "ecommerce/confirm_registration.html"
-    frontend_path = "/activate/"
+    frontend_path = "activate/"
 
     confirmation_key_template = settings.USER_CONFIRMATION_KEY_TEMPLATE
     confirmation_flag_template = settings.USER_CONFIRMATION_FLAG_TEMPLATE
@@ -157,7 +157,7 @@ class PasswordResetEmail(ConfirmationEmail):
     subject = "Reset your password"
     text_template = "emails/password_reset_email.txt"
     html_template = "emails/password_reset_email.html"
-    frontend_path = "/reset-password/"
+    frontend_path = "reset-password/"
 
     confirmation_key_template = settings.USER_CONFIRMATION_KEY_TEMPLATE
     confirmation_flag_template = settings.USER_CONFIRMATION_FLAG_TEMPLATE
