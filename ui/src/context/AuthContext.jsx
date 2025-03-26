@@ -29,6 +29,8 @@ export const AuthProvider = ({ children }) => {
                 throw new Error("Invalid email or password.");
             } else if (err.response && err.response.status === 403) {
                 throw new Error("Your account is not activated. Please check your email.");
+            } else if (err.response && err.response.status === 429) {
+                throw new Error("Max attempts was reached. Please check your email or wait 24 hours!");
             }
         }
     };

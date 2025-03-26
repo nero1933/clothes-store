@@ -34,7 +34,7 @@ class LoginView(APIView, ActivationEmail):
     def __init__(self, *args, **kwargs):
         # Initialize parent classes explicitly
         super().__init__(*args, **kwargs)
-        ConfirmationManager.__init__(self)
+        ConfirmationManager.__init__(self) # Creates and stores conf_token
 
     def handle_inactive_user(self, user):
         try:
@@ -65,10 +65,6 @@ class LoginView(APIView, ActivationEmail):
         if not user.is_active:
             inactive_user_response = self.handle_inactive_user(user)
             return inactive_user_response
-            # return Response(
-            #     {'error': 'Your account is not activated. Please check your email.'},
-            #     status=status.HTTP_403_FORBIDDEN
-            # )
 
         refresh = RefreshToken.for_user(user)
         access_token = refresh.access_token
