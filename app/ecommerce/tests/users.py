@@ -13,17 +13,19 @@ from ecommerce.models import UserProfile
 from ecommerce.utils.tests.mixins import TestAPIEcommerce
 
 
-def get_link_from_message(message) -> str:
-    regex = r"(?P<url>https?://[^\s]+)"
-    match = re.search(regex, message)
-    link = match.group("url")
-    return link
+# def get_link_from_message(message) -> str:
+#     regex = r"(?P<url>https?://[^\s]+)"
+#     match = re.search(regex, message)
+#     link = match.group("url")
+#     return link
 
 
 def extract_token_form_url(url) -> str:
+    print('url ->', url)
     regex = r'/(activate|reset-password)/([\w\d]+)/'
     match = re.search(regex, url)
     token = match.group(2)
+    print('token ->', token)
     return token
 
 
@@ -66,10 +68,9 @@ class UserTestCase(TestAPIEcommerce):
 
         # Get confirmation link from message
         message = mail.outbox[0].body
-        link = get_link_from_message(message)
 
         # Extract token
-        conf_token = extract_token_form_url(link)
+        conf_token = extract_token_form_url(message)
 
         # Create link to API endpoint with token
         link = reverse('activate_user', kwargs={'conf_token': conf_token})
@@ -110,10 +111,9 @@ class UserTestCase(TestAPIEcommerce):
 
         # Get confirmation link from message
         message = mail.outbox[0].body
-        link = get_link_from_message(message)
 
         # Extract token
-        conf_token = extract_token_form_url(link)
+        conf_token = extract_token_form_url(message)
 
         # Create link to API endpoint with token
         link = reverse('reset_password', kwargs={'conf_token': conf_token})
