@@ -157,7 +157,7 @@ def activate_user(request, *args, **kwargs):
     Confirm registration of a user with a confirmation email.
     """
     confirmation_key = settings.USER_CONFIRMATION_KEY_TEMPLATE.format(
-        conf_token=kwargs['conf_token']
+        key_template=kwargs['conf_token']
     )
     user = cache.get(confirmation_key, {})
 
@@ -166,7 +166,7 @@ def activate_user(request, *args, **kwargs):
         user.activate()
         cache.delete(confirmation_key)
         return Response(
-            {'message': 'User is registered successfully!'},
+            {'message': 'User is activated successfully!'},
             status=status.HTTP_204_NO_CONTENT
         )
     else:
@@ -289,7 +289,9 @@ class ResetPasswordAPIView(mixins.UpdateModelMixin,
 
     def get_object(self):
         if self._object is None:
-            confirmation_key = settings.PASSWORD_RESET_KEY.format(token=self.kwargs['token'])
+            confirmation_key = settings.RESET_PASSWORD_KEY_TEMPLATE.format(
+                key_template=self.kwargs['conf_token']
+            )
             data = cache.get(confirmation_key, {})
 
             # If there is no link in cache it was expired (or did not exist).
@@ -313,19 +315,21 @@ class ResetPasswordAPIView(mixins.UpdateModelMixin,
     def patch(self, request, *args, **kwargs):
         try:
             self.partial_update(request, *args, **kwargs)
-
             # If not active user tries to reset password, make him active.
             user = self.get_object()
             if not user.is_active:
                 user.activate()
 
-            confirmation_key = settings.PASSWORD_RESET_KEY.format(token=self.kwargs['token'])
+            confirmation_key = settings.RESET_PASSWORD_KEY_TEMPLATE.format(
+                key_template=self.kwargs['conf_token']
+            )
             cache.delete(confirmation_key)
 
             return Response(
                 {'message': 'Password was changed successfully!'},
                 status=status.HTTP_204_NO_CONTENT
             )
+
         except TimeoutError:
             return Response(
                  {'error': 'Link is expired.'},

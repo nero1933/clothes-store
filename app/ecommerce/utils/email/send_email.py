@@ -99,13 +99,13 @@ class ConfirmationEmail(SendEmail, ConfirmationCacheManager):
         self.handle_cache_confirmation_key_and_counter(user_id)
 
         # Step 2: Send confirmation email
-        # self.send_confirmation_email(
-        #     user_email=user_email,
-        #     subject=self.subject,
-        #     text_template=self.text_template,
-        #     html_template=self.html_template,
-        #     frontend_path=self.frontend_path,
-        # )
+        self.send_confirmation_email(
+            user_email=user_email,
+            subject=self.subject,
+            text_template=self.text_template,
+            html_template=self.html_template,
+            frontend_path=self.frontend_path,
+        )
 
 class ActivationEmail(ConfirmationEmail):
     """
@@ -123,7 +123,7 @@ class ActivationEmail(ConfirmationEmail):
     confirmation_counter_template = settings.USER_CONFIRMATION_COUNTER_TEMPLATE
     timeout_counter = settings.USER_CONFIRMATION_COUNTER_TIMEOUT
 
-    max_attempts = 3
+    max_attempts = 5
 
 
 class PasswordResetEmail(ConfirmationEmail):
@@ -142,4 +142,4 @@ class PasswordResetEmail(ConfirmationEmail):
     confirmation_counter_template = settings.RESET_PASSWORD_COUNTER_TEMPLATE
     timeout_counter = settings.RESET_PASSWORD_COUNTER_TIMEOUT
 
-    max_attempts = 6
+    max_attempts = 5
