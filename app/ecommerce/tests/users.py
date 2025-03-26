@@ -13,19 +13,10 @@ from ecommerce.models import UserProfile
 from ecommerce.utils.tests.mixins import TestAPIEcommerce
 
 
-# def get_link_from_message(message) -> str:
-#     regex = r"(?P<url>https?://[^\s]+)"
-#     match = re.search(regex, message)
-#     link = match.group("url")
-#     return link
-
-
 def extract_token_form_url(url) -> str:
-    print('url ->', url)
     regex = r'/(activate|reset-password)/([\w\d]+)/'
     match = re.search(regex, url)
     token = match.group(2)
-    print('token ->', token)
     return token
 
 
@@ -133,42 +124,42 @@ class UserTestCase(TestAPIEcommerce):
 
         # Check that the response has a success status code
         self.assertEqual(response.status_code, status.HTTP_200_OK, 'Code must be 200')
-    #
-    #
-    # def test_user_view_set(self):
-    #
-    #     data = {'email': 'test@test.com', 'first_name': 'test', 'last_name': 'test'}
-    #     kwargs = {'pk': self.user.pk}
-    #
-    #     response = self.client.get(
-    #         reverse('users-detail', kwargs=kwargs),
-    #         data,
-    #         HTTP_AUTHORIZATION=f'Bearer {self.jwt_access_token}',
-    #         format='json'
-    #     )
-    #
-    #     response.data.pop('id')
-    #
-    #     # Check that the response has a success status code
-    #     self.assertEqual(response.status_code, status.HTTP_200_OK, 'Code must be 200')
-    #
-    #     # Check that the response has right data
-    #     self.assertEqual(response.data, data, f'data must be {data}')
-    #
-    #     new_particular_data = {'first_name': 'John', 'last_name': 'Doe'}
-    #     new_data = {'email': 'test@test.com', 'first_name': 'John', 'last_name': 'Doe'}
-    #
-    #     response = self.client.patch(
-    #         reverse('users-detail', kwargs=kwargs),
-    #         new_particular_data,
-    #         HTTP_AUTHORIZATION=f'Bearer {self.jwt_access_token}',
-    #         format='json'
-    #     )
-    #
-    #     response.data.pop('id')
-    #
-    #     # Check that the response has a success status code
-    #     self.assertEqual(response.status_code, status.HTTP_200_OK, 'Code must be 200')
-    #
-    #     # Check that the response has right data
-    #     self.assertEqual(response.data, new_data, f'data must be {new_data}')
+
+
+    def test_user_view_set(self):
+
+        data = {'email': 'test@test.com', 'first_name': 'test', 'last_name': 'test'}
+        kwargs = {'pk': self.user.pk}
+
+        response = self.client.get(
+            reverse('users-detail', kwargs=kwargs),
+            data,
+            HTTP_AUTHORIZATION=f'Bearer {self.jwt_access_token}',
+            format='json'
+        )
+
+        response.data.pop('id')
+
+        # Check that the response has a success status code
+        self.assertEqual(response.status_code, status.HTTP_200_OK, 'Code must be 200')
+
+        # Check that the response has right data
+        self.assertEqual(response.data, data, f'data must be {data}')
+
+        new_particular_data = {'first_name': 'John', 'last_name': 'Doe'}
+        new_data = {'email': 'test@test.com', 'first_name': 'John', 'last_name': 'Doe'}
+
+        response = self.client.patch(
+            reverse('users-detail', kwargs=kwargs),
+            new_particular_data,
+            HTTP_AUTHORIZATION=f'Bearer {self.jwt_access_token}',
+            format='json'
+        )
+
+        response.data.pop('id')
+
+        # Check that the response has a success status code
+        self.assertEqual(response.status_code, status.HTTP_200_OK, 'Code must be 200')
+
+        # Check that the response has right data
+        self.assertEqual(response.data, new_data, f'data must be {new_data}')

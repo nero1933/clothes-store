@@ -12,6 +12,8 @@ jobs:
     runs-on: ubuntu-latest
 
     env:
+
+      FRONTEND_URL: ${{ secrets.FRONTEND_URL }}
       POSTGRES_DB: ${{ secrets.DB_NAME }}
       POSTGRES_USER: ${{ secrets.DB_USER }}
       POSTGRES_PASSWORD: ${{ secrets.DB_PASS }}
@@ -23,7 +25,7 @@ jobs:
       DB_PASS: ${{ secrets.DB_PASS }}
       ALLOWED_HOSTS: ${{ secrets.ALLOWED_HOSTS }}
       SENDGRID_API_KEY: ${{ secrets.SENDGRID_API_KEY }}
-      FROM_EMAIL: ${{ secrets.FROM_EMAIL }}
+      DEFAULT_FROM_EMAIL: ${{ secrets.DEFAULT_FROM_EMAIL }}
       USER_CONFIRMATION_KEY_TEMPLATE: ${{ secrets.USER_CONFIRMATION_KEY_TEMPLATE }}
       USER_CONFIRMATION_KEY_TIMEOUT: ${{ secrets.USER_CONFIRMATION_KEY_TIMEOUT }}
       USER_CONFIRMATION_COUNTER_TEMPLATE: ${{ secrets.USER_CONFIRMATION_COUNTER_TEMPLATE }}
