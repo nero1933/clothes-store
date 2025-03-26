@@ -17,7 +17,7 @@ class UserProfileManager(BaseUserManager):
         """ Creates a new user profile object. """
 
         if not email:
-            raise ValueError('Users must have an email address.')
+            raise ValueError('Users must have an "email".')
 
         email = self.normalize_email(email)
         user = self.model(email=email, first_name=first_name, last_name=last_name)

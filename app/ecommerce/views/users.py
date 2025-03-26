@@ -7,6 +7,7 @@ from django.utils import timezone
 
 from rest_framework import status, mixins
 from rest_framework.decorators import api_view
+from rest_framework.exceptions import ValidationError
 from rest_framework.generics import CreateAPIView, get_object_or_404, GenericAPIView
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
@@ -19,32 +20,33 @@ from app import settings
 from ecommerce.models import UserProfile, UserProfileManager
 from ecommerce.serializers import RegisterUserSerializer, \
     UserProfileSerializer, RegisterGuestSerializer, ForgotPasswordSerializer, ResetPasswordSerializer
-from ecommerce.utils.email.send_email import ActivationEmail
-from ecommerce.utils.email.senders import RegistrationEmail, PasswordResetEmail
-from ecommerce.utils.confirmation_managers.confirmation_managers import ConfirmationManager, ConfirmationCacheManager
+from ecommerce.utils.email.send_email import ActivationEmail, PasswordResetEmail
+from ecommerce.utils.confirmation_managers.confirmation_managers import ConfirmationManager
 
 
-class LoginView(APIView, RegistrationEmail):
+class LoginView(APIView, ActivationEmail):
     """
     User authentication.
 
     Generation of JWT token and setting refresh token into HttpOnly cookie.
     """
 
-    def handle_inactive_user(self, user):
-        confirmation_flag_template = settings.USER_CONFIRMATION_FLAG_TEMPLATE
-        confirmation_flag_template.format(user_id=user.id)
-        confirmation_flag = cache.get(confirmation_flag_template)
+    def __init__(self, *args, **kwargs):
+        # Initialize parent classes explicitly
+        super().__init__(*args, **kwargs)
+        ConfirmationManager.__init__(self)
 
-        error = ''
-        if confirmation_flag:
-            error = 'Activate your account by opening link from email!'
-        else:
-            error = 'Activate your account, new email was send!'
-            self.send_registration_link()
+    def handle_inactive_user(self, user):
+        try:
+            self.prepare_and_send_confirmation_email(user.id, user.email)
+        except ValidationError:
+            return Response(
+                {'error': "Max attempts was reached, please wait 24 hours!"},
+                status=status.HTTP_429_TOO_MANY_REQUESTS
+            )
 
         return Response(
-            {'error': error},
+            {'error': 'check email, link was resend'},
             status=status.HTTP_403_FORBIDDEN
         )
 
@@ -182,10 +184,6 @@ class RegisterUserAPIView(CreateAPIView,
     """
     serializer_class = RegisterUserSerializer
 
-    # confirmation_key_template = settings.USER_CONFIRMATION_KEY_TEMPLATE
-    # confirmation_flag_template = settings.USER_CONFIRMATION_FLAG_TEMPLATE
-    # timeout = settings.USER_CONFIRMATION_TIMEOUT
-
     def __init__(self, *args, **kwargs):
         # Initialize parent classes explicitly
         super().__init__(*args, **kwargs)
@@ -199,7 +197,7 @@ class RegisterUserAPIView(CreateAPIView,
                 user_id = response.data.get('id', None)
                 user_email = response.data.get('email', None)
 
-                self.prepare_and_send_confirmation_email(user_email, user_id)
+                self.prepare_and_send_confirmation_email(user_id, user_email)
 
                 return response
 
@@ -256,16 +254,17 @@ class RegisterGuestAPIView(CreateAPIView):
         return response
 
 
-class ForgotPasswordAPIView(APIView,
-                           PasswordResetEmail,
-                           ConfirmationManager):
+class ForgotPasswordAPIView(APIView, PasswordResetEmail):
     """
     View for password reset.
 
     Takes 'email' from serializer and sends an email with a link to proceed password reset.
     """
-    confirmation_key_template = settings.PASSWORD_RESET_KEY # const from KeyEncoder
-    timeout = settings.PASSWORD_RESET_TIMEOUT # const from KeyEncoder
+
+    def __init__(self, *args, **kwargs):
+        # Initialize parent classes explicitly
+        super().__init__(*args, **kwargs)
+        ConfirmationManager.__init__(self)
 
     def post(self, request, *args, **kwargs):
         serializer = ForgotPasswordSerializer(context={'request': request}, data=request.data)
@@ -273,9 +272,7 @@ class ForgotPasswordAPIView(APIView,
         user_email = serializer.validated_data['email']
         user_id = get_object_or_404(UserProfile, email=user_email).pk
 
-        confirmation_key = self.create_confirmation_key(self.confirmation_key_template) # method from KeyEncoder
-        cache.set(confirmation_key, {'user_id': user_id}, timeout=self.timeout) # set key to cache
-        self.send_password_reset_link(request, user_email, self.conf_token) # method from RegistrationEmail
+        self.prepare_and_send_confirmation_email(user_id, user_email)
 
         return Response(
             {'message': 'Email sent. Check your mailbox!'},

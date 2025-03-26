@@ -1,156 +1,155 @@
 import uuid
 
+from typing import Any
+
 from django.core.cache import cache
+
+from rest_framework.exceptions import ValidationError
 
 
 class ConfirmationManager:
     """
-    Manages the creation, reading, setting and deleting
-    to/from cache
-    of confirmation keys and flags.
+    Manages the creation of confirmation keys in the cache
+    and handles conf_token.
     """
 
     def __init__(self):
         self._conf_token = None
-        #
-        # УБРАТЬ ЭТИ ПАРАМЕТРЫ, Я ИХ ИСПОЛЬЗУЮ 1 РАЗ, ДЕЛАТЬ ВОЗВРАТ ФУНКЦИИ
-        # ОСТАВИТЬ ТОЛЬКО _conf_token Я ЕГО ИСПОЛЬЗУЮ В ПОСТОЕНИИ URL'A!
-        #
-        # self._confirmation_key = None
-        # self._confirmation_flag = None
 
     @property
     def conf_token(self) -> str:
-        # If 'conf_token' is None, generate 'conf_token'
+        """
+        Returns a new confirmation token if one doesn't exist.
+        """
         if self._conf_token is None:
             self._conf_token = uuid.uuid4().hex
 
         return self._conf_token
 
-    # @property
-    # def confirmation_key(self) -> str:
-    #     return self._confirmation_key
-    #
-    # @confirmation_key.setter
-    # def confirmation_key(self, confirmation_key: str) -> None:
-    #     if confirmation_key is None:
-    #         self._confirmation_key = confirmation_key
-    #
-    # @property
-    # def confirmation_flag(self) -> str:
-    #     return self._confirmation_flag
-    #
-    # @confirmation_flag.setter
-    # def confirmation_flag(self, confirmation_flag: str) -> None:
-    #     if confirmation_flag is None:
-    #         self._confirmation_flag = confirmation_flag
-
-    def create_confirmation_key(self, template: str) -> str:
+    @staticmethod
+    def create_confirmation_key(template: str, key_template: str) -> str:
         """
-        Generate a confirmation key using the provided template.
-
-        Key contains a template with a {conf_token} parameter.
-        'conf_token' can be used as a public key
-        and the rest of the template should be private.
+        Creates a confirmation key from a template and key template.
         """
         try:
-            return template.format(conf_token=self.conf_token)
+            r = template.format(key_template=key_template)
+            return r
         except Exception as e:
             raise Exception(f"Failed create confirmation key: {e}")
 
 
-    @staticmethod
-    def create_confirmation_flag(template: str, user_id: int) -> str:
-        """
-        Generate a confirmation flag using the provided template.
-
-        Flag is a pair of key (which contains 'user_id') and a bool value.
-        While value is True it means that the user still has
-        an active 'confirmation_key' in cache.
-
-        'confirmation_key' doesn't contain 'user_id'
-        so it is impossible to find it by 'user_id'
-        """
-        try:
-            return template.format(user_id=user_id)
-        except Exception as e:
-            raise Exception(f"Failed create confirmation flag: {e}")
-
-
 class ConfirmationCacheManager(ConfirmationManager):
     """
-    Manages the caching of confirmation keys and flags.
-
-    This class extends `ConfirmationManager` to handle the storage of
-    confirmation data in Django's cache system. It provides methods to:
-    - Store a confirmation key associated with a user.
-    - Store a confirmation flag indicating an active confirmation key.
-    - Optionally store both the key and flag together.
-
-    The confirmation key is used for verifying user actions (e.g., email confirmation),
-    while the flag helps track active confirmation states.
-
-    Attributes:
-        Inherits methods and properties from `ConfirmationManager`.
+    Manages confirmation keys and counter values in the cache.
     """
 
-    # def __init__(self): # Do I need it here? I Inherit only from one class
-    #     # Initialize parent classes explicitly
-    #     super().__init__()
+    confirmation_key_template: str
+    timeout_key: int
 
-    def cache_confirmation_key(
-            self,
-            template: str,
-            user_id: int,
-            timeout: int,
-    ) -> None:
-        """
-        Set the confirmation key in the cache.
+    confirmation_counter_template: str
+    timeout_counter: int
 
-        This method takes the confirmation key template, creates a confirmation key,
-        and sets it in the cache with the associated user ID.
-        """
-
-        try:
-            confirmation_key = self.create_confirmation_key(template)
-            cache.set(confirmation_key, {'user_id': user_id}, timeout=timeout)
-        except Exception as e:
-            raise Exception(f"Failed to set confirmation key in cache: {e}")
-
-    def cache_confirmation_flag(
-            self,
-            template: str,
-            user_id: int,
-            timeout: int,
-    ) -> None:
-        """
-        Set the confirmation flag in the cache.
-
-        This method takes the confirmation flag template, creates a confirmation flag,
-        and sets it in the cache with the value True.
-        """
-
-        try:
-            confirmation_flag = self.create_confirmation_flag(template, user_id)
-            cache.set(confirmation_flag, True, timeout=timeout)
-        except Exception as e:
-            raise Exception(f"Failed to set confirmation key in cache: {e}")
+    max_attempts: int
 
     def cache_confirmation_data(
             self,
-            confirmation_key_template: str,
-            confirmation_flag_template: str | None,
-            user_id: int,
+            template: str,
+            key_template: str,
+            data: Any,
             timeout: int,
-            store_flag: bool = False,
+    ) -> str:
+        """
+        Set the confirmation data in the cache.
+
+        This method creates a confirmation key from the template,
+        sets it in the cache with the provided data,
+        and applies a timeout for expiry.
+        """
+        try:
+            confirmation_key = self.create_confirmation_key(template, key_template)
+            cache.set(confirmation_key, data, timeout=int(timeout))
+            return confirmation_key
+        except Exception as e:
+            raise Exception(f"Failed to set confirmation data ({data}) in cache: {e}")
+
+    def cache_renewed_confirmation_key(self, counter_key: str, counter_value: dict) -> None:
+        """
+        Renew the confirmation key in the cache by incrementing the counter value.
+        This method clears the previous counter data and updates the cache with a new key and counter value.
+        """
+        try:
+            confirmation_key = list(counter_value.keys())[0] # Get the old confirmation key
+            counter = counter_value[confirmation_key]
+            counter += 1 # Increment the counter
+
+            # Delete the old confirmation key from cache
+            cache.delete(confirmation_key)
+
+            # Create a new confirmation key
+            new_confirmation_key = self.create_confirmation_key(
+                self.confirmation_key_template, self.conf_token
+            )
+            # Clear the old counter value
+            counter_value.clear()
+            # Set the new confirmation key with incremented counter
+            counter_value.update({new_confirmation_key: counter})
+
+            # Save the renewed counter data in the cache
+            cache.set(counter_key, counter_value)
+
+        except Exception as e:
+            raise Exception(f"Failed to cache renewed confirmation key: {e}")
+
+    def cache_confirmation_key_with_counter(
+            self,
+            user_id: int
     ) -> None:
         """
-        Set both the confirmation key and the flag in the cache.
+        Cache the confirmation_key and the counter_key for a user.
 
-        This method calls both set_to_cache_confirmation_key and
-        set_to_cache_confirmation_flag to set the confirmation key and flag in the cache.
+        Value of confirmation_key is {'user_id': user_id}
+        Value of counter_key is {confirmation_key: 1}
         """
+        try:
+            confirmation_key = self.cache_confirmation_data(
+                self.confirmation_key_template,
+                self.conf_token,
+                {'user_id': user_id},
+                self.timeout_key,
+            )
+            # Store the confirmation counter with an initial value of 1
+            self.cache_confirmation_data(
+                self.confirmation_counter_template,
+                str(user_id),
+                {confirmation_key: 1},
+                self.timeout_counter,
+            )
+        except Exception as e:
+            raise Exception(f"Failed to cache new confirmation key: {e}")
 
-        self.cache_confirmation_key(confirmation_key_template, user_id, timeout)
-        if store_flag:
-            self.cache_confirmation_flag(confirmation_flag_template, user_id, timeout)
+    def handle_cache_confirmation_key_and_counter(self, user_id: int) -> None:
+        """
+        Handle the caching of the confirmation key and counter for a user.
+        If the counter exceeds the max attempts, raise an exception.
+        If the counter does not exist, cache a new confirmation key with counter 1.
+        """
+        counter_key = self.create_confirmation_key(
+            self.confirmation_counter_template, str(user_id)
+        )
+
+        counter_value = cache.get(counter_key, None)
+        if counter_value is None:
+            # If no counter exists, create a new confirmation key and counter 1
+            self.cache_confirmation_key_with_counter(user_id)
+            return None
+
+        counter = list(counter_value.values())[0]
+        if counter >= self.max_attempts:
+            # If the max attempts are reached, raise an error
+            raise ValidationError(
+                "Max attempts reached, please wait 24 hours!",
+            )
+
+        # If counter is not exceeded, renew the confirmation key and increment the counter
+        self.cache_renewed_confirmation_key(counter_key, counter_value)
+        return None
