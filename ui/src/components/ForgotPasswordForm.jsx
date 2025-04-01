@@ -1,10 +1,14 @@
 import { useState } from "react";
+import { useDispatch } from "react-redux";
+import { forgotPassword } from "../features/authSlice.jsx";
 
-const ForgotPasswordForm = ({ onSwitch, onReset }) => {
+const ForgotPasswordForm = ({ onSwitch, onForgot }) => {
     const [email, setEmail] = useState("");
     const [message, setMessage] = useState("");
     const [error, setError] = useState("");
     const [loading, setLoading] = useState(false);
+
+    const dispatch = useDispatch()
 
     const handleSubmit = async (e) => {
         e.preventDefault();
@@ -18,7 +22,7 @@ const ForgotPasswordForm = ({ onSwitch, onReset }) => {
 
         setLoading(true);
 
-        const responseMessage = await onReset(email);
+        const responseMessage = await onForgot(email);
         setMessage(responseMessage);
     };
 

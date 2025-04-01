@@ -1,11 +1,10 @@
 import { Link } from "react-router-dom";
-import {useAuth} from "../context/AuthContext.jsx";
+import { useSelector } from "react-redux";
 import LogoutButton from "./LogoutButton.jsx";
-import React, { useEffect } from "react";
 
 
 const Header = () => {
-    const { id, name, is_guest } = useAuth();
+    const { id, name, is_guest } = useSelector((state) => state.auth);
 
     // console.log(id, name, is_guest);
 

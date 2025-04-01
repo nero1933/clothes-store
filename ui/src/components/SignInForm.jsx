@@ -30,7 +30,8 @@ function SignInForm() {
 
         try {
             await signInService(
-                email, firstName, lastName, password, confirmPassword);
+                email, firstName, lastName, password, confirmPassword
+            );
 
             setIsRegistered(true);
 

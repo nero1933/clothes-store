@@ -8,6 +8,7 @@ const LogInForm = ({ onSwitch, onLogin }) => {
 
     const navigate = useNavigate();
 
+
     const handleSubmit = async (e) => {
         e.preventDefault();
 

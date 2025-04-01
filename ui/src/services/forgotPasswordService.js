@@ -8,4 +8,4 @@ const forgotPasswordService = async (email) => {
     console.log(response.data);
 };
 
-export default forgotPasswordService;
+export { forgotPasswordService };

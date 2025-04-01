@@ -1,14 +1,15 @@
 import { useNavigate } from "react-router-dom";
-import { useAuth } from "../context/AuthContext";
-import api from "../api/api.js";
+import { useDispatch } from "react-redux";
+import { logout } from "../features/authSlice";
+
 
 const LogoutButton = () => {
     const navigate = useNavigate();
-    const { logout } = useAuth()
+    const dispatch = useDispatch()
 
     const handleLogout = async () => {
         try {
-            await logout()
+            await dispatch(logout()).unwrap();
             navigate("/");
         } catch (error) {
             console.log(error);
