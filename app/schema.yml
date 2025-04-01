@@ -1,0 +1,2126 @@
+openapi: 3.0.3
+info:
+  title: E-Commence clothes-store
+  version: 1.0.0
+  description: My pet project
+paths:
+  /api/v1/addresses/:
+    get:
+      operationId: addresses_list
+      tags:
+      - addresses
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/UserAddress'
+          description: ''
+    post:
+      operationId: addresses_create
+      tags:
+      - addresses
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserAddress'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/UserAddress'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/UserAddress'
+        required: true
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserAddress'
+          description: ''
+  /api/v1/addresses/{id}/:
+    get:
+      operationId: addresses_retrieve
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+        required: true
+      tags:
+      - addresses
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserAddress'
+          description: ''
+    patch:
+      operationId: addresses_partial_update
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+        required: true
+      tags:
+      - addresses
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedUserAddress'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedUserAddress'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedUserAddress'
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserAddress'
+          description: ''
+    delete:
+      operationId: addresses_destroy
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+        required: true
+      tags:
+      - addresses
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '204':
+          description: No response body
+  /api/v1/create-order/guest/:
+    post:
+      operationId: create_order_guest_create
+      tags:
+      - create-order
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/OrderGuestCreate'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/OrderGuestCreate'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/OrderGuestCreate'
+        required: true
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OrderGuestCreate'
+          description: ''
+  /api/v1/create-order/user/:
+    post:
+      operationId: create_order_user_create
+      tags:
+      - create-order
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '201':
+          description: No response body
+  /api/v1/forgot-password/:
+    post:
+      operationId: forgot_password_create
+      description: |-
+        View for password reset.
+
+        Takes 'email' from serializer and sends an email with a link to proceed password reset.
+      tags:
+      - forgot-password
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      - {}
+      responses:
+        '200':
+          description: No response body
+  /api/v1/login/:
+    post:
+      operationId: login_create
+      description: |-
+        User authentication.
+
+        Generation of JWT token and setting refresh token into HttpOnly cookie.
+      tags:
+      - login
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      - {}
+      responses:
+        '200':
+          description: No response body
+  /api/v1/logout/:
+    post:
+      operationId: logout_create
+      description: |-
+        Logout user.
+
+        Deletes refresh token from HttpOnly cookie.
+      tags:
+      - logout
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          description: No response body
+  /api/v1/orders/:
+    get:
+      operationId: orders_list
+      tags:
+      - orders
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/OrderList'
+          description: ''
+  /api/v1/orders/{order_id}/order_items/{order_item_id}/products/{product_slug}/reviews/:
+    post:
+      operationId: orders_order_items_products_reviews_create
+      parameters:
+      - in: path
+        name: order_id
+        schema:
+          type: integer
+        required: true
+      - in: path
+        name: order_item_id
+        schema:
+          type: integer
+        required: true
+      - in: path
+        name: product_slug
+        schema:
+          type: string
+        required: true
+      tags:
+      - orders
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '201':
+          description: No response body
+  /api/v1/orders/{order_id}/order_items/{order_item_id}/products/{product_slug}/reviews/{id}/:
+    get:
+      operationId: orders_order_items_products_reviews_retrieve
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        required: true
+      - in: path
+        name: order_id
+        schema:
+          type: integer
+        required: true
+      - in: path
+        name: order_item_id
+        schema:
+          type: integer
+        required: true
+      - in: path
+        name: product_slug
+        schema:
+          type: string
+        required: true
+      tags:
+      - orders
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          description: No response body
+    patch:
+      operationId: orders_order_items_products_reviews_partial_update
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        required: true
+      - in: path
+        name: order_id
+        schema:
+          type: integer
+        required: true
+      - in: path
+        name: order_item_id
+        schema:
+          type: integer
+        required: true
+      - in: path
+        name: product_slug
+        schema:
+          type: string
+        required: true
+      tags:
+      - orders
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          description: No response body
+    delete:
+      operationId: orders_order_items_products_reviews_destroy
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        required: true
+      - in: path
+        name: order_id
+        schema:
+          type: integer
+        required: true
+      - in: path
+        name: order_item_id
+        schema:
+          type: integer
+        required: true
+      - in: path
+        name: product_slug
+        schema:
+          type: string
+        required: true
+      tags:
+      - orders
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '204':
+          description: No response body
+  /api/v1/orders/{id}/:
+    get:
+      operationId: orders_retrieve
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+        required: true
+      tags:
+      - orders
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OrderDetail'
+          description: ''
+  /api/v1/payment/{order_id}/checkout/:
+    get:
+      operationId: payment_checkout_retrieve
+      parameters:
+      - in: path
+        name: order_id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - payment
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          description: No response body
+    post:
+      operationId: payment_checkout_create
+      parameters:
+      - in: path
+        name: order_id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - payment
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          description: No response body
+  /api/v1/products/:
+    get:
+      operationId: products_list
+      tags:
+      - products
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Product'
+          description: ''
+  /api/v1/products/{slug}/:
+    get:
+      operationId: products_retrieve
+      parameters:
+      - in: path
+        name: slug
+        schema:
+          type: string
+        required: true
+      tags:
+      - products
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProductDetail'
+          description: ''
+  /api/v1/register/confirmation/{conf_token}/:
+    post:
+      operationId: register_confirmation_create
+      description: Confirm registration of a user with a confirmation email.
+      parameters:
+      - in: path
+        name: conf_token
+        schema:
+          type: string
+        required: true
+      tags:
+      - register
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      - {}
+      responses:
+        '200':
+          description: No response body
+  /api/v1/register/guest/:
+    post:
+      operationId: register_guest_create
+      description: View for guest registration.
+      tags:
+      - register
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RegisterGuest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/RegisterGuest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/RegisterGuest'
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      - {}
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RegisterGuest'
+          description: ''
+  /api/v1/register/user/:
+    post:
+      operationId: register_user_create
+      description: View for user registration.
+      tags:
+      - register
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RegisterUser'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/RegisterUser'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/RegisterUser'
+        required: true
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      - {}
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RegisterUser'
+          description: ''
+  /api/v1/reset-password/{conf_token}/:
+    patch:
+      operationId: reset_password_partial_update
+      description: View for password reset.
+      parameters:
+      - in: path
+        name: conf_token
+        schema:
+          type: string
+        required: true
+      tags:
+      - reset-password
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedResetPassword'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedResetPassword'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedResetPassword'
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResetPassword'
+          description: ''
+  /api/v1/shopping_cart_items/:
+    get:
+      operationId: shopping_cart_items_list
+      tags:
+      - shopping_cart_items
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ShoppingCartItem'
+          description: ''
+    post:
+      operationId: shopping_cart_items_create
+      tags:
+      - shopping_cart_items
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ShoppingCartItem'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/ShoppingCartItem'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/ShoppingCartItem'
+        required: true
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ShoppingCartItem'
+          description: ''
+  /api/v1/shopping_cart_items/{id}/:
+    get:
+      operationId: shopping_cart_items_retrieve
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+        required: true
+      tags:
+      - shopping_cart_items
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ShoppingCartItem'
+          description: ''
+    patch:
+      operationId: shopping_cart_items_partial_update
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+        required: true
+      tags:
+      - shopping_cart_items
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedShoppingCartItem'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedShoppingCartItem'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedShoppingCartItem'
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ShoppingCartItem'
+          description: ''
+    delete:
+      operationId: shopping_cart_items_destroy
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+        required: true
+      tags:
+      - shopping_cart_items
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '204':
+          description: No response body
+  /api/v1/stripe_webhook/:
+    post:
+      operationId: stripe_webhook_create
+      tags:
+      - stripe_webhook
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      - {}
+      responses:
+        '200':
+          description: No response body
+  /api/v1/token/:
+    post:
+      operationId: token_create
+      description: |-
+        Takes a set of user credentials and returns an access and refresh JSON web
+        token pair to prove the authentication of those credentials.
+      tags:
+      - token
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TokenObtainPair'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/TokenObtainPair'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/TokenObtainPair'
+        required: true
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TokenObtainPair'
+          description: ''
+  /api/v1/token/refresh/:
+    post:
+      operationId: token_refresh_create
+      description: |-
+        Update access token.
+
+        Uses refresh token from HttpOnly cookie to generate new access token.
+      tags:
+      - token
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      - {}
+      responses:
+        '200':
+          description: No response body
+  /api/v1/users/{id}/:
+    get:
+      operationId: users_retrieve
+      description: ViewSet for user profile.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+        required: true
+      tags:
+      - users
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserProfile'
+          description: ''
+    patch:
+      operationId: users_partial_update
+      description: ViewSet for user profile.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+        required: true
+      tags:
+      - users
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedUserProfile'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedUserProfile'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedUserProfile'
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserProfile'
+          description: ''
+components:
+  schemas:
+    Address:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        first_name:
+          type: string
+          maxLength: 255
+        last_name:
+          type: string
+          maxLength: 255
+        street:
+          type: string
+          maxLength: 255
+        unit_number:
+          type: string
+          nullable: true
+          maxLength: 255
+        country:
+          $ref: '#/components/schemas/CountryEnum'
+        region:
+          type: string
+          maxLength: 255
+        city:
+          type: string
+          maxLength: 255
+        post_code:
+          type: string
+          maxLength: 20
+        phone_number:
+          type: string
+          maxLength: 128
+      required:
+      - city
+      - country
+      - first_name
+      - id
+      - last_name
+      - phone_number
+      - post_code
+      - region
+      - street
+    AttributeOption:
+      type: object
+      description: |-
+        Serializes 'id', 'name' and 'attribute_type' fields from 'AttributeOption' model
+        for displaying them in 'ProductSerializer' serializer.
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        name:
+          type: string
+          maxLength: 255
+        attribute_type:
+          type: string
+          readOnly: true
+      required:
+      - attribute_type
+      - id
+      - name
+    CountryEnum:
+      enum:
+      - Afghanistan
+      - Aland Islands
+      - Albania
+      - Algeria
+      - American Samoa
+      - Andorra
+      - Angola
+      - Anguilla
+      - Antarctica
+      - Antigua and Barbuda
+      - Argentina
+      - Armenia
+      - Aruba
+      - Australia
+      - Austria
+      - Azerbaijan
+      - Bahamas
+      - Bahrain
+      - Bangladesh
+      - Barbados
+      - Belgium
+      - Belize
+      - Benin
+      - Bermuda
+      - Bhutan
+      - Bolivia, Plurinational State of
+      - Bonaire, Sint Eustatius and Saba
+      - Bosnia and Herzegovina
+      - Botswana
+      - Bouvet Island
+      - Brazil
+      - British Indian Ocean Territory
+      - Brunei Darussalam
+      - Bulgaria
+      - Burkina Faso
+      - Burundi
+      - Cambodia
+      - Cameroon
+      - Canada
+      - Cape Verde
+      - Cayman Islands
+      - Central African Republic
+      - Chad
+      - Chile
+      - China
+      - Christmas Island
+      - Cocos (Keeling) Islands
+      - Colombia
+      - Comoros
+      - Congo
+      - Congo, The Democratic Republic of the
+      - Cook Islands
+      - Costa Rica
+      - Côte d'Ivoire
+      - Croatia
+      - Cuba
+      - Curaçao
+      - Cyprus
+      - Czech Republic
+      - Denmark
+      - Djibouti
+      - Dominica
+      - Dominican Republic
+      - Ecuador
+      - Egypt
+      - El Salvador
+      - Equatorial Guinea
+      - Eritrea
+      - Estonia
+      - Ethiopia
+      - Falkland Islands (Malvinas)
+      - Faroe Islands
+      - Fiji
+      - Finland
+      - France
+      - French Guiana
+      - French Polynesia
+      - French Southern Territories
+      - Gabon
+      - Gambia
+      - Georgia
+      - Germany
+      - Ghana
+      - Gibraltar
+      - Greece
+      - Greenland
+      - Grenada
+      - Guadeloupe
+      - Guam
+      - Guatemala
+      - Guernsey
+      - Guinea
+      - Guinea-Bissau
+      - Guyana
+      - Haiti
+      - Heard Island and McDonald Islands
+      - Holy See (Vatican City State)
+      - Honduras
+      - Hong Kong
+      - Hungary
+      - Iceland
+      - India
+      - Indonesia
+      - Iran, Islamic Republic of
+      - Iraq
+      - Ireland
+      - Isle of Man
+      - Israel
+      - Italy
+      - Jamaica
+      - Japan
+      - Jersey
+      - Jordan
+      - Kazakhstan
+      - Kenya
+      - Kiribati
+      - Korea, Democratic People's Republic of
+      - Korea, Republic of
+      - Kuwait
+      - Kyrgyzstan
+      - Lao People's Democratic Republic
+      - Latvia
+      - Lebanon
+      - Lesotho
+      - Liberia
+      - Libya
+      - Liechtenstein
+      - Lithuania
+      - Luxembourg
+      - Macao
+      - Macedonia, Republic of
+      - Madagascar
+      - Malawi
+      - Malaysia
+      - Maldives
+      - Mali
+      - Malta
+      - Marshall Islands
+      - Martinique
+      - Mauritania
+      - Mauritius
+      - Mayotte
+      - Mexico
+      - Micronesia, Federated States of
+      - Moldova, Republic of
+      - Monaco
+      - Mongolia
+      - Montenegro
+      - Montserrat
+      - Morocco
+      - Mozambique
+      - Myanmar
+      - Namibia
+      - Nauru
+      - Nepal
+      - Netherlands
+      - New Caledonia
+      - New Zealand
+      - Nicaragua
+      - Niger
+      - Nigeria
+      - Niue
+      - Norfolk Island
+      - Northern Mariana Islands
+      - Norway
+      - Oman
+      - Pakistan
+      - Palau
+      - Palestinian Territory, Occupied
+      - Panama
+      - Papua New Guinea
+      - Paraguay
+      - Peru
+      - Philippines
+      - Pitcairn
+      - Poland
+      - Portugal
+      - Puerto Rico
+      - Qatar
+      - Réunion
+      - Romania
+      - Rwanda
+      - Saint Barthélemy
+      - Saint Helena, Ascension and Tristan da Cunha
+      - Saint Kitts and Nevis
+      - Saint Lucia
+      - Saint Martin (French part)
+      - Saint Pierre and Miquelon
+      - Saint Vincent and the Grenadines
+      - Samoa
+      - San Marino
+      - Sao Tome and Principe
+      - Saudi Arabia
+      - Senegal
+      - Serbia
+      - Seychelles
+      - Sierra Leone
+      - Singapore
+      - Sint Maarten (Dutch part)
+      - Slovakia
+      - Slovenia
+      - Solomon Islands
+      - Somalia
+      - South Africa
+      - South Georgia and the South Sandwich Islands
+      - Spain
+      - Sri Lanka
+      - Sudan
+      - Suriname
+      - South Sudan
+      - Svalbard and Jan Mayen
+      - Swaziland
+      - Sweden
+      - Switzerland
+      - Syrian Arab Republic
+      - Taiwan, Province of China
+      - Tajikistan
+      - Tanzania, United Republic of
+      - Thailand
+      - Timor-Leste
+      - Togo
+      - Tokelau
+      - Tonga
+      - Trinidad and Tobago
+      - Tunisia
+      - Turkey
+      - Turkmenistan
+      - Turks and Caicos Islands
+      - Tuvalu
+      - Uganda
+      - Ukraine
+      - United Arab Emirates
+      - United Kingdom
+      - United States
+      - United States Minor Outlying Islands
+      - Uruguay
+      - Uzbekistan
+      - Vanuatu
+      - Venezuela, Bolivarian Republic of
+      - Viet Nam
+      - Virgin Islands, British
+      - Virgin Islands, U.S.
+      - Wallis and Futuna
+      - Yemen
+      - Zambia
+      - Zimbabwe
+      type: string
+      description: |-
+        * `Afghanistan` - Afghanistan
+        * `Aland Islands` - Aland Islands
+        * `Albania` - Albania
+        * `Algeria` - Algeria
+        * `American Samoa` - American Samoa
+        * `Andorra` - Andorra
+        * `Angola` - Angola
+        * `Anguilla` - Anguilla
+        * `Antarctica` - Antarctica
+        * `Antigua and Barbuda` - Antigua and Barbuda
+        * `Argentina` - Argentina
+        * `Armenia` - Armenia
+        * `Aruba` - Aruba
+        * `Australia` - Australia
+        * `Austria` - Austria
+        * `Azerbaijan` - Azerbaijan
+        * `Bahamas` - Bahamas
+        * `Bahrain` - Bahrain
+        * `Bangladesh` - Bangladesh
+        * `Barbados` - Barbados
+        * `Belgium` - Belgium
+        * `Belize` - Belize
+        * `Benin` - Benin
+        * `Bermuda` - Bermuda
+        * `Bhutan` - Bhutan
+        * `Bolivia, Plurinational State of` - Bolivia, Plurinational State of
+        * `Bonaire, Sint Eustatius and Saba` - Bonaire, Sint Eustatius and Saba
+        * `Bosnia and Herzegovina` - Bosnia and Herzegovina
+        * `Botswana` - Botswana
+        * `Bouvet Island` - Bouvet Island
+        * `Brazil` - Brazil
+        * `British Indian Ocean Territory` - British Indian Ocean Territory
+        * `Brunei Darussalam` - Brunei Darussalam
+        * `Bulgaria` - Bulgaria
+        * `Burkina Faso` - Burkina Faso
+        * `Burundi` - Burundi
+        * `Cambodia` - Cambodia
+        * `Cameroon` - Cameroon
+        * `Canada` - Canada
+        * `Cape Verde` - Cape Verde
+        * `Cayman Islands` - Cayman Islands
+        * `Central African Republic` - Central African Republic
+        * `Chad` - Chad
+        * `Chile` - Chile
+        * `China` - China
+        * `Christmas Island` - Christmas Island
+        * `Cocos (Keeling) Islands` - Cocos (Keeling) Islands
+        * `Colombia` - Colombia
+        * `Comoros` - Comoros
+        * `Congo` - Congo
+        * `Congo, The Democratic Republic of the` - Congo, The Democratic Republic of the
+        * `Cook Islands` - Cook Islands
+        * `Costa Rica` - Costa Rica
+        * `Côte d'Ivoire` - Côte d'Ivoire
+        * `Croatia` - Croatia
+        * `Cuba` - Cuba
+        * `Curaçao` - Curaçao
+        * `Cyprus` - Cyprus
+        * `Czech Republic` - Czech Republic
+        * `Denmark` - Denmark
+        * `Djibouti` - Djibouti
+        * `Dominica` - Dominica
+        * `Dominican Republic` - Dominican Republic
+        * `Ecuador` - Ecuador
+        * `Egypt` - Egypt
+        * `El Salvador` - El Salvador
+        * `Equatorial Guinea` - Equatorial Guinea
+        * `Eritrea` - Eritrea
+        * `Estonia` - Estonia
+        * `Ethiopia` - Ethiopia
+        * `Falkland Islands (Malvinas)` - Falkland Islands (Malvinas)
+        * `Faroe Islands` - Faroe Islands
+        * `Fiji` - Fiji
+        * `Finland` - Finland
+        * `France` - France
+        * `French Guiana` - French Guiana
+        * `French Polynesia` - French Polynesia
+        * `French Southern Territories` - French Southern Territories
+        * `Gabon` - Gabon
+        * `Gambia` - Gambia
+        * `Georgia` - Georgia
+        * `Germany` - Germany
+        * `Ghana` - Ghana
+        * `Gibraltar` - Gibraltar
+        * `Greece` - Greece
+        * `Greenland` - Greenland
+        * `Grenada` - Grenada
+        * `Guadeloupe` - Guadeloupe
+        * `Guam` - Guam
+        * `Guatemala` - Guatemala
+        * `Guernsey` - Guernsey
+        * `Guinea` - Guinea
+        * `Guinea-Bissau` - Guinea-Bissau
+        * `Guyana` - Guyana
+        * `Haiti` - Haiti
+        * `Heard Island and McDonald Islands` - Heard Island and McDonald Islands
+        * `Holy See (Vatican City State)` - Holy See (Vatican City State)
+        * `Honduras` - Honduras
+        * `Hong Kong` - Hong Kong
+        * `Hungary` - Hungary
+        * `Iceland` - Iceland
+        * `India` - India
+        * `Indonesia` - Indonesia
+        * `Iran, Islamic Republic of` - Iran, Islamic Republic of
+        * `Iraq` - Iraq
+        * `Ireland` - Ireland
+        * `Isle of Man` - Isle of Man
+        * `Israel` - Israel
+        * `Italy` - Italy
+        * `Jamaica` - Jamaica
+        * `Japan` - Japan
+        * `Jersey` - Jersey
+        * `Jordan` - Jordan
+        * `Kazakhstan` - Kazakhstan
+        * `Kenya` - Kenya
+        * `Kiribati` - Kiribati
+        * `Korea, Democratic People's Republic of` - Korea, Democratic People's Republic of
+        * `Korea, Republic of` - Korea, Republic of
+        * `Kuwait` - Kuwait
+        * `Kyrgyzstan` - Kyrgyzstan
+        * `Lao People's Democratic Republic` - Lao People's Democratic Republic
+        * `Latvia` - Latvia
+        * `Lebanon` - Lebanon
+        * `Lesotho` - Lesotho
+        * `Liberia` - Liberia
+        * `Libya` - Libya
+        * `Liechtenstein` - Liechtenstein
+        * `Lithuania` - Lithuania
+        * `Luxembourg` - Luxembourg
+        * `Macao` - Macao
+        * `Macedonia, Republic of` - Macedonia, Republic of
+        * `Madagascar` - Madagascar
+        * `Malawi` - Malawi
+        * `Malaysia` - Malaysia
+        * `Maldives` - Maldives
+        * `Mali` - Mali
+        * `Malta` - Malta
+        * `Marshall Islands` - Marshall Islands
+        * `Martinique` - Martinique
+        * `Mauritania` - Mauritania
+        * `Mauritius` - Mauritius
+        * `Mayotte` - Mayotte
+        * `Mexico` - Mexico
+        * `Micronesia, Federated States of` - Micronesia, Federated States of
+        * `Moldova, Republic of` - Moldova, Republic of
+        * `Monaco` - Monaco
+        * `Mongolia` - Mongolia
+        * `Montenegro` - Montenegro
+        * `Montserrat` - Montserrat
+        * `Morocco` - Morocco
+        * `Mozambique` - Mozambique
+        * `Myanmar` - Myanmar
+        * `Namibia` - Namibia
+        * `Nauru` - Nauru
+        * `Nepal` - Nepal
+        * `Netherlands` - Netherlands
+        * `New Caledonia` - New Caledonia
+        * `New Zealand` - New Zealand
+        * `Nicaragua` - Nicaragua
+        * `Niger` - Niger
+        * `Nigeria` - Nigeria
+        * `Niue` - Niue
+        * `Norfolk Island` - Norfolk Island
+        * `Northern Mariana Islands` - Northern Mariana Islands
+        * `Norway` - Norway
+        * `Oman` - Oman
+        * `Pakistan` - Pakistan
+        * `Palau` - Palau
+        * `Palestinian Territory, Occupied` - Palestinian Territory, Occupied
+        * `Panama` - Panama
+        * `Papua New Guinea` - Papua New Guinea
+        * `Paraguay` - Paraguay
+        * `Peru` - Peru
+        * `Philippines` - Philippines
+        * `Pitcairn` - Pitcairn
+        * `Poland` - Poland
+        * `Portugal` - Portugal
+        * `Puerto Rico` - Puerto Rico
+        * `Qatar` - Qatar
+        * `Réunion` - Réunion
+        * `Romania` - Romania
+        * `Rwanda` - Rwanda
+        * `Saint Barthélemy` - Saint Barthélemy
+        * `Saint Helena, Ascension and Tristan da Cunha` - Saint Helena, Ascension and Tristan da Cunha
+        * `Saint Kitts and Nevis` - Saint Kitts and Nevis
+        * `Saint Lucia` - Saint Lucia
+        * `Saint Martin (French part)` - Saint Martin (French part)
+        * `Saint Pierre and Miquelon` - Saint Pierre and Miquelon
+        * `Saint Vincent and the Grenadines` - Saint Vincent and the Grenadines
+        * `Samoa` - Samoa
+        * `San Marino` - San Marino
+        * `Sao Tome and Principe` - Sao Tome and Principe
+        * `Saudi Arabia` - Saudi Arabia
+        * `Senegal` - Senegal
+        * `Serbia` - Serbia
+        * `Seychelles` - Seychelles
+        * `Sierra Leone` - Sierra Leone
+        * `Singapore` - Singapore
+        * `Sint Maarten (Dutch part)` - Sint Maarten (Dutch part)
+        * `Slovakia` - Slovakia
+        * `Slovenia` - Slovenia
+        * `Solomon Islands` - Solomon Islands
+        * `Somalia` - Somalia
+        * `South Africa` - South Africa
+        * `South Georgia and the South Sandwich Islands` - South Georgia and the South Sandwich Islands
+        * `Spain` - Spain
+        * `Sri Lanka` - Sri Lanka
+        * `Sudan` - Sudan
+        * `Suriname` - Suriname
+        * `South Sudan` - South Sudan
+        * `Svalbard and Jan Mayen` - Svalbard and Jan Mayen
+        * `Swaziland` - Swaziland
+        * `Sweden` - Sweden
+        * `Switzerland` - Switzerland
+        * `Syrian Arab Republic` - Syrian Arab Republic
+        * `Taiwan, Province of China` - Taiwan, Province of China
+        * `Tajikistan` - Tajikistan
+        * `Tanzania, United Republic of` - Tanzania, United Republic of
+        * `Thailand` - Thailand
+        * `Timor-Leste` - Timor-Leste
+        * `Togo` - Togo
+        * `Tokelau` - Tokelau
+        * `Tonga` - Tonga
+        * `Trinidad and Tobago` - Trinidad and Tobago
+        * `Tunisia` - Tunisia
+        * `Turkey` - Turkey
+        * `Turkmenistan` - Turkmenistan
+        * `Turks and Caicos Islands` - Turks and Caicos Islands
+        * `Tuvalu` - Tuvalu
+        * `Uganda` - Uganda
+        * `Ukraine` - Ukraine
+        * `United Arab Emirates` - United Arab Emirates
+        * `United Kingdom` - United Kingdom
+        * `United States` - United States
+        * `United States Minor Outlying Islands` - United States Minor Outlying Islands
+        * `Uruguay` - Uruguay
+        * `Uzbekistan` - Uzbekistan
+        * `Vanuatu` - Vanuatu
+        * `Venezuela, Bolivarian Republic of` - Venezuela, Bolivarian Republic of
+        * `Viet Nam` - Viet Nam
+        * `Virgin Islands, British` - Virgin Islands, British
+        * `Virgin Islands, U.S.` - Virgin Islands, U.S.
+        * `Wallis and Futuna` - Wallis and Futuna
+        * `Yemen` - Yemen
+        * `Zambia` - Zambia
+        * `Zimbabwe` - Zimbabwe
+    Discount:
+      type: object
+      description: This serializer serializes the Discount object.
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        name:
+          type: string
+          maxLength: 255
+        description:
+          type: string
+          maxLength: 255
+        discount_rate:
+          type: integer
+          maximum: 100
+          minimum: 1
+        start_date:
+          type: string
+          format: date
+        end_date:
+          type: string
+          format: date
+      required:
+      - description
+      - discount_rate
+      - end_date
+      - id
+      - name
+      - start_date
+    GenderEnum:
+      enum:
+      - M
+      - W
+      type: string
+      description: |-
+        * `M` - Man
+        * `W` - Woman
+    Image:
+      type: object
+      description: |-
+        Serializes 'id', 'name' and 'url' fields from 'Image' model
+        for displaying them in 'ProductItemSerializer' serializer.
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        name:
+          type: string
+          maxLength: 255
+        url:
+          type: string
+          format: uri
+          maxLength: 255
+        is_main:
+          type: boolean
+      required:
+      - id
+      - name
+      - url
+    OrderDetail:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        user_id:
+          type: integer
+          readOnly: true
+        email:
+          type: string
+          format: email
+          readOnly: true
+        payment:
+          allOf:
+          - $ref: '#/components/schemas/Payment'
+          readOnly: true
+        order_price:
+          type: integer
+          maximum: 2147483647
+          minimum: 0
+        order_item:
+          type: array
+          items:
+            $ref: '#/components/schemas/OrderItem'
+          readOnly: true
+      required:
+      - email
+      - id
+      - order_item
+      - order_price
+      - payment
+      - user_id
+    OrderGuestCreate:
+      type: object
+      description: Guest have to enter new shipping address
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        user:
+          type: integer
+          readOnly: true
+        guest:
+          type: integer
+          readOnly: true
+        shipping_address:
+          $ref: '#/components/schemas/Address'
+        shipping_method:
+          $ref: '#/components/schemas/ShippingMethodEnum'
+        payment_method:
+          $ref: '#/components/schemas/PaymentMethodEnum'
+        order_price:
+          type: integer
+          readOnly: true
+        payment:
+          allOf:
+          - $ref: '#/components/schemas/Payment'
+          readOnly: true
+        email:
+          type: string
+          format: email
+          writeOnly: true
+      required:
+      - email
+      - guest
+      - id
+      - order_price
+      - payment
+      - payment_method
+      - shipping_address
+      - shipping_method
+      - user
+    OrderItem:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        product_variation:
+          type: integer
+        product_name:
+          type: string
+          readOnly: true
+        product_code:
+          type: string
+          readOnly: true
+        product_gender:
+          type: string
+          readOnly: true
+        product_size:
+          type: string
+          readOnly: true
+        product_price:
+          type: string
+          readOnly: true
+        quantity:
+          type: integer
+          maximum: 2147483647
+          minimum: 1
+        price:
+          type: integer
+          maximum: 2147483647
+          minimum: 0
+        review_id:
+          type: string
+          readOnly: true
+        review_url:
+          type: string
+          readOnly: true
+        product_url:
+          type: string
+          readOnly: true
+        main_image:
+          type: string
+          readOnly: true
+      required:
+      - id
+      - main_image
+      - price
+      - product_code
+      - product_gender
+      - product_name
+      - product_price
+      - product_size
+      - product_url
+      - product_variation
+      - quantity
+      - review_id
+      - review_url
+    OrderList:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        order_price:
+          type: integer
+          maximum: 2147483647
+          minimum: 0
+        order_status:
+          allOf:
+          - $ref: '#/components/schemas/OrderStatusEnum'
+          minimum: 0
+          maximum: 32767
+        payment:
+          allOf:
+          - $ref: '#/components/schemas/Payment'
+          readOnly: true
+        date_created:
+          type: string
+          format: date-time
+          readOnly: true
+      required:
+      - date_created
+      - id
+      - order_price
+      - payment
+    OrderStatusEnum:
+      enum:
+      - 1
+      - 2
+      - 3
+      - 4
+      - 5
+      type: integer
+      description: |-
+        * `1` - NEW
+        * `2` - PAYED
+        * `3` - SHIPPED
+        * `4` - DONE
+        * `5` - RETURN
+    PatchedResetPassword:
+      type: object
+      description: tests.
+      properties:
+        password:
+          type: string
+          writeOnly: true
+        password_confirmation:
+          type: string
+          writeOnly: true
+    PatchedShoppingCartItem:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        cart_id:
+          type: integer
+          readOnly: true
+        product_variation:
+          type: integer
+        name:
+          type: string
+          readOnly: true
+        gender:
+          type: string
+          readOnly: true
+        size:
+          type: string
+          readOnly: true
+        quantity:
+          type: integer
+          maximum: 2147483647
+          minimum: 1
+        item_price:
+          type: string
+          readOnly: true
+        item_discount_price:
+          type: string
+          readOnly: true
+    PatchedUserAddress:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        address:
+          $ref: '#/components/schemas/Address'
+        is_default:
+          type: boolean
+    PatchedUserProfile:
+      type: object
+      description: test.
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        email:
+          type: string
+          format: email
+          readOnly: true
+        first_name:
+          type: string
+          maxLength: 255
+        last_name:
+          type: string
+          maxLength: 255
+    Payment:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        payment_bool:
+          type: boolean
+        url:
+          type: string
+          readOnly: true
+      required:
+      - id
+      - url
+    PaymentMethodEnum:
+      enum:
+      - 1
+      - 2
+      - 3
+      type: integer
+      description: |-
+        * `1` - CARD
+        * `2` - CASH_ON_DELIVERY
+        * `3` - BANK_TRANSFER
+    Product:
+      type: object
+      description: Serializer class for 'Product' model.
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        name:
+          type: string
+          maxLength: 255
+        slug:
+          type: string
+          maxLength: 255
+          pattern: ^[-a-zA-Z0-9_]+$
+        description:
+          type: string
+          maxLength: 255
+        brand:
+          type: string
+          readOnly: true
+        category:
+          type: string
+          readOnly: true
+        gender:
+          $ref: '#/components/schemas/GenderEnum'
+        attribute_options:
+          type: array
+          items:
+            $ref: '#/components/schemas/AttributeOption'
+          readOnly: true
+        product_items:
+          type: array
+          items:
+            $ref: '#/components/schemas/ProductItem'
+          readOnly: true
+        product_rating:
+          type: string
+          readOnly: true
+      required:
+      - attribute_options
+      - brand
+      - category
+      - description
+      - gender
+      - id
+      - name
+      - product_items
+      - product_rating
+      - slug
+    ProductDetail:
+      type: object
+      description: |-
+        Displays values from 'Product' model and particular form 'ProductItem' model.
+        Values are show in 'ProductAPIList' view.
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        name:
+          type: string
+          maxLength: 255
+        slug:
+          type: string
+          maxLength: 255
+          pattern: ^[-a-zA-Z0-9_]+$
+        description:
+          type: string
+          maxLength: 255
+        brand:
+          type: string
+          readOnly: true
+        category:
+          type: string
+          readOnly: true
+        gender:
+          $ref: '#/components/schemas/GenderEnum'
+        attribute_options:
+          type: array
+          items:
+            $ref: '#/components/schemas/AttributeOption'
+          readOnly: true
+        product_items:
+          type: array
+          items:
+            $ref: '#/components/schemas/ProductItem'
+          readOnly: true
+        reviews:
+          type: array
+          items:
+            $ref: '#/components/schemas/Review'
+          readOnly: true
+      required:
+      - attribute_options
+      - brand
+      - category
+      - description
+      - gender
+      - id
+      - name
+      - product_items
+      - reviews
+      - slug
+    ProductItem:
+      type: object
+      description: |-
+        Serializes several fields from 'ProductItem' model
+        for displaying them in 'ProductSerializer' serializer.
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        product_code:
+          type: string
+          maxLength: 32
+        price:
+          type: integer
+        discount_price:
+          type: string
+          readOnly: true
+        color:
+          type: string
+          readOnly: true
+        images:
+          type: array
+          items:
+            $ref: '#/components/schemas/Image'
+          readOnly: true
+        discounts:
+          type: array
+          items:
+            $ref: '#/components/schemas/Discount'
+          readOnly: true
+        product_variations:
+          type: array
+          items:
+            $ref: '#/components/schemas/ProductVariation'
+          readOnly: true
+      required:
+      - color
+      - discount_price
+      - discounts
+      - id
+      - images
+      - price
+      - product_code
+      - product_variations
+    ProductVariation:
+      type: object
+      description: |-
+        Serializes 'id', 'size' and 'qty_in_stock' fields from 'ProductVariation'
+        model for displaying them in 'ProductItemSerializer' serializer.
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        size:
+          allOf:
+          - $ref: '#/components/schemas/SizeEnum'
+          readOnly: true
+        qty_in_stock:
+          type: integer
+          maximum: 2147483647
+          minimum: 0
+      required:
+      - id
+      - qty_in_stock
+      - size
+    RegisterGuest:
+      type: object
+      properties:
+        email:
+          type: string
+          format: email
+          readOnly: true
+        access:
+          type: string
+          readOnly: true
+        refresh:
+          type: string
+          readOnly: true
+      required:
+      - access
+      - email
+      - refresh
+    RegisterUser:
+      type: object
+      description: Serializer for user registration.
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        email:
+          type: string
+          format: email
+        first_name:
+          type: string
+          maxLength: 255
+        last_name:
+          type: string
+          maxLength: 255
+        password:
+          type: string
+          writeOnly: true
+          maxLength: 128
+        password_confirmation:
+          type: string
+          writeOnly: true
+      required:
+      - email
+      - first_name
+      - id
+      - last_name
+      - password
+      - password_confirmation
+    ResetPassword:
+      type: object
+      description: tests.
+      properties:
+        password:
+          type: string
+          writeOnly: true
+        password_confirmation:
+          type: string
+          writeOnly: true
+      required:
+      - password
+      - password_confirmation
+    Review:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        owner:
+          type: string
+          readOnly: true
+        product:
+          type: integer
+          readOnly: true
+        order_item:
+          type: integer
+          readOnly: true
+        comment:
+          type: string
+          maxLength: 255
+        rating:
+          type: integer
+          minimum: 1
+          maximum: 5
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+      required:
+      - comment
+      - created_at
+      - id
+      - order_item
+      - owner
+      - product
+      - rating
+    ShippingMethodEnum:
+      enum:
+      - 1
+      - 2
+      type: integer
+      description: |-
+        * `1` - UPS
+        * `2` - DHL
+    ShoppingCartItem:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        cart_id:
+          type: integer
+          readOnly: true
+        product_variation:
+          type: integer
+        name:
+          type: string
+          readOnly: true
+        gender:
+          type: string
+          readOnly: true
+        size:
+          type: string
+          readOnly: true
+        quantity:
+          type: integer
+          maximum: 2147483647
+          minimum: 1
+        item_price:
+          type: string
+          readOnly: true
+        item_discount_price:
+          type: string
+          readOnly: true
+      required:
+      - cart_id
+      - gender
+      - id
+      - item_discount_price
+      - item_price
+      - name
+      - product_variation
+      - quantity
+      - size
+    SizeEnum:
+      enum:
+      - '35'
+      - '36'
+      - '37'
+      - '38'
+      - '39'
+      - '40'
+      - '41'
+      - '42'
+      - '43'
+      - '44'
+      - '45'
+      - '46'
+      - '47'
+      - '48'
+      - '49'
+      - XS
+      - S
+      - M
+      - L
+      - XL
+      - 1 L
+      - 2 L
+      - 3 L
+      - 4 L
+      - 5 L
+      - 6 L
+      - 7 L
+      - 8 L
+      - 9 L
+      - 10 L
+      - 11 L
+      - 12 L
+      - 13 L
+      - 14 L
+      - 15 L
+      - 16 L
+      - 17 L
+      - 18 L
+      - 19 L
+      - 20 L
+      - 21 L
+      - 22 L
+      - 23 L
+      - 24 L
+      - 25 L
+      - 26 L
+      - 27 L
+      - 28 L
+      - 29 L
+      - 30 L
+      - 31 L
+      type: string
+      description: |-
+        * `35` - EU 35
+        * `36` - EU 36
+        * `37` - EU 37
+        * `38` - EU 38
+        * `39` - EU 39
+        * `40` - EU 40
+        * `41` - EU 41
+        * `42` - EU 42
+        * `43` - EU 43
+        * `44` - EU 44
+        * `45` - EU 45
+        * `46` - EU 46
+        * `47` - EU 47
+        * `48` - EU 48
+        * `49` - EU 49
+        * `XS` - Extra Small
+        * `S` - Small
+        * `M` - Medium
+        * `L` - Large
+        * `XL` - Extra Large
+        * `1 L` - 1 l
+        * `2 L` - 2 l
+        * `3 L` - 3 l
+        * `4 L` - 4 l
+        * `5 L` - 5 l
+        * `6 L` - 6 l
+        * `7 L` - 7 l
+        * `8 L` - 8 l
+        * `9 L` - 9 l
+        * `10 L` - 10 l
+        * `11 L` - 11 l
+        * `12 L` - 12 l
+        * `13 L` - 13 l
+        * `14 L` - 14 l
+        * `15 L` - 15 l
+        * `16 L` - 16 l
+        * `17 L` - 17 l
+        * `18 L` - 18 l
+        * `19 L` - 19 l
+        * `20 L` - 20 l
+        * `21 L` - 21 l
+        * `22 L` - 22 l
+        * `23 L` - 23 l
+        * `24 L` - 24 l
+        * `25 L` - 25 l
+        * `26 L` - 26 l
+        * `27 L` - 27 l
+        * `28 L` - 28 l
+        * `29 L` - 29 l
+        * `30 L` - 30 l
+        * `31 L` - 31 l
+    TokenObtainPair:
+      type: object
+      properties:
+        email:
+          type: string
+          writeOnly: true
+        password:
+          type: string
+          writeOnly: true
+        access:
+          type: string
+          readOnly: true
+        refresh:
+          type: string
+          readOnly: true
+      required:
+      - access
+      - email
+      - password
+      - refresh
+    UserAddress:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        address:
+          $ref: '#/components/schemas/Address'
+        is_default:
+          type: boolean
+      required:
+      - address
+      - id
+    UserProfile:
+      type: object
+      description: test.
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        email:
+          type: string
+          format: email
+          readOnly: true
+        first_name:
+          type: string
+          maxLength: 255
+        last_name:
+          type: string
+          maxLength: 255
+      required:
+      - email
+      - first_name
+      - id
+      - last_name
+  securitySchemes:
+    cookieAuth:
+      type: apiKey
+      in: cookie
+      name: sessionid
+    jwtAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT

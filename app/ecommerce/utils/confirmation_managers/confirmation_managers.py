@@ -7,10 +7,9 @@ from django.core.cache import cache
 from rest_framework.exceptions import ValidationError
 
 
-class ConfirmationManager:
+class ConfirmationToken:
     """
-    Manages the creation of confirmation keys in the cache
-    and handles conf_token.
+    Manages handling of conf_token.
     """
 
     def __init__(self):
@@ -26,14 +25,19 @@ class ConfirmationManager:
 
         return self._conf_token
 
+
+class ConfirmationManager(ConfirmationToken):
+    """
+    Manages handling of confirmation keys.
+    """
+
     @staticmethod
     def create_confirmation_key(template: str, key_template: str) -> str:
         """
         Creates a confirmation key from a template and key template.
         """
         try:
-            r = template.format(key_template=key_template)
-            return r
+            return template.format(key_template=key_template)
         except Exception as e:
             raise Exception(f"Failed create confirmation key: {e}")
 
@@ -127,7 +131,7 @@ class ConfirmationCacheManager(ConfirmationManager):
         except Exception as e:
             raise Exception(f"Failed to cache new confirmation key: {e}")
 
-    def handle_cache_confirmation_key_and_counter(self, user_id: int) -> None:
+    def handle_cache_confirmation(self, user_id: int) -> None:
         """
         Handle the caching of the confirmation key and counter for a user.
         If the counter exceeds the max attempts, raise an exception.
@@ -147,7 +151,7 @@ class ConfirmationCacheManager(ConfirmationManager):
         if counter >= self.max_attempts:
             # If the max attempts are reached, raise an error
             raise ValidationError(
-                "Max attempts reached, please wait 24 hours!",
+                "Max attempts was reached, please wait 24 hours!",
             )
 
         # If counter is not exceeded, renew the confirmation key and increment the counter

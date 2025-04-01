@@ -2,10 +2,11 @@ from django.core.mail import EmailMultiAlternatives
 from django.template.loader import render_to_string
 
 from app import settings
+
 from ecommerce.utils.confirmation_managers.confirmation_managers import ConfirmationCacheManager
 
 
-class SendEmail:
+class EcommerceEmail:
     """
     test
     """
@@ -38,7 +39,7 @@ class SendEmail:
         email.send(fail_silently=False)
 
 
-class ConfirmationEmail(SendEmail, ConfirmationCacheManager):
+class ConfirmationEmail(EcommerceEmail, ConfirmationCacheManager):
     """
     test
     """
@@ -96,7 +97,7 @@ class ConfirmationEmail(SendEmail, ConfirmationCacheManager):
         """
 
         # Step 1: Cache the confirmation data
-        self.handle_cache_confirmation_key_and_counter(user_id)
+        self.handle_cache_confirmation(user_id)
 
         # Step 2: Send confirmation email
         self.send_confirmation_email(
@@ -123,7 +124,7 @@ class ActivationEmail(ConfirmationEmail):
     confirmation_counter_template = settings.USER_CONFIRMATION_COUNTER_TEMPLATE
     timeout_counter = settings.USER_CONFIRMATION_COUNTER_TIMEOUT
 
-    max_attempts = 5
+    max_attempts = 3
 
 
 class PasswordResetEmail(ConfirmationEmail):
@@ -142,4 +143,4 @@ class PasswordResetEmail(ConfirmationEmail):
     confirmation_counter_template = settings.RESET_PASSWORD_COUNTER_TEMPLATE
     timeout_counter = settings.RESET_PASSWORD_COUNTER_TIMEOUT
 
-    max_attempts = 5
+    max_attempts = 3

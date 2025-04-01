@@ -21,7 +21,7 @@ from ecommerce.models import UserProfile, UserProfileManager
 from ecommerce.serializers import RegisterUserSerializer, \
     UserProfileSerializer, RegisterGuestSerializer, ForgotPasswordSerializer, ResetPasswordSerializer
 from ecommerce.utils.email.send_email import ActivationEmail, PasswordResetEmail
-from ecommerce.utils.confirmation_managers.confirmation_managers import ConfirmationManager
+from ecommerce.utils.confirmation_managers.confirmation_managers import ConfirmationToken
 
 
 class LoginView(APIView, ActivationEmail):
@@ -34,7 +34,7 @@ class LoginView(APIView, ActivationEmail):
     def __init__(self, *args, **kwargs):
         # Initialize parent classes explicitly
         super().__init__(*args, **kwargs)
-        ConfirmationManager.__init__(self) # Creates and stores conf_token
+        ConfirmationToken.__init__(self) # Creates and stores conf_token
 
     def handle_inactive_user(self, user):
         try:
@@ -161,16 +161,25 @@ def activate_user(request, *args, **kwargs):
     )
     user = cache.get(confirmation_key, {})
 
-    if user_id := user.get('user_id'):
-        user = get_object_or_404(UserProfile, pk=user_id)
-        user.activate()
-        cache.delete(confirmation_key)
+    try:
+        if user_id := user.get('user_id'):
+            user = get_object_or_404(UserProfile, pk=user_id)
+            user.activate()
+            cache.delete(confirmation_key)
+            return Response(
+                {'message': 'User is activated successfully!'},
+                status=status.HTTP_204_NO_CONTENT
+            )
+        else:
+            return Response(
+                {'error': f"No such user!"},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+    except Exception as e:
         return Response(
-            {'message': 'User is activated successfully!'},
-            status=status.HTTP_204_NO_CONTENT
+            {'error': f"Couldn't activate user!\n{e} "},
+            status=status.HTTP_500_INTERNAL_SERVER_ERROR
         )
-    else:
-        return Response(status=status.HTTP_400_BAD_REQUEST)
 
 
 class RegisterUserAPIView(CreateAPIView,
@@ -183,7 +192,7 @@ class RegisterUserAPIView(CreateAPIView,
     def __init__(self, *args, **kwargs):
         # Initialize parent classes explicitly
         super().__init__(*args, **kwargs)
-        ConfirmationManager.__init__(self)
+        ConfirmationToken.__init__(self) # Creates and stores conf_token
 
     def post(self, request, *args, **kwargs):
         try:
@@ -250,7 +259,8 @@ class RegisterGuestAPIView(CreateAPIView):
         return response
 
 
-class ForgotPasswordAPIView(APIView, PasswordResetEmail):
+class ForgotPasswordAPIView(APIView,
+                            PasswordResetEmail):
     """
     View for password reset.
 
@@ -260,15 +270,32 @@ class ForgotPasswordAPIView(APIView, PasswordResetEmail):
     def __init__(self, *args, **kwargs):
         # Initialize parent classes explicitly
         super().__init__(*args, **kwargs)
-        ConfirmationManager.__init__(self)
+        ConfirmationToken.__init__(self) # Creates and stores conf_token
 
     def post(self, request, *args, **kwargs):
         serializer = ForgotPasswordSerializer(context={'request': request}, data=request.data)
         serializer.is_valid(raise_exception=True)
         user_email = serializer.validated_data['email']
-        user_id = get_object_or_404(UserProfile, email=user_email).pk
+        user_id = (
+            UserProfile.objects
+            .filter(email=user_email)
+            .values_list("id", flat=True)
+            .first()
+        )
 
-        self.prepare_and_send_confirmation_email(user_id, user_email)
+        if not user_id:
+            return Response(
+                {'error': 'No user found with this email!'},
+                status=status.HTTP_404_NOT_FOUND
+            )
+
+        try:
+            self.prepare_and_send_confirmation_email(user_id, user_email)
+        except ValidationError:
+            return Response(
+                {'error': "Max attempts was reached, please wait 24 hours!"},
+                status=status.HTTP_429_TOO_MANY_REQUESTS
+            )
 
         return Response(
             {'message': 'Email sent. Check your mailbox!'},
