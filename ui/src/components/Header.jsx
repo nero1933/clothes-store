@@ -10,7 +10,7 @@ const Header = () => {
 
     const displayForUser =
         <>
-            <p>{`Hello user: ${name}, id: ${id}`}</p>
+            <Link to="/account">{name}</Link>
             <LogoutButton/>
         </>
     const displayForGuest =

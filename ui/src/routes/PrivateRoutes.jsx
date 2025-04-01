@@ -1,18 +1,18 @@
 import React from 'react';
 import { Route, Navigate } from 'react-router-dom';
-import { useSelector } from 'react-redux'; // Import useSelector to access Redux state
+import { useSelector } from 'react-redux';
 
-const PrivateRoute = ({ element, ...rest }) => {
-    // Get the user's authentication state from Redux
+const PrivateRoute = ({ element }) => {
+    // Access the authentication state from Redux store
     const { id } = useSelector((state) => state.auth);
 
-    // If the user is a guest (not logged in), redirect to the login page
-    if (id) {
-        return <Navigate to="/login" replace />;
+    // If the user is not logged in (id is null), redirect to the login page
+    if (id === null) {
+        return <Navigate to="/404" replace />;
     }
 
     // If the user is authenticated, render the requested component
-    return <Route {...rest} element={element} />;
+    return element;
 };
 
 export default PrivateRoute;
