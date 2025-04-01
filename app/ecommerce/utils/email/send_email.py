@@ -124,10 +124,10 @@ class ActivationEmail(ConfirmationEmail):
     confirmation_counter_template = settings.USER_CONFIRMATION_COUNTER_TEMPLATE
     timeout_counter = settings.USER_CONFIRMATION_COUNTER_TIMEOUT
 
-    max_attempts = 3
+    max_attempts = settings.USER_CONFIRMATION_MAX_ATTEMPTS
 
 
-class PasswordResetEmail(ConfirmationEmail):
+class ForgotPasswordEmail(ConfirmationEmail):
     """
     Handles sending password reset emails.
     """
@@ -143,4 +143,4 @@ class PasswordResetEmail(ConfirmationEmail):
     confirmation_counter_template = settings.RESET_PASSWORD_COUNTER_TEMPLATE
     timeout_counter = settings.RESET_PASSWORD_COUNTER_TIMEOUT
 
-    max_attempts = 3
+    max_attempts = settings.RESET_PASSWORD_MAX_ATTEMPTS

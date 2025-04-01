@@ -20,7 +20,7 @@ from app import settings
 from ecommerce.models import UserProfile, UserProfileManager
 from ecommerce.serializers import RegisterUserSerializer, \
     UserProfileSerializer, RegisterGuestSerializer, ForgotPasswordSerializer, ResetPasswordSerializer
-from ecommerce.utils.email.send_email import ActivationEmail, PasswordResetEmail
+from ecommerce.utils.email.send_email import ActivationEmail, ForgotPasswordEmail
 from ecommerce.utils.confirmation_managers.confirmation_managers import ConfirmationToken
 
 
@@ -260,7 +260,7 @@ class RegisterGuestAPIView(CreateAPIView):
 
 
 class ForgotPasswordAPIView(APIView,
-                            PasswordResetEmail):
+                            ForgotPasswordEmail):
     """
     View for password reset.
 
