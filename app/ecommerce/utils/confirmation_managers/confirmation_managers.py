@@ -86,20 +86,25 @@ class ConfirmationCacheManager(ConfirmationManager):
             counter = counter_value[confirmation_key]
             counter += 1 # Increment the counter
 
-            # Delete the old confirmation key from cache
+            # Get 'user_dict' and delete old confirmation_key
+            user_dict: dict = cache.get(confirmation_key)
             cache.delete(confirmation_key)
 
-            # Create a new confirmation key
+            # Create new confirmation key
             new_confirmation_key = self.create_confirmation_key(
                 self.confirmation_key_template, self.conf_token
             )
+
+            # Set new confirmation key to cache
+            cache.set(new_confirmation_key, user_dict, timeout=self.timeout_key)
+
             # Clear the old counter value
             counter_value.clear()
             # Set the new confirmation key with incremented counter
             counter_value.update({new_confirmation_key: counter})
 
             # Save the renewed counter data in the cache
-            cache.set(counter_key, counter_value)
+            cache.set(counter_key, counter_value, timeout=self.timeout_counter)
 
         except Exception as e:
             raise Exception(f"Failed to cache renewed confirmation key: {e}")

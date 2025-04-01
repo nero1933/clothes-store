@@ -1,5 +1,4 @@
 import re
-from time import sleep
 
 from django.core import mail
 from django.core.cache import cache
@@ -9,6 +8,7 @@ from rest_framework import status
 from rest_framework.generics import get_object_or_404
 from rest_framework.reverse import reverse
 
+from app import settings
 from ecommerce.models import UserProfile
 from ecommerce.utils.tests.mixins import TestAPIEcommerce
 
@@ -18,6 +18,19 @@ def extract_token_form_url(url) -> str:
     match = re.search(regex, url)
     token = match.group(2)
     return token
+
+
+def get_count_and_conf_token(count: int):
+    # Get confirmation link from message
+    message = mail.outbox[count].body
+
+    # Extract token
+    conf_token = extract_token_form_url(message)
+
+    # Increase count by one (one mail was send)
+    count += 1
+
+    return count, conf_token
 
 
 class UserTestCase(TestAPIEcommerce):
@@ -71,13 +84,72 @@ class UserTestCase(TestAPIEcommerce):
         user = get_object_or_404(UserProfile, pk=user_id)
 
         # Check that the response has a success status code
-        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT, 'Code must be 204')
+        self.assertEqual(response.status_code, status.HTTP_200_OK, 'Code must be 200')
 
         # Check 'is_active' status of created user after opening link from email
         self.assertEqual(user.is_active, True, 'After opening link from email "is_active" status of the user must be True')
 
+    @override_settings(EMAIL_BACKEND='django.core.mail.backends.locmem.EmailBackend')
+    def test_activate_user(self):
+        cache.clear()
+        max_attempts = settings.USER_CONFIRMATION_MAX_ATTEMPTS
+        count = 0
 
-    def test_password_reset(self):
+        data = {
+            "email": "new-test@test.test",
+            "first_name": "tests",
+            "last_name": "tests",
+            "password": '12345678',
+            "password_confirmation": '12345678',
+        }
+
+        # Try to register user
+        response = self.client.post(reverse('register_user'), data, format='json')
+
+        # Check that the response has a success status code
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED, 'Code must be 201')
+
+        count, conf_token = get_count_and_conf_token(count)
+
+        # Create dictionary to store all activation attempts with conf_token
+        count_dict: dict[str: str] = {str(count): conf_token}
+
+        data = {
+            "email": "new-test@test.test",
+            "password": "12345678",
+        }
+        while count < max_attempts:
+            response = self.client.post(reverse('login'), data, format='json')
+            self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN,
+                             'Code must be 403')
+
+            count, conf_token = get_count_and_conf_token(count)
+
+            # Add count with conf_token
+            count_dict.setdefault(str(count), conf_token)
+
+        response = self.client.post(reverse('login'), data, format='json')
+        self.assertEqual(response.status_code, status.HTTP_429_TOO_MANY_REQUESTS,
+                         'Code must be 429')
+
+        for k, v in count_dict.items():
+            response = self.client.post(reverse('activate_user',
+                                                kwargs={'conf_token': v}),
+                                        format='json')
+            if int(k) != max_attempts:
+                self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST,
+                                 'If link is old, and a newer link was send, code must be 400')
+            else:
+                self.assertEqual(response.status_code, status.HTTP_200_OK,
+                                 'If link is active, last sent and token in correct, code must be 200')
+
+        # Try to log in
+        response = self.client.post(reverse('login'), data, format='json')
+        self.assertEqual(response.status_code, status.HTTP_200_OK,
+                         'Code must be 200')
+
+    @override_settings(EMAIL_BACKEND='django.core.mail.backends.locmem.EmailBackend')
+    def test_reset_password(self):
         """
         Try to reset password, follow the confirmation link and enter new password.
         """
@@ -85,7 +157,7 @@ class UserTestCase(TestAPIEcommerce):
         data = {'email': 'test@test.com', 'password': '12345678'}
 
         # Try to log in
-        response = self.client.post(reverse('token_obtain_pair'), data)
+        response = self.client.post(reverse('login'), data)
 
         # Check that the response has a success status code
         self.assertEqual(response.status_code, status.HTTP_200_OK, 'Code must be 200')
@@ -95,7 +167,7 @@ class UserTestCase(TestAPIEcommerce):
         response = self.client.post(reverse('forgot_password'), data, format='json')
 
         # Check that the response has a success status code
-        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT, 'Code must be 204')
+        self.assertEqual(response.status_code, status.HTTP_200_OK, 'Code must be 200')
 
         # Check that email was sent
         self.assertEqual(len(mail.outbox), 1, 'Email must be sent')
@@ -115,15 +187,109 @@ class UserTestCase(TestAPIEcommerce):
         response = self.client.patch(link, data, format='json')
 
         # Check that the response has a success status code
-        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT, 'Code must be 204')
+        self.assertEqual(response.status_code, status.HTTP_200_OK, 'Code must be 200')
 
         data = {'email': 'test@test.com', 'password': '87654321'}
 
         # Try to log in with new credentials
-        response = self.client.post(reverse('token_obtain_pair'), data)
+        response = self.client.post(reverse('login'), data)
 
         # Check that the response has a success status code
         self.assertEqual(response.status_code, status.HTTP_200_OK, 'Code must be 200')
+
+    @override_settings(EMAIL_BACKEND='django.core.mail.backends.locmem.EmailBackend')
+    def test_reset_password_max_attempts(self):
+        cache.clear()
+        max_attempts = settings.RESET_PASSWORD_MAX_ATTEMPTS
+        count = 0
+        count_dict: dict[str: str] = {}
+        data = {'email': 'test@test.com'}
+        reset_password_data = {'password': '87654321', 'password_confirmation': '87654321'}
+
+
+        while count < max_attempts:
+            # Try to get email
+            response = self.client.post(reverse('forgot_password'),
+                                        data,
+                                        format='json')
+
+            count, conf_token = get_count_and_conf_token(count)
+
+            # Set count and token to dict
+            count_dict.setdefault(str(count), conf_token)
+
+        response = self.client.post(reverse('forgot_password'),
+                                    data,
+                                    format='json')
+
+        self.assertEqual(response.status_code, status.HTTP_429_TOO_MANY_REQUESTS,
+                         'Code must be 429')
+
+
+        for k, v in count_dict.items():
+            # Try to reset password
+            response = self.client.patch(reverse('reset_password',
+                                                kwargs={'conf_token': v}),
+                                        reset_password_data,
+                                        format='json')
+
+            if int(k) != max_attempts:
+                self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST,
+                                 f'If link is old, and a newer link was send, code must be 400')
+            else:
+                self.assertEqual(response.status_code, status.HTTP_200_OK,
+                                 'If link is active, last sent and token in correct, code must be 200')
+
+    @override_settings(EMAIL_BACKEND='django.core.mail.backends.locmem.EmailBackend')
+    def test_user_activation_while_reset_password(self):
+        cache.clear()
+
+        data = {
+            "email": "new-test@test.test",
+            "first_name": "tests",
+            "last_name": "tests",
+            "password": '12345678',
+            "password_confirmation": '12345678',
+        }
+
+        forgot_password_data = {"email": "new-test@test.test"}
+
+        reset_password_data = {
+            'password': '87654321',
+            'password_confirmation': '87654321'
+        }
+
+        # Try to register
+        response = self.client.post(reverse('register_user'), data, format='json')
+        user_id = response.data.get('id')
+        user = get_object_or_404(UserProfile, pk=user_id)
+
+        # Check that the response has a success status code
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED,
+                         'Code must be 201')
+
+        # Check 'is_active' status of created user before opening link from email
+        self.assertEqual(user.is_active, False,
+                         'Before opening link from email "is_active" status of the user must be True')
+
+        response = self.client.post(reverse('forgot_password'),
+                                    forgot_password_data,
+                                    format='json')
+
+        message = mail.outbox[1].body # One means second mail, first was sent while registration
+        conf_token = extract_token_form_url(message)
+
+        response = self.client.patch(reverse('reset_password',
+                                            kwargs={'conf_token': conf_token}),
+                                    reset_password_data,
+                                    format='json')
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK,
+                         'Code must be 200')
+
+        user = get_object_or_404(UserProfile, pk=user_id)
+
+        self.assertEqual(user.is_active, True, 'User must be active')
 
 
     def test_user_view_set(self):

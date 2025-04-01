@@ -164,11 +164,17 @@ def activate_user(request, *args, **kwargs):
     try:
         if user_id := user.get('user_id'):
             user = get_object_or_404(UserProfile, pk=user_id)
+            if user.is_active:
+                return Response(
+                    {'error': 'Account is already active!'},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+
             user.activate()
             cache.delete(confirmation_key)
             return Response(
-                {'message': 'User is activated successfully!'},
-                status=status.HTTP_204_NO_CONTENT
+                {'message': 'User was activated successfully!'},
+                status=status.HTTP_200_OK
             )
         else:
             return Response(
@@ -299,7 +305,7 @@ class ForgotPasswordAPIView(APIView,
 
         return Response(
             {'message': 'Email sent. Check your mailbox!'},
-            status=status.HTTP_204_NO_CONTENT
+            status=status.HTTP_200_OK
         )
 
 
@@ -353,8 +359,8 @@ class ResetPasswordAPIView(mixins.UpdateModelMixin,
             cache.delete(confirmation_key)
 
             return Response(
-                {'message': 'Password was changed successfully!'},
-                status=status.HTTP_204_NO_CONTENT
+                {'message': 'Password was successfully changed!'},
+                status=status.HTTP_200_OK
             )
 
         except TimeoutError:
