@@ -4,6 +4,7 @@ import SignInPage from "../pages/SignInPage.jsx";
 import LogInPage from "../pages/LogInPage.jsx";
 import ActivateAccountPage from "../pages/ActivateAccountPage.jsx";
 import ResetPasswordPage from "../pages/ResetPasswordPage.jsx";
+import NotFoundPage from "../pages/NotFoundPage.jsx";
 
 const AppRoutes = () => {
     return (
@@ -13,6 +14,7 @@ const AppRoutes = () => {
             <Route path="/login" element={<LogInPage />} />
             <Route path="/activate/:token" element={<ActivateAccountPage />} />
             <Route path="/reset-password/:token" element={<ResetPasswordPage />} />
+            <Route path="*" element={<NotFoundPage />} />
         </Routes>
     );
 };
