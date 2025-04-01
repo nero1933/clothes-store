@@ -2,7 +2,16 @@
 [![codecov](https://codecov.io/github/nero1933/clothes-store/graph/badge.svg?token=963BSSMBE4)](https://codecov.io/github/nero1933/clothes-store)
 ![API Docs](https://img.shields.io/badge/API-Swagger-blue)
 
-Clothes store is my pet project. It's going to be an ecommerce website.
+## Clothes store
+<p>UNDER DEVELOPMENT</p>
+<p>It's my pet project. It's going to be an ecommerce website.</p>
+<p>Uses DRF + React</p>
 
-Database structure
+## API Documentation
+📖 [View API Docs](https://nero1933.github.io/clothes-store/)
+
+## Database structure
 ![db structure](app/ecommerce/db_structure.png)
+
+
+
