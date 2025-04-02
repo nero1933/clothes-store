@@ -1,27 +1,12 @@
-import { useState, useEffect } from 'react';
-import { fetchProducts } from '../services/productsService';
+import { useQuery } from "@tanstack/react-query";
+import { fetchProducts } from "../services/productsService.js";
 
-const useProducts = () => {
-    const [products, setProducts] = useState([]);
-    const [loading, setLoading] = useState(true);
-    const [error, setError] = useState(null);
-
-    useEffect(() => {
-        const loadProducts = async () => {
-            try {
-                const data = await fetchProducts();
-                setProducts(data);
-            } catch (err) {
-                setError(err);
-            } finally {
-                setLoading(false);
-            }
-        };
-
-        loadProducts().catch(console.error);
-    }, []);
-
-    return { products, loading, error };
+export const useProducts = () => {
+    return useQuery({
+        queryKey: ["products"],
+        queryFn: fetchProducts,
+        staleTime: 1000 * 60 * 5, // Cache data for 5 minutes
+    });
 };
 
 export default useProducts;

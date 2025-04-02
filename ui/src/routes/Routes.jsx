@@ -7,12 +7,18 @@ import ResetPasswordPage from "../pages/ResetPasswordPage.jsx";
 import NotFoundPage from "../pages/NotFoundPage.jsx";
 import AccountPage from "../pages/AccountPage.jsx";
 import PrivateRoute from "./PrivateRoutes.jsx";
+import Layout from "../pages/layout/Layout.jsx";
+import ProductDetailPage from "../pages/ProductDetailPage.jsx";
 
 const AppRoutes = () => {
     return (
         <Routes>
             {/* Public routes */}
-            <Route path="/" element={<HomePage />} />
+            <Route path="/" element={<Layout />}>
+                <Route index element={<HomePage />} />
+                <Route path = "products/:slug" element={<ProductDetailPage />} />
+            </Route>
+
             <Route path="/signin" element={<SignInPage />} />
             <Route path="/login" element={<LogInPage />} />
             <Route path="/activate/:token" element={<ActivateAccountPage />} />

@@ -1,12 +1,15 @@
-import ProductItem from './ProductItem';
+import ProductCard from "./ProductCard.jsx";
 
 const ProductList = ({ products }) => {
     return (
-        <ul>
-            {products.map((product) => (
-                <ProductItem key={product.id} product={product} />
-            ))}
-        </ul>
+        <div>
+            <h2>Product List</h2>
+            <ul>
+                {products.map((product) => (
+                    <ProductCard key={product.id} product={product} />
+                ))}
+            </ul>
+        </div>
     );
 };
 

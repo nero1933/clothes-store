@@ -1,6 +1,7 @@
 import { Link } from "react-router-dom";
 import { useSelector } from "react-redux";
 import LogoutButton from "./LogoutButton.jsx";
+import DropdownMenu from "./DropdownMenu.jsx";
 
 
 const Header = () => {
@@ -23,7 +24,11 @@ const Header = () => {
     return(
         <header>
             <nav>
+                <Link to="/">Main Page   </Link>
                 {is_guest ? displayForGuest : displayForUser}
+            </nav>
+            <nav>
+                <DropdownMenu/>
             </nav>
         </header>
     )
