@@ -39,8 +39,8 @@ const ProductCard = ({ product }) => {
                 <p>Category: {product.category}</p>
                 <p>
                     Price: ${minPrice === maxPrice
-                        ? formatPrice(minPrice)
-                        : `${formatPrice(minPrice)} - ${formatPrice(maxPrice)}`}
+                    ? formatPrice(minPrice)
+                    : `${formatPrice(minPrice)} - ${formatPrice(maxPrice)}`}
                 </p>
             </Link>
         </li>

@@ -2,10 +2,10 @@ import ProductList from "../components/ProductList.jsx";
 import useProducts from "../hooks/useProducts.js";
 
 const HomePage = () => {
-    const { products, loading, error } = useProducts();
+    const { data: products, isLoading, isError, error } = useProducts();
 
-    if (loading) return <p>Loading...</p>;
-    if (error) return <p>Error: {error.message}</p>;
+    if (isLoading) return <p>Loading...</p>;
+    if (isError) return <p>Error: {error.message}</p>;
 
     return (
       <>
